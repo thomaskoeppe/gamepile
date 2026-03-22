@@ -1,0 +1,418 @@
+generator client_web {
+  provider = "prisma-client"
+  output   = "../packages/web/prisma/generated"
+}
+
+generator client_worker {
+  provider = "prisma-client"
+  output   = "../packages/worker/src/prisma/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Platform {
+  WINDOWS
+  LINUX
+  MAC
+}
+
+enum CollectionVisibility {
+  PRIVATE
+  FRIENDS
+  PUBLIC
+}
+
+enum GameType {
+  GAME
+  DLC
+  DEMO
+  MOD
+  ADVERTISING
+  UNKNOWN
+}
+
+enum KeyVaultAuthType {
+  NONE
+  PIN
+  PASSWORD
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum AppSettingKey {
+  ALLOW_USER_SIGNUP
+  ALLOW_USER_ACCOUNT_DELETION
+  ALLOW_INVITE_CODE_GENERATION
+  SESSION_TIMEOUT_SECONDS
+  VAULT_ALLOW_PASSWORD_CHANGE
+  VAULT_BLOCK_USER_ON_INCORRECT_PASSWORD
+  VAULT_BLOCK_DURATION_SECONDS
+  VAULT_BLOCK_AFTER_ATTEMPTS
+  VAULT_DEFAULT_AUTH_TYPE
+  VAULT_AUTH_ALLOW_PASSWORD
+  VAULT_AUTH_ALLOW_PIN
+  VAULT_PASSWORD_MIN_LENGTH
+  VAULT_PASSWORD_MAX_LENGTH
+  VAULT_PIN_MIN_LENGTH
+  VAULT_PIN_MAX_LENGTH
+  ALLOW_VAULT_DELETION
+  DISABLE_VAULT_SHARING
+  ADMIN_CAN_DELETE_ANY_VAULT
+  ADMIN_CAN_DELETE_ANY_COLLECTION
+  ALLOW_PUBLIC_COLLECTIONS
+  ADMIN_CAN_CHANGE_RESOURCE_OWNER
+  MAX_VAULTS_PER_USER
+  MAX_COLLECTIONS_PER_USER
+}
+
+model AppSetting {
+  id        String        @id @default(cuid())
+  key       AppSettingKey @unique
+  value     Json
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @default(now()) @updatedAt
+}
+
+model User {
+  id               String            @id @default(cuid())
+  steamId          String            @unique
+  username         String
+  avatarUrl        String?
+  profileUrl       String
+  lastLogin        DateTime          @default(now())
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  role             UserRole          @default(USER)
+  sessions         Session[]
+  userGames        UserGame[]
+  collectionsOwned Collection[]      @relation("CollectionCreator")
+  collectionUsers  CollectionUser[]  @relation("CollectionUser_user")
+  collectionsAdded CollectionUser[]  @relation("CollectionUser_addedBy")
+  collectionGames  CollectionGame[]  @relation("CollectionGame_addedBy")
+  keyVaultsCreated KeyVault[]        @relation("KeyVaultCreator")
+  keyVaultUsers    KeyVaultUser[]    @relation("KeyVaultUser_user")
+  keyVaultAddedBy  KeyVaultUser[]    @relation("KeyVaultUser_addedBy")
+  keyVaultGames    KeyVaultGame[]    @relation("KeyVaultGame_addedBy")
+  keyVaultRedeemed KeyVaultGame[]    @relation("KeyVaultGame_redeemedBy")
+  jobs             Job[]
+  settings         UserSettings?
+  inviteCodes      InviteCode[]
+  inviteCodeUsages InviteCodeUsage[]
+
+  @@index([steamId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token        String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  lastActivity DateTime @default(now())
+  userAgent    String?
+  ipAddress    String?
+
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model UserSettings {
+  id                            String  @id @default(cuid())
+  user                          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                        String  @unique
+  privacyAllowVaultInvites      Boolean @default(true)
+  privacyAllowCollectionInvites Boolean @default(true)
+  privacyAllowProfileView       Boolean @default(true)
+}
+
+model Game {
+  id                String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  appId             Int?                     @unique
+  name              String
+  description       String?
+  shortDescription  String?
+  developers        String[]
+  publishers        String[]
+  releaseDate       DateTime?
+  metacriticScore   Int?
+  tags              String[]
+  platforms         Platform[]
+  isFree            Boolean                  @default(false)
+  detailsFetchedAt  DateTime?
+  steamLastModified Int?
+  type              GameType                 @default(UNKNOWN)
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @default(now()) @updatedAt
+  search_vector     Unsupported("tsvector")?
+  categories        Category[]               @relation("GameToCategories")
+  genres            Genre[]                  @relation("GameToGenres")
+  userGames         UserGame[]
+  collectionGames   CollectionGame[]
+  keyVaultGames     KeyVaultGame[]
+  Achievement       Achievement[]
+
+  @@index([name])
+  @@index([appId])
+  @@index([search_vector], type: Gin)
+}
+
+model Category {
+  id         String @id @default(cuid())
+  categoryId Int    @unique
+  name       String @unique
+
+  games Game[] @relation("GameToCategories")
+}
+
+model Genre {
+  id      String @id @default(cuid())
+  genreId Int    @unique
+  name    String @unique
+
+  games Game[] @relation("GameToGenres")
+}
+
+model Achievement {
+  id          String  @id @default(cuid())
+  name        String
+  displayName String
+  description String
+  icon        String
+  icongray    String
+  hidden      Boolean @default(false)
+  game        Game    @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  gameId      String  @db.Uuid
+
+  UserGameAchievement UserGameAchievement[]
+
+  @@unique([gameId, name])
+}
+
+model UserGame {
+  id             String    @id @default(cuid())
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  game           Game      @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  gameId         String    @db.Uuid
+  playtime       Int       @default(0)
+  playtime2Weeks Int       @default(0)
+  lastPlayed     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
+
+  UserGameAchievement UserGameAchievement[]
+
+  @@unique([userId, gameId])
+}
+
+model UserGameAchievement {
+  id            String      @id @default(cuid())
+  userGame      UserGame    @relation(fields: [userGameId], references: [id], onDelete: Cascade)
+  userGameId    String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievedAt    DateTime    @default(now())
+
+  @@unique([userGameId, achievementId])
+}
+
+model Collection {
+  id          String               @id @default(cuid())
+  name        String
+  description String?
+  type        CollectionVisibility @default(PRIVATE)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  createdBy   User                 @relation("CollectionCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  createdById String
+
+  users CollectionUser[] @relation("CollectionUser_collection")
+  games CollectionGame[]
+
+  @@index([createdById])
+  @@index([name])
+}
+
+model CollectionUser {
+  id           String     @id @default(cuid())
+  collection   Collection @relation("CollectionUser_collection", fields: [collectionId], references: [id], onDelete: Cascade)
+  collectionId String
+
+  user      User   @relation("CollectionUser_user", fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  addedBy   User   @relation("CollectionUser_addedBy", fields: [addedById], references: [id], onDelete: Cascade)
+  addedById String
+
+  addedAt   DateTime @default(now())
+  canModify Boolean  @default(false)
+
+  @@unique([collectionId, userId])
+}
+
+model CollectionGame {
+  id           String     @id @default(cuid())
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  collectionId String
+  game         Game       @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  gameId       String     @db.Uuid
+  addedAt      DateTime   @default(now())
+  addedBy      User       @relation("CollectionGame_addedBy", fields: [addedById], references: [id], onDelete: Cascade)
+  addedById    String
+  notes        String?
+
+  @@unique([collectionId, gameId])
+}
+
+model KeyVault {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  authType    KeyVaultAuthType
+  authHash    String?
+  authSalt    String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  createdBy   User             @relation("KeyVaultCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  createdById String
+
+  games KeyVaultGame[]
+  users KeyVaultUser[]
+
+  @@index([createdById])
+}
+
+model KeyVaultUser {
+  id         String   @id @default(cuid())
+  keyVault   KeyVault @relation(fields: [keyVaultId], references: [id], onDelete: Cascade)
+  keyVaultId String
+
+  user      User   @relation("KeyVaultUser_user", fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  addedBy   User   @relation("KeyVaultUser_addedBy", fields: [addedById], references: [id], onDelete: Cascade)
+  addedById String
+
+  addedAt   DateTime @default(now())
+  canRedeem Boolean  @default(false)
+  canCreate Boolean  @default(false)
+
+  @@unique([keyVaultId, userId])
+}
+
+model KeyVaultGame {
+  id           String    @id @default(cuid())
+  keyVault     KeyVault  @relation(fields: [keyVaultId], references: [id], onDelete: Cascade)
+  keyVaultId   String
+  game         Game?     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  gameId       String?   @db.Uuid
+  addedAt      DateTime  @default(now())
+  addedBy      User      @relation("KeyVaultGame_addedBy", fields: [addedById], references: [id], onDelete: Cascade)
+  addedById    String
+  key          String
+  hashedKey    String?
+  originalName String
+  redeemed     Boolean   @default(false)
+  redeemedAt   DateTime?
+  redeemedBy   User?     @relation("KeyVaultGame_redeemedBy", fields: [redeemedById], references: [id], onDelete: SetNull)
+  redeemedById String?
+
+  @@unique([keyVaultId, key])
+}
+
+model InviteCode {
+  id          String            @id @default(cuid())
+  code        String            @unique @default(dbgenerated("substring(md5(random()::text), 1, 8)"))
+  createdAt   DateTime          @default(now())
+  createdBy   User              @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdById String
+  usage       InviteCodeUsage[]
+  expiresAt   DateTime?
+  maxUses     Int?
+
+  @@index([createdById])
+  @@index([code])
+}
+
+model InviteCodeUsage {
+  id           String     @id @default(cuid())
+  inviteCode   InviteCode @relation(fields: [inviteCodeId], references: [id], onDelete: Cascade)
+  inviteCodeId String
+  usedBy       User       @relation(fields: [usedById], references: [id], onDelete: Cascade)
+  usedById     String
+  usedAt       DateTime   @default(now())
+
+  @@index([inviteCodeId])
+  @@index([usedById])
+}
+
+enum JobType {
+  SYNC_STEAM_GAMES
+  IMPORT_USER_LIBRARY
+  IMPORT_USER_ACHIEVEMENTS
+  REFRESH_GAME_DETAILS
+}
+
+enum JobStatus {
+  QUEUED
+  ACTIVE
+  COMPLETED
+  PARTIALLY_COMPLETED
+  FAILED
+  CANCELED
+}
+
+model JobLog {
+  id        String   @id @default(cuid())
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  jobId     String
+  message   String
+  level     String
+  timestamp DateTime @default(now())
+
+  @@index([jobId])
+}
+
+model Job {
+  id             String           @id @default(cuid())
+  type           JobType
+  status         JobStatus        @default(QUEUED)
+  progress       Int              @default(0)
+  processedItems Int              @default(0)
+  totalItems     Int              @default(0)
+  failedItems    Int              @default(0)
+  allItemsQueued Boolean          @default(false)
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  errorMessage   String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  claimedBy      String?
+  userId         String?
+  user           User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  logs           JobLog[]
+  FailedChildJob FailedChildJob[]
+
+  @@index([status])
+  @@index([claimedBy])
+  @@index([userId])
+  @@index([type])
+}
+
+model FailedChildJob {
+  id           String   @id @default(cuid())
+  job          Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  jobId        String
+  appId        Int
+  gameId       String?  @db.Uuid
+  errorMessage String?
+  attempts     Int
+  createdAt    DateTime @default(now())
+
+  @@index([jobId])
+  @@index([appId])
+}

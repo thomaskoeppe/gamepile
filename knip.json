@@ -1,0 +1,20 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "tags": [
+    "-lintignore"
+  ],
+  "workspaces": {
+    ".": {
+      "entry": ["prisma/**"],
+      "ignore": [".github/**", "docs/**"]
+    },
+    "packages/web": {
+      "ignore": [".next/**", "public/**"]
+    },
+    "packages/worker": {
+      "entry": [
+        "src/index.ts"
+      ]
+    }
+  }
+}

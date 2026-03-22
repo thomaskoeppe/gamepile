@@ -1,0 +1,59 @@
+name: Code Check
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma clients
+        run: |
+          npm run prisma:generate --workspace=packages/web
+          npm run prisma:generate --workspace=packages/worker
+
+      - name: Typecheck web
+        run: npx tsc --noEmit -p packages/web/tsconfig.json
+
+      - name: Typecheck worker
+        run: npm run typecheck --workspace=packages/worker
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma clients
+        run: |
+          npm run prisma:generate --workspace=packages/web
+          npm run prisma:generate --workspace=packages/worker
+
+      - name: Build worker
+        run: npm run build --workspace=packages/worker
+

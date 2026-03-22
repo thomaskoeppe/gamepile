@@ -1,0 +1,41 @@
+{
+  "name": "gamepile",
+  "private": true,
+  "workspaces": [
+    "packages/web",
+    "packages/worker"
+  ],
+  "scripts": {
+    "dev": "dotenv -e .env -- concurrently \"npm run dev --workspace=packages/web\" \"npm run dev --workspace=packages/worker\"",
+    "dev:web": "dotenv -e .env -- npm run dev --workspace=packages/web",
+    "dev:worker": "dotenv -e .env -- npm run dev --workspace=packages/worker",
+    "db:generate": "dotenv -e .env -- npm run prisma:generate --workspace=packages/web && dotenv -e .env -- npm run prisma:generate --workspace=packages/worker",
+    "db:migrate:dev": "dotenv -e .env -- npm run prisma:migrate:dev --workspace=packages/web --",
+    "db:migrate:deploy": "dotenv -e .env -- npm run prisma:migrate:deploy --workspace=packages/web",
+    "db:migrate:status": "dotenv -e .env -- npm run prisma:migrate:status --workspace=packages/web",
+    "db:migrate:reset": "dotenv -e .env -- npm run prisma:migrate:reset --workspace=packages/web",
+    "db:studio": "dotenv -e .env -- npm run prisma:studio --workspace=packages/web",
+    "build": "dotenv -e .env -- npm run build --workspace=packages/web && dotenv -e .env -- npm run build --workspace=packages/worker",
+    "start": "dotenv -e .env -- npm run start --workspace=packages/web && dotenv -e .env -- npm run start --workspace=packages/worker",
+    "unused:worker": "npx dotenv-cli -e .env.example -- knip --workspace packages/worker",
+    "unused:web": "npx dotenv-cli -e .env.example -- knip --workspace packages/web",
+    "lint:web": "npm run lint --workspace=packages/web"
+  },
+  "overrides": {
+    "prisma": {
+      "hono": "^4.7.10",
+      "@hono/node-server": "^1.19.10",
+      "lodash": "^4.17.22"
+    }
+  },
+  "dependencies": {
+    "concurrently": "^9.2.1",
+    "dotenv": "^17.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "dotenv-cli": "^11.0.0",
+    "knip": "^6.0.0",
+    "typescript": "^5.9.3"
+  }
+}

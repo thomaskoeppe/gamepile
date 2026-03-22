@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: gamepile
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      initContainers:
+        - name: wait-for-migrations
+          image: postgres:17-alpine
+          envFrom:
+            - configMapRef:
+                name: gamepile-config
+            - secretRef:
+                name: gamepile-secrets
+          command:
+            - /bin/sh
+            - -c
+            - |
+              until pg_isready -d "$DATABASE_URL"; do
+                echo "Waiting for PostgreSQL..."
+                sleep 3
+              done
+              until psql "$DATABASE_URL" -tAc "SELECT to_regclass('_prisma_migrations')" | grep -q "_prisma_migrations"; do
+                echo "Waiting for prisma migrations to complete..."
+                sleep 3
+              done
+      containers:
+        - name: web
+          image: ghcr.io/thomaskoeppe/gamepile-web:latest
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: gamepile-config
+            - secretRef:
+                name: gamepile-secrets
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 20

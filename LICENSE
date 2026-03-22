@@ -1,0 +1,107 @@
+Gamepile Non-Commercial License
+Version 1.0, 2024
+
+Copyright (c) 2024 Thomas Koeppe
+All rights reserved.
+
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+1. Definitions.
+
+   "License" means this document.
+
+   "Licensor" means Thomas Koeppe, the original author and copyright holder
+   of the Software.
+
+   "Software" means the Gamepile source code, documentation, configuration
+   files, and all associated materials made available under this License.
+
+   "Commercial Use" means any use of the Software, in whole or in part,
+   directly or indirectly, for financial gain, monetary compensation,
+   or any other form of commercial advantage or private monetary gain.
+   This includes, but is not limited to, selling the Software, offering
+   the Software as a hosted service (SaaS), or incorporating the Software
+   into a commercial product or service.
+
+   "Non-Commercial Use" means use of the Software solely for personal,
+   educational, research, or other non-commercial purposes where no
+   direct or indirect financial gain is obtained.
+
+2. Grant of License.
+
+   Subject to the terms and conditions of this License, the Licensor
+   hereby grants you a worldwide, royalty-free, non-exclusive,
+   non-transferable license to:
+
+   (a) Use, copy, and run the Software for Non-Commercial Use only;
+   (b) Modify the Software for your own Non-Commercial Use;
+   (c) Distribute verbatim or modified copies of the Software, provided
+       that all copies include this License in full and retain all
+       copyright notices.
+
+3. Attribution Requirement.
+
+   Any use, distribution, or display of the Software — whether in
+   original or modified form — must:
+
+   (a) Prominently display the following attribution notice in any user
+       interface, documentation, README, or "About" page:
+
+         "Gamepile was developed by Thomas Koeppe
+          (https://github.com/thomaskoeppe/gamepile)"
+
+   (b) Not remove, alter, or obscure any existing copyright notices,
+       author attributions, or acknowledgements present in the Software.
+
+4. Restrictions.
+
+   You may NOT:
+
+   (a) Use the Software for any Commercial Use without a separate written
+       commercial license agreement from the Licensor.
+   (b) Sub-license the Software to any third party for Commercial Use.
+   (c) Remove or alter this License from any copy of the Software.
+   (d) Use the Licensor's name, brand, or trademarks to endorse or
+       promote products or services derived from the Software without
+       prior written permission.
+
+5. Licensor's Reserved Rights.
+
+   The Licensor (Thomas Koeppe) retains all rights to use, modify,
+   distribute, sell, and commercially exploit the Software without
+   restriction. This License does not limit the Licensor's own rights
+   in any way.
+
+6. No Warranty.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+   IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR
+   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE,
+   ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+   OR OTHER DEALINGS IN THE SOFTWARE.
+
+7. Termination.
+
+   Your rights under this License will terminate automatically and without
+   notice if you fail to comply with any of its terms and conditions.
+   Upon termination, you must cease all use of the Software and destroy
+   all copies in your possession.
+
+8. Contact.
+
+   For commercial licensing inquiries, please contact:
+   Thomas Koeppe — https://github.com/thomaskoeppe
+
+---
+
+SUMMARY (informational, not legally binding):
+
+- ✅ You MAY use Gamepile for personal, self-hosted, non-commercial purposes.
+- ✅ You MAY modify and share the code with attribution.
+- ✅ You MUST credit Thomas Koeppe as the original author.
+- ❌ You MAY NOT sell, resell, or offer Gamepile (or derivatives) as a
+     commercial product or hosted service.
+- ❌ You MAY NOT use Gamepile in a commercial context without a separate
+     agreement.

@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  namespace: gamepile
+spec:
+  # ──────────────────────────────────────────────────
+  # Workers are stateless BullMQ consumers.
+  # Scale replicas freely across nodes.
+  # Each pod gets a unique hostname (os.hostname())
+  # used as "claimedBy" for job tracking.
+  # ──────────────────────────────────────────────────
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      terminationGracePeriodSeconds: 30  # allow in-flight jobs to finish
+      initContainers:
+        - name: wait-for-migrations
+          image: postgres:17-alpine
+          envFrom:
+            - configMapRef:
+                name: gamepile-config
+            - secretRef:
+                name: gamepile-secrets
+          command:
+            - /bin/sh
+            - -c
+            - |
+              until pg_isready -d "$DATABASE_URL"; do
+                echo "Waiting for PostgreSQL..."
+                sleep 3
+              done
+              until psql "$DATABASE_URL" -tAc "SELECT to_regclass('_prisma_migrations')" | grep -q "_prisma_migrations"; do
+                echo "Waiting for prisma migrations to complete..."
+                sleep 3
+              done
+      containers:
+        - name: worker
+          image: ghcr.io/thomaskoeppe/gamepile-worker:latest
+          envFrom:
+            - configMapRef:
+                name: gamepile-config
+            - secretRef:
+                name: gamepile-secrets
+          env:
+            - name: LOG_SERVICE
+              value: gamepile-worker
+            - name: LOG_ENV
+              value: production
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+      # Spread workers across nodes for HA
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: worker
