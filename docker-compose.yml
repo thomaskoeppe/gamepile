@@ -58,7 +58,8 @@ services:
   # Prisma Migrations (run-once init container)
   # ────────────────────────────────────────────────────
   migrate:
-    image: ghcr.io/thomaskoeppe/gamepile/migrate:latest
+#    image: ghcr.io/thomaskoeppe/gamepile/migrate:latest
+    image: docker.io/library/gamepile-migrate:latest
     environment:
       <<: *common-env
       DATABASE_URL: "postgresql://${POSTGRES_USER:-gamepile}:${POSTGRES_PASSWORD:-gamepile_secret}@postgres:5432/${POSTGRES_DB:-gamepile}?schema=public"
@@ -73,14 +74,15 @@ services:
   # Web (Next.js frontend + API)
   # ────────────────────────────────────────────────────
   web:
-    image: ghcr.io/thomaskoeppe/gamepile/web:latest
+#    image: ghcr.io/thomaskoeppe/gamepile/web:latest
+    image: docker.io/library/gamepile-web:latest
     restart: unless-stopped
     env_file:
       - .env
     environment:
       <<: *common-env
       DATABASE_URL: "postgresql://${POSTGRES_USER:-gamepile}:${POSTGRES_PASSWORD:-gamepile_secret}@postgres:5432/${POSTGRES_DB:-gamepile}?schema=public"
-      WEB_APP_URL: "https://${DOMAIN:-gamepile.example.com}"
+      WEB_APP_URL: "http://${DOMAIN:-gamepile.example.com}"
       WEB_ALLOWED_ORIGINS: "${WEB_ALLOWED_ORIGINS:-gamepile.example.com}"
       LOG_LEVEL: "${LOG_LEVEL:-info}"
       LOG_SERVICE: "gamepile-web"
@@ -93,18 +95,13 @@ services:
       - "3000"
     networks:
       - gamepile-net
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.web.rule=Host(`${DOMAIN:-gamepile.example.com}`)"
-      - "traefik.http.routers.web.entrypoints=websecure"
-      - "traefik.http.routers.web.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web.loadbalancer.server.port=3000"
 
   # ────────────────────────────────────────────────────
   # Worker (BullMQ job processor — scale with replicas)
   # ────────────────────────────────────────────────────
   worker:
-    image: ghcr.io/thomaskoeppe/gamepile/worker:latest
+#    image: ghcr.io/thomaskoeppe/gamepile/worker:latest
+    image: docker.io/library/gamepile-worker:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -136,34 +133,22 @@ services:
         delay: 5s
 
   # ────────────────────────────────────────────────────
-  # Traefik (Reverse Proxy + Auto TLS)
+  # Caddy (Reverse Proxy — HTTP only)
   # ────────────────────────────────────────────────────
-  traefik:
-    image: traefik:v3.3
+  caddy:
+    image: caddy:alpine
     restart: unless-stopped
-    command:
-      - "--api.dashboard=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-admin@example.com}"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - letsencrypt_data:/letsencrypt
+      - "8080:8080"
+    command: caddy reverse-proxy --from :8080 --to web:3000
+    depends_on:
+      - web
     networks:
       - gamepile-net
 
 volumes:
   postgres_data:
   redis_data:
-  letsencrypt_data:
 
 networks:
   gamepile-net:

@@ -112,7 +112,7 @@ export async function proxy(request: NextRequest) {
         `base-uri 'self'`,
         `form-action 'self'`,
         `frame-ancestors 'none'`,
-        `upgrade-insecure-requests`,
+        // `upgrade-insecure-requests`,
     ].join(";");
 
     const requestHeaders = new Headers(request.headers);
@@ -151,7 +151,8 @@ export async function proxy(request: NextRequest) {
                     });
                     if (collection?.type === CollectionVisibility.PUBLIC) {
                         reqLog.info("Redirecting to public collection view", { collectionId, durationMs: Date.now() - start });
-                        return NextResponse.redirect(new URL(`/collections/p/${collectionId}`, request.url));
+                        return NextResponse.redirect(new URL(`/collections/p/${collectionId}`, request.nextUrl));
+
                     }
                 } catch (err) {
                     reqLog.error("Failed to check public collection status", err instanceof Error ? err : undefined, {
@@ -162,8 +163,10 @@ export async function proxy(request: NextRequest) {
 
             reqLog.info("No session — redirecting to login", { redirectTarget: pathname, durationMs: Date.now() - start });
 
-            const loginUrl = new URL("/", request.url);
+            const loginUrl = new URL("/", request.nextUrl);
             loginUrl.searchParams.set("redirect", pathname);
+
+            reqLog.info("Redirecting to login page", { loginUrl: loginUrl.toString() });
 
             return NextResponse.redirect(loginUrl);
         }
@@ -177,7 +180,7 @@ export async function proxy(request: NextRequest) {
 
     if (isAuthRoute && sessionToken) {
         reqLog.info("Authenticated user on auth route — redirecting to /library", { durationMs: Date.now() - start });
-        return NextResponse.redirect(new URL("/library", request.url));
+        return NextResponse.redirect(new URL("/library", request.nextUrl));
     }
 
     reqLog.debug("Proxy pass-through", { durationMs: Date.now() - start });

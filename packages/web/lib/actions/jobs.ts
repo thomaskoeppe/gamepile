@@ -102,8 +102,6 @@ export async function getLatestJobByType(
  * @param userId - Optional user to associate the job with.
  */
 export async function createJob(type: JobType, userId?: string): Promise<void> {
-    await requireAdmin();
-
     const job = await prisma.job.create({
         data: {
             type,

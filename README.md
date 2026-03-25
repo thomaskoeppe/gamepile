@@ -4,9 +4,6 @@
 
 > ⚠️ **Beta / Work in Progress** — Gamepile is under active development and not yet considered stable. Features may change, break, or be incomplete. Use at your own risk.
 
-> **License:** Non-commercial use only. See [LICENSE](./LICENSE) for details.
-> Developed by [Thomas Koeppe](https://github.com/thomaskoeppe).
-
 ## Project status
 
 Gamepile is under active development and should be treated as beta software.
@@ -29,11 +26,11 @@ Gamepile is under active development and should be treated as beta software.
 
 | Component      | Description                                                                                |
 |----------------|--------------------------------------------------------------------------------------------|
-| **Web**        | Next.js 16 frontend with server components, Steam OAuth login, and API routes              |
+| **Web**        | Next.js 16 frontend with server components, Steam OpenID login, and API routes             |
 | **Worker**     | BullMQ-powered background job processor for Steam library imports and game detail fetching |
 | **PostgreSQL** | Primary data store (users, games, vaults, sessions, jobs)                                  |
 | **Redis**      | Job queue broker for BullMQ                                                                |
-| **Traefik**    | Reverse proxy with automatic HTTPS via Let's Encrypt                                       |
+| **Caddy**      | Simple reverse proxy                                                                       |
 
 ---
 
@@ -55,7 +52,7 @@ Shared Prisma schema lives at `prisma/schema.prisma` with per-package generated 
 | Framework      | Next.js 16 (App Router)                      |
 | UI             | ShadCN UI + Tailwind CSS v4 (dark mode only) |
 | Language       | TypeScript (strict)                          |
-| ORM            | Prisma 6 → PostgreSQL                        |
+| ORM            | Prisma 7 → PostgreSQL                        |
 | Queue          | BullMQ → Redis                               |
 | Auth           | Custom Steam OpenID                          |
 | Server Actions | next-safe-action                             |
@@ -68,6 +65,7 @@ Shared Prisma schema lives at `prisma/schema.prisma` with per-package generated 
 ## Observability & Logging
 
 Gamepile includes built-in observability powered by OpenTelemetry and [SigNoz](https://signoz.io/) (APM platform).
+We decided to go for Signoz as it can be self-hosted and provides a good free tier for starters, while still offering powerful features for log aggregation, distributed tracing, and metrics collection.
 
 ### Features
 
@@ -81,7 +79,7 @@ Gamepile includes built-in observability powered by OpenTelemetry and [SigNoz](h
 
 **Option 1: Hosted SigNoz (Cloud)**
 ```bash
-# Sign up at signoz.io/cloud, get your ingestion key, then set in .env:
+# Sign up at signoz.io/teams, create an account, create a new OpenTelemetry data source and get your ingestion key, then set in .env:
 OTEL_EXPORTER_OTLP_ENDPOINT=https://ingest.us2.signoz.cloud:443
 OTEL_EXPORTER_OTLP_HEADERS=signoz-ingestion-key=your-ingestion-key
 ```
@@ -101,8 +99,6 @@ Use the official SigNoz installation guides:
 - [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/install/) v2+
 - A [Steam Web API Key](https://steamcommunity.com/dev/apikey)
 - A domain name (for production with TLS)
-- PostgreSQL 15+ (self-hosted or cloud)
-- Redis 7+ (self-hosted or cloud)
 
 ---
 
@@ -121,7 +117,16 @@ cp .env.example .env
 docker compose up -d
 
 # 4. Access the application
-open http://localhost:3000
+open http://localhost:8080
+```
+
+Minimal environment variable configuration for quick start (no TLS):
+```env
+STEAM_API_KEY=<your-steam-api-key>
+WEB_VAULT_TOKEN_SECRET=<random-secret>
+DOMAIN=localhost:8080
+WEB_APP_URL=http://localhost:8080
+WEB_ALLOWED_ORIGINS=localhost:8080
 ```
 
 Startup ordering in Compose is enforced automatically:
@@ -157,24 +162,6 @@ Kubernetes manifests in `docs/k8s` follow the same ordering pattern:
 - migration Job waits for PostgreSQL readiness
 - `web`/`worker` use init containers to wait for migration state
 - ingress is Traefik-oriented (no NGINX-specific ingress class settings)
-
----
-
-## License
-
-Copyright © 2024 **Thomas Koeppe**. All rights reserved.
-
-This project is available under a **non-commercial license**. You may:
-- ✅ Use, self-host, and modify Gamepile for personal or non-commercial purposes
-- ✅ Share modified copies with attribution to Thomas Koeppe
-
-You may **not**:
-- ❌ Use Gamepile commercially (sell it, offer it as a SaaS, etc.) without a separate agreement
-- ❌ Remove the attribution to Thomas Koeppe
-
-See [LICENSE](./LICENSE) for the full legal text.
-
-For commercial licensing inquiries, contact: [Thomas Koeppe on GitHub](https://github.com/thomaskoeppe)
 
 ---
 

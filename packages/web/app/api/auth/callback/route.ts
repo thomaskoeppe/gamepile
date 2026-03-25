@@ -14,8 +14,9 @@ export async function GET(request: Request) {
     const searchParams = url.searchParams;
     const start = Date.now();
 
+    const appUrl = process.env.WEB_APP_URL || url.origin;
     const redirect = (path: string) =>
-        NextResponse.redirect(new URL(path, url.origin));
+        NextResponse.redirect(new URL(path, appUrl));
 
     try {
         const redirectPath = searchParams.get("redirect") || "/library";
@@ -149,7 +150,7 @@ export async function GET(request: Request) {
             durationMs: Date.now() - start,
         });
 
-        return NextResponse.redirect(new URL(redirectPath, url.origin));
+        return NextResponse.redirect(new URL(redirectPath, appUrl));
     } catch (error) {
         log.error("Auth callback failed", error instanceof Error ? error : new Error(String(error)), {
             durationMs: Date.now() - start,
