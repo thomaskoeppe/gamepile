@@ -27,6 +27,8 @@ jobs:
         run: |
           npm run prisma:generate --workspace=packages/web
           npm run prisma:generate --workspace=packages/worker
+        env:
+          DATABASE_URL: postgresql://dummy:5432/dummy
 
       - name: Lint web
         run: npm run lint --workspace=packages/web

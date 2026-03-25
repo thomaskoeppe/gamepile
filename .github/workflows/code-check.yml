@@ -27,6 +27,8 @@ jobs:
         run: |
           npm run prisma:generate --workspace=packages/web
           npm run prisma:generate --workspace=packages/worker
+        env:
+          DATABASE_URL: postgresql://dummy:5432/dummy
 
       - name: Typecheck web
         run: npx tsc --noEmit -p packages/web/tsconfig.json
@@ -53,6 +55,8 @@ jobs:
         run: |
           npm run prisma:generate --workspace=packages/web
           npm run prisma:generate --workspace=packages/worker
+        env:
+          DATABASE_URL: postgresql://dummy:5432/dummy
 
       - name: Build worker
         run: npm run build --workspace=packages/worker
