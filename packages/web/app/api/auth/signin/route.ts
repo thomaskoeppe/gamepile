@@ -9,14 +9,15 @@ export async function GET(request: Request) {
         const url = new URL(request.url);
         const redirectPath = url.searchParams.get("redirect") || "/dashboard";
 
-        log.info("Login redirect initiated", { redirectPath });
+        log.info("Login redirect initiated", { redirectPath, url });
 
-        const callbackUrl = new URL("/api/auth/callback", url.origin);
+        const appUrl = process.env.WEB_APP_URL || url.origin;
+        const callbackUrl = new URL("/api/auth/callback", appUrl);
         callbackUrl.searchParams.set("redirect", redirectPath);
 
         const steamLoginUrl = getSteamLoginUrl(callbackUrl.toString());
 
-        log.debug("Redirecting to Steam login", { callbackUrl: callbackUrl.toString() });
+        log.debug("Redirecting to Steam login", { callbackUrl: callbackUrl.toString(), appUrl });
 
         return NextResponse.redirect(steamLoginUrl);
     } catch (error) {
