@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { shutdownTracing } from "@/src/instrumentation.js";
 
 import {initializeLogsExporter} from "@/src/lib/logs-exporter.js";

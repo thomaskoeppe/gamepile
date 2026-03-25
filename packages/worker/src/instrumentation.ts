@@ -2,7 +2,7 @@
  * src/instrumentation.ts
  *
  * Bootstraps OpenTelemetry tracing via NodeSDK.
- * Must be imported FIRST in index.ts, right after dotenv/config.
+ * Must be imported FIRST in index.ts
  */
 
 import { NodeSDK } from "@opentelemetry/sdk-node";
