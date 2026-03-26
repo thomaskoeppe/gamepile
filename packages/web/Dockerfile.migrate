@@ -12,12 +12,25 @@ FROM base AS runner
 COPY package.json ./
 COPY packages/web/package.json ./packages/web/package.json
 
+# prisma CLI + engines (schema-engine binary lives here)
 COPY --from=deps /app/node_modules/prisma ./node_modules/prisma
 COPY --from=deps /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=deps /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+
+# tsx - needed by prisma to execute prisma.config.ts
+COPY --from=deps /app/node_modules/tsx ./node_modules/tsx
+COPY --from=deps /app/node_modules/.bin/tsx ./node_modules/.bin/tsx
+
+# dotenv-cli + transitive deps
 COPY --from=deps /app/node_modules/dotenv-cli ./node_modules/dotenv-cli
 COPY --from=deps /app/node_modules/dotenv ./node_modules/dotenv
+COPY --from=deps /app/node_modules/dotenv-expand ./node_modules/dotenv-expand
 COPY --from=deps /app/node_modules/minimist ./node_modules/minimist
-COPY --from=deps /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+COPY --from=deps /app/node_modules/cross-spawn ./node_modules/cross-spawn
+COPY --from=deps /app/node_modules/shebang-command ./node_modules/shebang-command
+COPY --from=deps /app/node_modules/shebang-regex ./node_modules/shebang-regex
+COPY --from=deps /app/node_modules/which ./node_modules/which
+COPY --from=deps /app/node_modules/isexe ./node_modules/isexe
 COPY --from=deps /app/node_modules/.bin/dotenv ./node_modules/.bin/dotenv
 
 COPY packages/web/prisma ./packages/web/prisma
