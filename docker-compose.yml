@@ -58,8 +58,7 @@ services:
   # Prisma Migrations (run-once init container)
   # ────────────────────────────────────────────────────
   migrate:
-#    image: ghcr.io/thomaskoeppe/gamepile/migrate:latest
-    image: docker.io/library/gamepile-migrate:latest
+    image: ghcr.io/thomaskoeppe/gamepile/migrate:latest
     environment:
       <<: *common-env
       DATABASE_URL: "postgresql://${POSTGRES_USER:-gamepile}:${POSTGRES_PASSWORD:-gamepile_secret}@postgres:5432/${POSTGRES_DB:-gamepile}?schema=public"
@@ -74,8 +73,7 @@ services:
   # Web (Next.js frontend + API)
   # ────────────────────────────────────────────────────
   web:
-#    image: ghcr.io/thomaskoeppe/gamepile/web:latest
-    image: docker.io/library/gamepile-web:latest
+    image: ghcr.io/thomaskoeppe/gamepile/web:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -100,8 +98,7 @@ services:
   # Worker (BullMQ job processor — scale with replicas)
   # ────────────────────────────────────────────────────
   worker:
-#    image: ghcr.io/thomaskoeppe/gamepile/worker:latest
-    image: docker.io/library/gamepile-worker:latest
+    image: ghcr.io/thomaskoeppe/gamepile/worker:latest
     restart: unless-stopped
     env_file:
       - .env
