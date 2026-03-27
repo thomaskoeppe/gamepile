@@ -65,7 +65,7 @@ Shared Prisma schema lives at `prisma/schema.prisma` with per-package generated 
 ## Observability & Logging
 
 Gamepile includes built-in observability powered by OpenTelemetry and [SigNoz](https://signoz.io/) (APM platform).
-We decided to go for Signoz as it can be self-hosted and provides a good free tier for starters, while still offering powerful features for log aggregation, distributed tracing, and metrics collection.
+We decided to go for SigNoz as it can be self-hosted and provides a good free tier for starters, while still offering powerful features for log aggregation, distributed tracing, and metrics collection.
 
 ### Features
 
