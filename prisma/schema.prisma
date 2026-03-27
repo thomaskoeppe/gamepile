@@ -196,16 +196,15 @@ model Achievement {
 }
 
 model UserGame {
-  id             String    @id @default(cuid())
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String   @id @default(cuid())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         String
-  game           Game      @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  gameId         String    @db.Uuid
-  playtime       Int       @default(0)
-  playtime2Weeks Int       @default(0)
-  lastPlayed     DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @default(now()) @updatedAt
+  game           Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  gameId         String   @db.Uuid
+  playtime       Int      @default(0)
+  playtime2Weeks Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now()) @updatedAt
 
   UserGameAchievement UserGameAchievement[]
 

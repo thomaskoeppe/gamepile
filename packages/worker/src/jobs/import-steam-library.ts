@@ -96,16 +96,10 @@ export default async function job(payload: { jobId: string; userId: string; }) {
                         gameId: game.id,
                         playtime: owned.playtime_forever  ?? 0,
                         playtime2Weeks: owned.playtime_2weeks  ?? 0,
-                        lastPlayed: owned.rtime_last_played
-                            ? new Date(owned.rtime_last_played * 1_000)
-                            : null,
                     },
                     update: {
                         playtime: owned.playtime_forever  ?? 0,
                         playtime2Weeks: owned.playtime_2weeks   ?? 0,
-                        lastPlayed: owned.rtime_last_played
-                            ? new Date(owned.rtime_last_played * 1_000)
-                            : null,
                     },
                 });
             }),

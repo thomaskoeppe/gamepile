@@ -56,10 +56,10 @@ export const getCollectionsForGame = queryClientWithAuth.inputSchema(z.object({ 
  *
  * @param parsedInput.collectionId - The CUID of the collection to fetch games for.
  * @returns Array of game objects (including categories and genres) augmented with
- *   `playtime` (minutes), `lastPlayed` date, and an `owned` flag indicating whether
+ *   `playtime` (minutes), and an `owned` flag indicating whether
  *   the game is in the user's Steam library.
  */
-export const getGamesForCollection = queryClientWithAuth.inputSchema(z.object({ collectionId: z.cuid() })).query<Array<Prisma.GameGetPayload<{ include: { categories: true, genres: true } }> & { playtime?: number; lastPlayed?: Date | null; owned: boolean }>>(withLogging(async ({ parsedInput: { collectionId }, ctx }, { log })  => {
+export const getGamesForCollection = queryClientWithAuth.inputSchema(z.object({ collectionId: z.cuid() })).query<Array<Prisma.GameGetPayload<{ include: { categories: true, genres: true } }> & { playtime?: number; owned: boolean }>>(withLogging(async ({ parsedInput: { collectionId }, ctx }, { log })  => {
     log.info("Fetching games for collection", {
         collectionId, userId: ctx.user.id,
     });
@@ -94,7 +94,6 @@ export const getGamesForCollection = queryClientWithAuth.inputSchema(z.object({ 
         return {
             ...collectionGame.game,
             playtime: userGame?.playtime,
-            lastPlayed: userGame?.lastPlayed,
             owned: !!userGame,
         };
     });

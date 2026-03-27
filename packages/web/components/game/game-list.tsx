@@ -25,7 +25,7 @@ export function GameList({
      isLoading = false,
      onRevalidate,
  }: {
-    games: Array<Prisma.GameGetPayload<{ include: { categories: true, genres: true } }> & { playtime?: number; lastPlayed?: Date | null; owned: boolean }>;
+    games: Array<Prisma.GameGetPayload<{ include: { categories: true, genres: true } }> & { playtime?: number; owned: boolean }>;
     categories: string[];
     genres: string[];
     showOwnedFilter?: boolean;
@@ -116,10 +116,6 @@ export function GameList({
                     return (a.owned ? (a.playtime ?? -1) : -1) - (b.owned ? (b.playtime ?? -1) : -1);
                 case "playtime_desc":
                     return (b.owned ? (b.playtime ?? -1) : -1) - (a.owned ? (a.playtime ?? -1) : -1);
-                case "last_played_asc":
-                    return (a.lastPlayed ? a.lastPlayed.getTime() : Infinity) - (b.lastPlayed ? b.lastPlayed.getTime() : Infinity);
-                case "last_played_desc":
-                    return (b.lastPlayed ? b.lastPlayed.getTime() : -Infinity) - (a.lastPlayed ? a.lastPlayed.getTime() : -Infinity);
                 default:
                     return 0;
             }
@@ -161,8 +157,6 @@ export function GameList({
                                 <SelectItem value="name_desc">Name (Z-A)</SelectItem>
                                 <SelectItem value="playtime_asc">Playtime (Low to High)</SelectItem>
                                 <SelectItem value="playtime_desc">Playtime (High to Low)</SelectItem>
-                                <SelectItem value="last_played_desc">Last Played (Recent first)</SelectItem>
-                                <SelectItem value="last_played_asc">Last Played (Oldest first)</SelectItem>
                             </SelectContent>
                         </Select>
 

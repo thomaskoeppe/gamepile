@@ -9,7 +9,7 @@ import {Prisma} from "@/prisma/generated/client";
 
 dayjs.extend(relativeTime);
 
-export function GameTile({ game, onRevalidate }: { game: Prisma.GameGetPayload<{ include: { categories: true, genres: true } }> & { playtime?: number; owned: boolean; lastPlayed?: Date | null; }, onRevalidate?: () => void }) {
+export function GameTile({ game, onRevalidate }: { game: Prisma.GameGetPayload<{ include: { categories: true, genres: true } }> & { playtime?: number; owned: boolean; }, onRevalidate?: () => void }) {
     const [isVisible, setIsVisible] = useState(false);
     const imgRef = useRef<HTMLDivElement>(null);
     const [isHovered, setIsHovered] = useState(false);
@@ -103,7 +103,6 @@ export function GameTile({ game, onRevalidate }: { game: Prisma.GameGetPayload<{
                                 {game.owned ? (
                                     <div className="text-xs text-muted-foreground flex flex-col shadow-2xl">
                                         <span>{formatMinutesToHoursMinutes(game.playtime ?? 0)} played</span>
-                                        <span>Last played {dayjs(game.lastPlayed).fromNow()}</span>
                                     </div>
                                 ) : (
                                     <p className="text-xs text-muted-foreground">Not owned</p>
