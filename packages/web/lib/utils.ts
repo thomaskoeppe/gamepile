@@ -8,17 +8,19 @@ export function cn(...inputs: ClassValue[]) {
 
 /** Formats a minute count as a human-readable `Xh Ym` string, or `"Never"` if zero. */
 export function formatMinutesToHoursMinutes(totalMinutes: number): string {
-    const hours = Math.floor(totalMinutes / 60);
+    const days = Math.floor(totalMinutes / 1_440);
+    const hours = Math.floor((totalMinutes % 1_440) / 60);
     const minutes = totalMinutes % 60;
 
-    if (hours === 0 && minutes === 0) {
+    if (days === 0 && hours === 0 && minutes === 0) {
         return "Never";
     }
 
+    const daysPart = days > 0 ? `${days}d` : "";
     const hoursPart = hours > 0 ? `${hours}h` : "";
     const minutesPart = minutes > 0 ? `${minutes}m` : "";
 
-    return [hoursPart, minutesPart].filter(Boolean).join(" ");
+    return [daysPart, hoursPart, minutesPart].filter(Boolean).join(" ");
 }
 
 /** Formats milliseconds as a human-readable `Xh Xm Xs` duration string. */
