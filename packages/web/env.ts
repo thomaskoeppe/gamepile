@@ -61,7 +61,12 @@ const schema = z.object({
 
     OTEL_EXPORTER_OTLP_HEADERS: z.string()
         .optional()
-        .refine(val => !val || /^[^=]+=[^=]+(,[^=]+=[^=]+)*$/.test(val), {
+        .refine(val => {
+            if (!val) return true; // optional
+            return val
+                .split(",")
+                .every(item => /^[^=]+=[^=]+$/.test(item.trim()));
+        }, {
             message: "OTEL_EXPORTER_OTLP_HEADERS must be comma-separated key=value pairs",
         })
         .describe("Comma-separated key=value pairs sent as HTTP headers on OTLP export requests."),
