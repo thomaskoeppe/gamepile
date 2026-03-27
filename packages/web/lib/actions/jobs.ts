@@ -96,7 +96,6 @@ export async function getLatestJobByType(
 
 /**
  * Creates a new job record in the database and enqueues it via BullMQ.
- * Requires admin privileges.
  *
  * @param type - The type of job to create.
  * @param userId - Optional user to associate the job with.

@@ -6,7 +6,7 @@ import { createUserSession, setSessionCookie } from "@/lib/auth/session";
 import { getSteamProfile,verifySteamLogin } from "@/lib/auth/steam";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
-import { AppSettingKey, JobType } from "@/prisma/generated/enums";
+import {AppSettingKey, JobType, UserRole} from "@/prisma/generated/enums";
 
 export async function GET(request: Request) {
     const log = logger.child("api.routes.auth:callback");
@@ -138,6 +138,14 @@ export async function GET(request: Request) {
                 });
                 log.info("Invite code usage recorded", { userId: user.id, inviteCodeId: validatedInvite.id });
             }
+        }
+
+        if (isNewUser && await prisma.user.count() === 1) {
+            log.info("First user signup detected — granting admin privileges", { userId: user.id });
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { role: UserRole.ADMIN },
+            });
         }
 
         const session = await createUserSession(user.id, request);

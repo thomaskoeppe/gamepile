@@ -122,7 +122,6 @@ Per-game achievement definitions synced from Steam. Each achievement has:
 Junction between `User` and `Game` representing a game in the user's Steam library. Tracks:
 
 - `playtime` / `playtime2Weeks` — total and recent playtime in minutes
-- `lastPlayed`
 
 ---
 

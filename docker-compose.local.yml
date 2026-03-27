@@ -1,3 +1,7 @@
+# This is a docker-compose file for local development. It defines the services for the web application, worker, and database.
+# Use it together with the docker-compose.yml file, which defines the database service and any other shared services.
+# docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+
 services:
   migrate:
     build:
