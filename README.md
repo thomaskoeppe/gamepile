@@ -4,6 +4,10 @@
 
 > ⚠️ **Beta / Work in Progress** — Gamepile is under active development and not yet considered stable. Features may change, break, or be incomplete. Use at your own risk.
 
+<img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/library_1.png" width="30%" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/library_2.png" width="30%" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/explore_1.png" width="30%" />
+
+<img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/search_1.png" width="30%" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/search_2.png" width="30%" />
+
 ## Project status
 
 Gamepile is under active development and should be treated as beta software.
