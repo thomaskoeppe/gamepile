@@ -7,13 +7,21 @@ const schema = z.object({
 
     DOMAIN: z.string()
         .describe("Public DNS host used by docker-compose for WEB_APP_URL. Only hostname and subdomains, no protocol or path.")
-        .refine(val => /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/.test(val), {
+        .refine(val => /^(localhost|([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})(:\d+)?$/.test(val), {
             message: "DOMAIN must be a valid hostname or subdomain (no protocol, no path)",
         }),
 
     DATABASE_URL: z.string()
         .optional()
-        .refine(val => !val || /^postgresql:\/\/[^:]+:[^@]+@[^:]+:\d+\/[^?]+\?schema=[^?]+$/.test(val), {
+        .refine(val => {
+            if (!val) return true;
+            try {
+                const url = new URL(val);
+                return url.protocol === "postgresql:";
+            } catch {
+                return false;
+            }
+        }, {
             message: "DATABASE_URL must be a valid PostgreSQL connection string",
         })
         .describe("PostgreSQL connection string used by Prisma in both the web and worker packages."),
@@ -75,19 +83,28 @@ const schema = z.object({
         .default("info")
         .describe("OTLP SDK log verbosity."),
 
-    NEXT_OTEL_VERBOSE: z.preprocess(val => Number(val), z.number().int().min(0).max(1).default(0))
+    NEXT_OTEL_VERBOSE: z.preprocess(val => Number(val ?? 0), z.number().int().min(0).max(1).default(0))
         .describe("Set to 1 for verbose OTel debug output in Next.js."),
 
     WEB_APP_URL: z.string()
-        .refine(val => /^https?:\/\/[^\s]+$/.test(val), {
+        .refine(val => /^https?:\/\/\S+$/.test(val), {
             message: "WEB_APP_URL must be a valid URL including protocol",
         })
         .describe("Public application URL used for OpenID callbacks, sitemap URL generation, and Next.js server-action origin allow-list."),
 
     WEB_ALLOWED_ORIGINS: z.string()
         .optional()
-        .refine(val => !val || val.split(",").map(v => v.trim()).every(host => /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/.test(host)), {
-            message: "WEB_ALLOWED_ORIGINS must be a comma-separated list of hostnames (with optional ports)"
+        .refine(val => {
+            if (!val) return true;
+
+            return val
+                .split(",")
+                .map(v => v.trim())
+                .every(host =>
+                    /^(localhost|([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})(:\d+)?$/.test(host)
+                );
+        }, {
+            message: "WEB_ALLOWED_ORIGINS must be a comma-separated list of hostnames (optionally with ports)",
         })
         .describe("Comma-separated hostname allow-list for Next.js Server Actions forwarding."),
 
@@ -96,7 +113,7 @@ const schema = z.object({
         .refine(val => val.length > 0, { message: "WEB_SESSION_COOKIE_NAME cannot be empty" })
         .describe("Name of the primary auth session cookie."),
 
-    WEB_SESSION_DURATION_DAYS: z.preprocess(val => Number(val), z.number().int().min(1).max(365).default(7))
+    WEB_SESSION_DURATION_DAYS: z.preprocess(val => Number(val ?? 7), z.number().int().min(1).max(365).default(7))
         .describe("Session lifetime in days."),
 
     WEB_VAULT_TOKEN_SECRET: z.string()
