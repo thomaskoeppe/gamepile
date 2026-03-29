@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { JobStatus, JobType } from "@/prisma/generated/browser";
 import { getAdminJobs } from "@/server/queries/admin";
 import { JOB_TYPE_LABEL } from "@/types/job";
+import {InvokeJobDialog} from "@/components/dialogs/invoke-job";
 
 dayjs.extend(relativeTime);
 
@@ -84,15 +85,20 @@ export default function AdminJobsPage() {
                     <h1 className="text-2xl font-bold text-foreground">Job Management</h1>
                     <p className="text-sm text-muted-foreground mt-1">Monitor and inspect all background jobs</p>
                 </div>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => mutate()}
-                    className="border-border text-muted-foreground hover:bg-muted"
-                >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
-                </Button>
+
+                <div className="flex items-center gap-2">
+                    <InvokeJobDialog />
+
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => mutate()}
+                        className="border-border text-muted-foreground hover:bg-muted"
+                    >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Refresh
+                    </Button>
+                </div>
             </div>
 
             <div className="flex gap-3">
