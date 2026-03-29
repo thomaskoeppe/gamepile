@@ -4,8 +4,9 @@ import { z } from "zod";
 
 import { invalidateSettingsCache, loadSettings, upsertSetting, upsertSettings } from "@/lib/app-settings";
 import prisma from "@/lib/prisma";
+import {jobsQueue} from "@/lib/queue";
 import { withLogging } from "@/lib/with-logging";
-import { AppSettingKey, KeyVaultAuthType } from "@/prisma/generated/enums";
+import {AppSettingKey, JobType, KeyVaultAuthType} from "@/prisma/generated/enums";
 import { actionClientWithAdmin } from "@/server/actions";
 import type { AppSettingValueType } from "@/types/app-setting";
 
@@ -182,3 +183,33 @@ export const changeCollectionOwner = actionClientWithAdmin
         namespace: "server.actions.admin:changeCollectionOwner",
     }));
 
+/**
+ * Allows an admin to manually queue one of the supported background jobs.
+ * User-specific jobs (IMPORT_USER_LIBRARY) require a valid userId.
+ */
+export const invokeAdminJob = actionClientWithAdmin
+    .inputSchema(z.object({
+        type: z.enum([
+            JobType.SYNC_STEAM_GAMES,
+            JobType.IMPORT_USER_LIBRARY,
+            JobType.REFRESH_GAME_DETAILS,
+        ] as const),
+        userId: z.string().min(1).optional(),
+    }))
+    .action(withLogging(async ({ parsedInput: { type, userId }, ctx }, { log }) => {
+        log.info("Invoking admin job", { invokedBy: ctx.user.id, type, targetUserId: userId });
+
+        if (type === JobType.IMPORT_USER_LIBRARY && !userId) {
+            throw new Error("IMPORT_USER_LIBRARY requires a target user to be selected.");
+        }
+
+        const job = await prisma.job.create({
+            data: { type, userId: userId ?? null },
+        });
+
+        await jobsQueue.add(type, { jobId: job.id, userId, type });
+
+        log.info("Admin job queued successfully", { jobId: job.id, type, invokedBy: ctx.user.id });
+
+        return { success: true, jobId: job.id, message: `Job "${type}" queued successfully.` };
+    }, { namespace: "server.actions.admin:invokeAdminJob" }));
