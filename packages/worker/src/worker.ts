@@ -232,6 +232,45 @@ async function registerScheduledJobs(): Promise<void> {
 }
 
 /**
+ * Checks whether any SYNC_STEAM_GAMES job has ever been queued or run.
+ * If not, queues an initial full sync so the catalog is populated on first boot.
+ */
+async function ensureInitialSyncQueued(): Promise<void> {
+    const hasAnySync = await prisma.job.findFirst({
+        where: {
+            type: JobType.SYNC_STEAM_GAMES,
+            status: {
+                in: [
+                    JobStatus.ACTIVE,
+                    JobStatus.QUEUED,
+                    JobStatus.COMPLETED,
+                    JobStatus.PARTIALLY_COMPLETED,
+                ],
+            },
+        },
+        select: { id: true },
+    });
+
+    if (hasAnySync) {
+        log.info("Initial sync already exists — skipping first-boot seed", { hostname: HOSTNAME });
+        return;
+    }
+
+    log.info("First boot detected — queuing initial SYNC_STEAM_GAMES job", { hostname: HOSTNAME });
+
+    const dbJob = await prisma.job.create({
+        data: { type: JobType.SYNC_STEAM_GAMES },
+    });
+
+    await jobsQueue.add(JobType.SYNC_STEAM_GAMES, {
+        jobId: dbJob.id,
+        type: JobType.SYNC_STEAM_GAMES,
+    });
+
+    log.info("Initial sync job queued", { jobId: dbJob.id, hostname: HOSTNAME });
+}
+
+/**
  * Initialises and starts the BullMQ workers after an optional startup delay.
  *
  * Steps performed in order:
@@ -260,6 +299,10 @@ async function initWorkers(): Promise<void> {
     );
 
     await registerScheduledJobs();
+
+    await ensureInitialSyncQueued().catch((err) =>
+        log.error("First-boot sync check failed (non-fatal)", err instanceof Error ? err : undefined)
+    );
 
     jobsWorker = new Worker<JobsQueuePayload>(QUEUE_NAMES.JOBS, async (job) => {
         const {type, userId} = job.data;
@@ -306,11 +349,44 @@ async function initWorkers(): Promise<void> {
 
                         break;
                     case "SYNC_STEAM_GAMES":
-                        await syncSteamGames({
-                            jobId: resolvedJobId,
-                            ignoreLastModified: true,
+                        const lastSuccessfulSync = await prisma.job.findFirst({
+                            where: {
+                                type: JobType.SYNC_STEAM_GAMES,
+                                status: {
+                                    in: [JobStatus.COMPLETED, JobStatus.PARTIALLY_COMPLETED],
+                                },
+                            },
+                            orderBy: { finishedAt: "desc" },
+                            select: { finishedAt: true },
                         });
 
+                        const ifModifiedSince = lastSuccessfulSync?.finishedAt
+                            ? Math.floor(lastSuccessfulSync.finishedAt.getTime() / 1000)
+                            : undefined;
+
+                        if (ifModifiedSince) {
+                            log.info("Running incremental Steam sync", {
+                                jobId: resolvedJobId,
+                                ifModifiedSince,
+                                lastSync: new Date(ifModifiedSince * 1000).toISOString(),
+                            });
+                            await createLog(
+                                resolvedJobId,
+                                "info",
+                                `Incremental sync — fetching apps modified since ${new Date(ifModifiedSince * 1000).toISOString()}.`,
+                            );
+                        } else {
+                            log.info("Running full Steam sync (no previous successful sync found)", {
+                                jobId: resolvedJobId,
+                            });
+                            await createLog(resolvedJobId, "info", "Full catalog sync — no previous run detected.");
+                        }
+
+                        await syncSteamGames({
+                            jobId: resolvedJobId,
+                            ignoreLastModified: ifModifiedSince === undefined,
+                            ifModifiedSince,
+                        });
                         break;
                     case JobType.REFRESH_GAME_DETAILS:
                         await refreshGameDetails({jobId: resolvedJobId});
