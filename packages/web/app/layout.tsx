@@ -9,7 +9,6 @@ import {ReactNode} from "react";
 import * as React from "react";
 
 import { AnimatedBackground } from "@/components/animated-background";
-import { NotificationsProvider } from "@/lib/providers/notifications";
 import {SessionProvider} from "@/lib/providers/session";
 
 const outfit = Outfit({
@@ -41,13 +40,11 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
                 className={`${outfit.variable} ${spaceGrotesk.variable} ${spaceMono.variable} antialiased`}
             >
                 <SessionProvider>
-                    <NotificationsProvider>
-                        <div className="min-h-screen bg-linear-to-b from-card via-background to-background text-foreground">
-                            <AnimatedBackground />
+                    <div className="min-h-screen bg-linear-to-b from-card via-background to-background text-foreground">
+                        <AnimatedBackground />
 
-                            {children}
-                        </div>
-                    </NotificationsProvider>
+                        {children}
+                    </div>
                     <Analytics />
                 </SessionProvider>
             </body>

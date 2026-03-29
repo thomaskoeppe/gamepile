@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/select";
 import { runSecurityWizard } from "@/lib/actions/security-wizard";
 import { browserLog } from "@/lib/browser-logger";
-import { useNotifications } from "@/lib/providers/notifications";
 
 const DEFAULT_DUMMY_ACTION_STATE = {
   status: "idle" as "idle" | "success" | "error",
@@ -46,7 +45,6 @@ export function SecurityPolicyWizardDialog() {
     runSecurityWizard,
     DEFAULT_DUMMY_ACTION_STATE,
   );
-  const { notify } = useNotifications();
   const notifiedAtRef = useRef<string | null>(null);
 
   const currentStep = actionState.status === "idle" ? step : 3;
@@ -79,15 +77,7 @@ export function SecurityPolicyWizardDialog() {
     }
 
     notifiedAtRef.current = actionState.submittedAt;
-    notify({
-      type: actionState.status === "success" ? "success" : "error",
-      title:
-        actionState.status === "success"
-          ? "Security profile simulation completed"
-          : "Security profile simulation failed",
-      message: actionState.message,
-    });
-  }, [actionState.message, actionState.status, actionState.submittedAt, notify]);
+  }, [actionState.message, actionState.status, actionState.submittedAt]);
 
   const stepLabel = useMemo(() => {
     if (currentStep === 1) return "Step 1/3";
