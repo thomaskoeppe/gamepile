@@ -267,7 +267,7 @@ export function InvokeJobDialog() {
                                     </SelectContent>
                                 </Select>
                                 <p className="text-xs text-muted-foreground">
-                                    The job will run for the selected user's Steam library.
+                                    The job will run for the selected user&#39;s Steam library.
                                 </p>
                             </div>
                         )}

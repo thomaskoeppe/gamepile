@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 
+import {InvokeJobDialog} from "@/components/dialogs/invoke-job";
 import {getStatusConfig, StatusBadge} from "@/components/job-status";
 import { Shimmer } from "@/components/shimmer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,7 +29,6 @@ import { cn } from "@/lib/utils";
 import { JobStatus, JobType } from "@/prisma/generated/browser";
 import { getAdminJobs } from "@/server/queries/admin";
 import { JOB_TYPE_LABEL } from "@/types/job";
-import {InvokeJobDialog} from "@/components/dialogs/invoke-job";
 
 dayjs.extend(relativeTime);
 

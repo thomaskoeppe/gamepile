@@ -4,24 +4,11 @@ import { z } from "zod";
 
 import { invalidateSettingsCache, loadSettings, upsertSetting, upsertSettings } from "@/lib/app-settings";
 import prisma from "@/lib/prisma";
+import {jobsQueue} from "@/lib/queue";
 import { withLogging } from "@/lib/with-logging";
 import {AppSettingKey, JobType, KeyVaultAuthType} from "@/prisma/generated/enums";
 import { actionClientWithAdmin } from "@/server/actions";
 import type { AppSettingValueType } from "@/types/app-setting";
-import {jobsQueue} from "@/lib/queue";
-
-/**
- * Defines the set of background job types that admins can manually trigger via the UI.
- * Each job type may have specific requirements (e.g. userId for IMPORT_USER_LIBRARY).
- * This list is used to validate admin input and ensure only supported jobs can be invoked.
- */
-const INVOKABLE_JOB_TYPES = [
-    JobType.SYNC_STEAM_GAMES,
-    JobType.IMPORT_USER_LIBRARY,
-    JobType.REFRESH_GAME_DETAILS,
-] as const;
-
-export type InvokableJobType = (typeof INVOKABLE_JOB_TYPES)[number];
 
 /**
  * Maps every AppSettingKey to the JS primitive type expected for its value.
