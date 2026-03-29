@@ -31,10 +31,10 @@ interface CreateColumnsOptions {
 }
 
 export function createVaultKeyColumns({
-    canRedeem,
-    openKeyDialog,
-    onUnredeem,
-}: CreateColumnsOptions): ColumnDef<VaultGameRow>[] {
+                                          canRedeem,
+                                          openKeyDialog,
+                                          onUnredeem,
+                                      }: CreateColumnsOptions): ColumnDef<VaultGameRow>[] {
     return [
         {
             accessorKey: "image",
@@ -119,30 +119,32 @@ export function createVaultKeyColumns({
             enableSorting: false,
             enableResizing: false,
             size: 10,
-            cell: ({ row }) => (
-                <div className="flex gap-2 justify-end">
-                    {canRedeem && (
-                        <Button
-                            variant="ghost"
-                            className="hover:text-primary hover:bg-muted/50"
-                            onClick={() => openKeyDialog(row.original)}
-                        >
-                            {row.original.redeemed
-                                ? <><Eye className="w-4 h-4" /> Show Key</>
-                                : <><TicketCheck className="w-4 h-4" /> Redeem</>
-                            }
-                        </Button>
-                    )}
+            cell: ({ row }) => {
+                const hasDropdownItems = canRedeem;
 
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="hover:text-primary hover:bg-muted/50">
-                                <MoreVertical className="h-4 w-4" />
+                return (
+                    <div className="flex gap-2 justify-end">
+                        {canRedeem && (
+                            <Button
+                                variant="ghost"
+                                className="hover:text-primary hover:bg-muted/50"
+                                onClick={() => openKeyDialog(row.original)}
+                            >
+                                {row.original.redeemed
+                                    ? <><Eye className="w-4 h-4" /> Show Key</>
+                                    : <><TicketCheck className="w-4 h-4" /> Redeem</>
+                                }
                             </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            {canRedeem && (
-                                <>
+                        )}
+
+                        {hasDropdownItems && (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="hover:text-primary hover:bg-muted/50">
+                                        <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
                                     <DropdownMenuItem onClick={() => openKeyDialog(row.original)}>
                                         {row.original.redeemed
                                             ? <><Eye className="w-4 h-4 mr-2" /> Show Key</>
@@ -157,12 +159,12 @@ export function createVaultKeyColumns({
                                             </DropdownMenuItem>
                                         </>
                                     )}
-                                </>
-                            )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            ),
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
+                    </div>
+                );
+            },
         },
     ];
 }
