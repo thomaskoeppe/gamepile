@@ -9,7 +9,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Spinner } from "@/components/ui/spinner";
 import { browserLog } from "@/lib/browser-logger";
 import {useServerQuery} from "@/lib/hooks/use-server-query";
-import { useNotifications } from "@/lib/providers/notifications";
 import { cn } from "@/lib/utils";
 import {toggleGameInCollection} from "@/server/actions/collection-games";
 import {getCollectionsForGame} from "@/server/queries/collection-games";
@@ -32,7 +31,6 @@ export function AddToCollectionDropdown({
     onRevalidate?: () => void;
 }) {
     const [open, setOpen] = useState(false);
-    const { notify } = useNotifications();
 
     const {
         data: collectionsResult,
@@ -56,22 +54,10 @@ export function AddToCollectionDropdown({
                 browserLog.info(input.isMember ? 'Game removed from collection' : 'Game added to collection', { gameId, collectionId: input.collectionId });
                 void mutate();
                 onRevalidate?.();
-                notify({
-                    type: "success",
-                    title: input.isMember ? "Removed from collection" : "Added to collection",
-                    message: input.isMember
-                        ? "The game was removed from the selected collection."
-                        : "The game was added to the selected collection.",
-                });
             },
             onError: () => {
                 browserLog.error('Collection toggle failed', new Error('Toggle game in collection failed'), { gameId });
                 void mutate();
-                notify({
-                    type: "error",
-                    title: "Collection update failed",
-                    message: "An error occurred while updating the collection. Please try again.",
-                });
             },
         }
     );

@@ -139,3 +139,12 @@
   100% { transform: translateX(-100%); }
 }
 
+@keyframes bell-ring {
+  0%, 100% { transform: rotate(0deg); }
+  15%      { transform: rotate(-22deg); }
+  30%      { transform: rotate(22deg); }
+  45%      { transform: rotate(-14deg); }
+  60%      { transform: rotate(14deg); }
+  75%      { transform: rotate(-6deg); }
+}
+
