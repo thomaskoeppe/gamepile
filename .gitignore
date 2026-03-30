@@ -18,5 +18,5 @@ packages/worker/dist/**
 
 CLAUDE.md
 .agent-project.json
-.github/copilot-instructions.md
-
+/.github/copilot-instructions.md
+/.github/git-commit-instructions.md
