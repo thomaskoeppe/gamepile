@@ -15,3 +15,8 @@
 .env
 tsconfig.tsbuildinfo
 packages/worker/dist/**
+
+CLAUDE.md
+.agent-project.json
+.github/copilot-instructions.md
+
