@@ -12,6 +12,12 @@ import useSWR from "swr";
 
 import { browserLog } from "@/lib/browser-logger";
 
+type SessionResponse = {
+    authenticated: boolean;
+    user: SessionUser | null;
+    session: SessionInfo | null;
+}
+
 interface SessionUser {
     id: string
     steamId: string
@@ -35,7 +41,6 @@ interface SessionState {
     authenticated: boolean
     user: SessionUser | null
     session: SessionInfo | null
-    activeSessions: SessionInfo[]
     isLoading: boolean
     error: Error | null
 }
@@ -50,7 +55,6 @@ const defaultContext: SessionContextType = {
     authenticated: false,
     user: null,
     session: null,
-    activeSessions: [],
     isLoading: true,
     error: null,
     login: () => {},
@@ -60,7 +64,7 @@ const defaultContext: SessionContextType = {
 
 const SessionContext = createContext<SessionContextType>(defaultContext);
 
-const fetcher = async (url: string) => {
+const fetcher = async (url: string): Promise<SessionResponse> => {
     const res = await fetch(url, { credentials: "include" });
     if (!res.ok) {
         throw new Error("Failed to fetch session");
@@ -96,7 +100,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
             });
 
             browserLog.info('Logout succeeded');
-            await mutate({ authenticated: false, user: null, session: null, activeSessions: [] }, false);
+            await mutate({ authenticated: false, user: null, session: null }, false);
             window.location.href = "/";
         } catch (err) {
             browserLog.error("Logout failed", err instanceof Error ? err : new Error(String(err)));
@@ -115,7 +119,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         authenticated: data?.authenticated ?? false,
         user: data?.user ?? null,
         session: data?.session ?? null,
-        activeSessions: data?.activeSessions ?? [],
         isLoading: isLoading || isLoggingOut,
         error: error ?? null,
         login,
