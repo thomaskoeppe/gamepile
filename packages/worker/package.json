@@ -17,7 +17,7 @@
     "@opentelemetry/exporter-logs-otlp-http": "0.207.0",
     "@opentelemetry/exporter-trace-otlp-http": "0.207.0",
     "@opentelemetry/resources": "2.2.0",
-    "@opentelemetry/sdk-logs": "0.207.0",
+    "@opentelemetry/sdk-logs": "0.213.0",
     "@opentelemetry/sdk-node": "0.207.0",
     "@opentelemetry/semantic-conventions": "1.38.0",
     "@prisma/adapter-pg": "^7.4.2",
@@ -25,11 +25,11 @@
     "@prisma/extension-accelerate": "^3.0.1",
     "bullmq": "^5.12.12",
     "chrono-node": "^2.9.0",
-    "ioredis": "^5.4.1",
+    "ioredis": "^5.10.1",
     "pino-opentelemetry-transport": "^3.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.19.15",
+    "@types/node": "^25.5.0",
     "prisma": "^7.4.2",
     "tsup": "^8.5.1",
     "tsx": "^4.20.6",

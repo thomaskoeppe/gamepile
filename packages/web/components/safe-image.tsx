@@ -25,6 +25,9 @@ interface SafeImageProps extends Omit<ImageProps, "src" | "onError"> {
  * @param fallback - Custom React node shown when all URLs fail. Overrides the default icon fallback.
  * @param fallbackLabel - Label shown in the default muted icon fallback (ignored when `fallback` is set).
  * @param fallbackClassName - Extra className applied to the default fallback container.
+ * @param className - ClassName applied to the `Image` component.
+ * @param imageProps - Other props passed to the `Image` component (e.g. `alt`, `width`, `height`).
+ * @returns A React element rendering the image or fallback content.
  */
 export function SafeImage({
     srcs,
@@ -41,7 +44,7 @@ export function SafeImage({
         setIndex((prev) => prev + 1);
     }, []);
 
-    if (failed) {
+    if (failed || srcs.length === 0 || srcs.filter((src) => src.trim().length > 0).length === 0) {
         if (fallback) return <>{fallback}</>;
 
         return (
