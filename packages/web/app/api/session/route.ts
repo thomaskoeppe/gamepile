@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 
 import { formatSessionForClient,getCurrentSession } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
-import prisma from "@/lib/prisma";
 
 export async function GET() {
     const log = logger.child("api.routes.session:get");
@@ -22,15 +21,9 @@ export async function GET() {
 
         const { user, session } = sessionData;
 
-        const activeSessions = await prisma.session.findMany({
-            where: { userId: user.id },
-            orderBy: { lastActivity: "desc" },
-        });
-
         log.info("Session fetch completed", {
             userId: user.id,
             username: user.username,
-            activeSessionCount: activeSessions.length,
             durationMs: Date.now() - start,
         });
 
@@ -46,7 +39,6 @@ export async function GET() {
                 role: user.role,
             },
             session: formatSessionForClient(session),
-            activeSessions: activeSessions.map(formatSessionForClient),
         });
     } catch (error) {
         log.error("Session fetch error", error instanceof Error ? error : new Error(String(error)), {
