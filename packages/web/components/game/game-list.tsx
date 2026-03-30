@@ -224,6 +224,17 @@ export function GameList({
                     ))}
                 </div>
             )}
+
+            <div className="text-sm text-muted-foreground pt-2">
+                {games.length > 0 ? (
+                    <>
+                        Showing {visibleGames.length} of{" "}
+                        {visibleGames.length} games
+                    </>
+                ) : (
+                    "No results"
+                )}
+            </div>
         </div>
     );
 }
