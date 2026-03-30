@@ -270,15 +270,19 @@ model CollectionGame {
 }
 
 model KeyVault {
-  id          String           @id @default(cuid())
-  name        String           @unique
-  authType    KeyVaultAuthType
-  authHash    String?
-  authSalt    String?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  createdBy   User             @relation("KeyVaultCreator", fields: [createdById], references: [id], onDelete: Cascade)
-  createdById String
+  id                       String           @id @default(cuid())
+  name                     String           @unique
+  authType                 KeyVaultAuthType
+  authHash                 String?
+  authSalt                 String?
+  keySalt                  String?
+  encryptedVaultKey        String?
+  recoveryEncryptedVaultKey String?
+  recoveryKeyHash          String?
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+  createdBy                User             @relation("KeyVaultCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  createdById              String
 
   games KeyVaultGame[]
   users KeyVaultUser[]
@@ -320,7 +324,7 @@ model KeyVaultGame {
   redeemedBy   User?     @relation("KeyVaultGame_redeemedBy", fields: [redeemedById], references: [id], onDelete: SetNull)
   redeemedById String?
 
-  @@unique([keyVaultId, key])
+  @@unique([keyVaultId, hashedKey])
 }
 
 model InviteCode {
