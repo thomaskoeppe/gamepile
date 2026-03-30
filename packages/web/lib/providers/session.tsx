@@ -138,14 +138,14 @@ export function useSession() {
     return context;
 }
 
-export function useRequireAuth(redirectTo: string = "/") {
+export function useRequireAuth(redirectTo: string = "/", { skip = false }: { skip?: boolean } = {}) {
     const { authenticated, isLoading } = useSession();
 
     useEffect(() => {
-        if (!isLoading && !authenticated) {
+        if (!skip && !isLoading && !authenticated) {
             window.location.href = `${redirectTo}?redirect=${encodeURIComponent(window.location.pathname)}`;
         }
-    }, [authenticated, isLoading, redirectTo]);
+    }, [authenticated, isLoading, redirectTo, skip]);
 
     return { authenticated, isLoading };
 }

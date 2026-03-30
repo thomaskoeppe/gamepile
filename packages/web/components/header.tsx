@@ -19,7 +19,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { browserLog } from "@/lib/browser-logger";
-import { useSession } from "@/lib/providers/session";
+import { useRequireAuth, useSession } from "@/lib/providers/session";
 import {cn} from "@/lib/utils";
 
 export function NavLink({ href, children, isActive }: { href: string; children: ReactNode, isActive?: boolean }) {
@@ -35,6 +35,10 @@ export function NavLink({ href, children, isActive }: { href: string; children: 
 export function Header() {
     const pathname = usePathname();
     const { authenticated, user, isLoading, login, logout } = useSession();
+
+    const isPublicRoute = pathname.startsWith("/collections/p/");
+    useRequireAuth("/", { skip: isPublicRoute });
+
     const [searchOpen, setSearchOpen] = useState(false);
 
     const handleSearchOpen = () => {
