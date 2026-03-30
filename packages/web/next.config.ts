@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+import { version } from "./package.json";
+
 function normalizeAllowedOrigin(value: string | undefined): string | null {
     if (!value) {
         return null;
@@ -102,9 +104,11 @@ const nextConfig: NextConfig = {
     logging: false,
     experimental: {
         serverActions: {
-            // In production this prefers WEB_ALLOWED_ORIGINS (CSV), while dev keeps WEB_APP_URL fallback.
             allowedOrigins: serverActionAllowedOrigins,
         }
+    },
+    env: {
+        WEB_APP_VERSION: version,
     }
 };
 
