@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-    CheckCircle2, ChevronRight, LoaderCircle,
+    Check, CheckCircle2, ChevronRight, ClipboardCopy, LoaderCircle,
     Lock, LockKeyhole, LockOpen, ShieldAlert, Vault,
 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -83,6 +83,8 @@ export function CreateVaultDialog({
     const [open, setOpen] = useState(false);
     const [step, setStep] = useState<Step>(1);
     const [serverError, setServerError] = useState<string | null>(null);
+    const [createdRecoveryKey, setCreatedRecoveryKey] = useState<string | null>(null);
+    const [copiedRecoveryKey, setCopiedRecoveryKey] = useState(false);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(schema),
@@ -101,6 +103,8 @@ export function CreateVaultDialog({
     const resetDialog = useCallback(() => {
         setStep(1);
         setServerError(null);
+        setCreatedRecoveryKey(null);
+        setCopiedRecoveryKey(false);
         form.reset();
     }, [form]);
 
@@ -141,8 +145,13 @@ export function CreateVaultDialog({
         if (result?.data?.id) {
             browserLog.info('Vault created', { vaultId: result.data.id });
             onReload?.();
-            setOpen(false);
-            setTimeout(resetDialog, 300);
+            if (result.data.recoveryKey) {
+                setCreatedRecoveryKey(result.data.recoveryKey);
+                setStep(3);
+            } else {
+                setOpen(false);
+                setTimeout(resetDialog, 300);
+            }
         } else {
             browserLog.error('Create vault failed', new Error(result?.serverError ?? 'Unknown error'), { component: 'CreateVaultDialog' });
             setServerError(result?.serverError ?? "An unexpected error occurred.");
@@ -296,26 +305,57 @@ export function CreateVaultDialog({
                     </div>
                 )}
 
-                {/* Step 3 — Error only */}
+                {/* Step 3 — completion / error */}
                 {step === 3 && (
                     <div className="space-y-4">
-                        <div className="flex flex-col items-center gap-3 py-4 text-center">
-                            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-destructive/10">
-                                <ShieldAlert className="size-6 text-destructive" />
+                        {createdRecoveryKey ? (
+                            <div className="space-y-3">
+                                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-100">
+                                    Save this recovery key now. It can be used later to rotate your vault PIN/password.
+                                </div>
+                                <div className="rounded-lg border border-border bg-muted/40 p-3">
+                                    <code className="block break-all font-mono text-sm">{createdRecoveryKey}</code>
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="w-full"
+                                    onClick={async () => {
+                                        await navigator.clipboard.writeText(createdRecoveryKey);
+                                        setCopiedRecoveryKey(true);
+                                        setTimeout(() => setCopiedRecoveryKey(false), 1500);
+                                    }}
+                                >
+                                    {copiedRecoveryKey ? <><Check className="size-4" /> Copied</> : <><ClipboardCopy className="size-4" /> Copy Recovery Key</>}
+                                </Button>
                             </div>
-                            <div>
-                                <p className="font-medium text-sm">Failed to create vault</p>
-                                <p className="text-sm text-muted-foreground mt-1">{serverError}</p>
+                        ) : (
+                            <div className="flex flex-col items-center gap-3 py-4 text-center">
+                                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-destructive/10">
+                                    <ShieldAlert className="size-6 text-destructive" />
+                                </div>
+                                <div>
+                                    <p className="font-medium text-sm">Failed to create vault</p>
+                                    <p className="text-sm text-muted-foreground mt-1">{serverError}</p>
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => setStep(2)}>
-                                Back
-                            </Button>
-                            <Button type="button" onClick={() => setOpen(false)}>
-                                Close
-                            </Button>
+                            {createdRecoveryKey ? (
+                                <Button type="button" onClick={() => setOpen(false)}>
+                                    Done
+                                </Button>
+                            ) : (
+                                <>
+                                    <Button type="button" variant="outline" onClick={() => setStep(2)}>
+                                        Back
+                                    </Button>
+                                    <Button type="button" onClick={() => setOpen(false)}>
+                                        Close
+                                    </Button>
+                                </>
+                            )}
                         </DialogFooter>
                     </div>
                 )}

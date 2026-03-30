@@ -2,11 +2,84 @@
 
 import {z} from "zod";
 
-import {decryptKey, encryptKey, verifyPassword} from "@/lib/auth/crypto";
+import {
+    decryptGameKey,
+    encryptGameKey,
+    hashKey,
+    unwrapVaultKey,
+    verifyPassword,
+} from "@/lib/auth/crypto";
 import prisma from "@/lib/prisma";
 import { withLogging } from "@/lib/with-logging";
 import {KeyVaultAuthType} from "@/prisma/generated/enums";
 import {actionClientWithAuth} from "@/server/actions";
+
+const keyPattern = /^[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}$/;
+
+const vaultSecretSchema = z
+    .string()
+    .min(8)
+    .or(z.string().min(4).max(6).regex(/^\d+$/, "PIN must be numeric"));
+
+function getVaultKeyAccessWhere(userId: string) {
+    return {
+        OR: [
+            {
+                keyVault: {
+                    createdBy: {
+                        id: userId,
+                    },
+                },
+            },
+            {
+                keyVault: {
+                    users: {
+                        some: {
+                            userId,
+                            canRedeem: true,
+                        },
+                    },
+                },
+            },
+        ],
+    };
+}
+
+/**
+ * Verifies the user's secret against the vault and unwraps the vault key.
+ * Centralised helper used by all key operations.
+ */
+function unwrapVaultKeyFromVault(params: {
+    authType: KeyVaultAuthType;
+    authHash: string | null;
+    authSalt: string | null;
+    keySalt: string | null;
+    encryptedVaultKey: string | null;
+    secret?: string;
+}): string | null {
+    const { authType, authHash, authSalt, keySalt, encryptedVaultKey, secret } = params;
+
+    if (authType === KeyVaultAuthType.NONE) {
+        return null; // NONE vaults store keys in plaintext
+    }
+
+    if (!secret) {
+        throw new Error("Secret is required for this vault");
+    }
+    if (!authHash || !authSalt) {
+        throw new Error("Vault authentication is not properly configured");
+    }
+    if (!encryptedVaultKey || !keySalt) {
+        throw new Error("Vault key material is missing");
+    }
+
+    const verified = verifyPassword(secret, authSalt, authHash);
+    if (!verified) {
+        throw new Error("Incorrect secret");
+    }
+
+    return unwrapVaultKey(encryptedVaultKey, secret, keySalt);
+}
 
 /**
  * Decrypts and returns the plaintext key for a vault game entry.
@@ -14,15 +87,10 @@ import {actionClientWithAuth} from "@/server/actions";
  * @param input.vaultGameId - CUID of the vault game entry.
  * @param input.secret - PIN or password for vaults requiring authentication.
  * @returns The decrypted game key string in `XXXXX-XXXXX-XXXXX` format.
- * @throws {Error} If the vault game is not found or the user does not have access.
- * @throws {Error} If a secret is required by the vault but not provided.
- * @throws {Error} If the vault authentication credentials are not properly configured.
- * @throws {Error} If the provided secret is incorrect.
- * @throws {Error} If the decrypted key does not match the expected format.
  */
 export const getDecryptedKey = actionClientWithAuth.inputSchema(z.object({
     vaultGameId: z.cuid(),
-    secret: z.string().min(8).or(z.string().min(4).max(6).regex(/^\d+$/, "PIN must be numeric")).optional(),
+    secret: vaultSecretSchema.optional(),
 })).action<string>(withLogging(async ({ parsedInput: { vaultGameId, secret }, ctx }, { log }) => {
     log.info("Fetching decrypted key", {
         userId: ctx.user.id,
@@ -32,50 +100,133 @@ export const getDecryptedKey = actionClientWithAuth.inputSchema(z.object({
     const vaultGame = await prisma.keyVaultGame.findUnique({
         where: {
             id: vaultGameId,
-            OR: [
-                {
-                    keyVault: {
-                        createdBy: {
-                            id: ctx.user.id
-                        }
-                    }
-                },
-                {
-                    keyVault: {
-                        users: {
-                            some: {
-                                userId: ctx.user.id,
-                                canRedeem: true,
-                            }
-                        }
-                    }
-                }
-            ]
+            ...getVaultKeyAccessWhere(ctx.user.id),
         },
         include: {
-            keyVault: true,
-        }
+            keyVault: {
+                select: {
+                    authType: true,
+                    authHash: true,
+                    authSalt: true,
+                    keySalt: true,
+                    encryptedVaultKey: true,
+                },
+            },
+        },
     });
 
     if (!vaultGame) throw new Error("Vault game not found or access denied");
 
-    if (vaultGame.keyVault.authType === KeyVaultAuthType.NONE) return vaultGame.key;
+    const vaultKeyHex = unwrapVaultKeyFromVault({
+        ...vaultGame.keyVault,
+        secret,
+    });
 
-    if (!secret) throw new Error("Secret is required for this vault");
+    // For NONE vaults, the stored key IS the plaintext key
+    const key = vaultKeyHex
+        ? decryptGameKey(vaultGame.key, vaultKeyHex)
+        : vaultGame.key;
 
-    if (!vaultGame.keyVault.authHash || !vaultGame.keyVault.authSalt) throw new Error("Vault authentication is not properly configured");
-
-    const verifiedSecret = verifyPassword(secret, vaultGame.keyVault.authSalt, vaultGame.keyVault.authHash);
-
-    if (!verifiedSecret) throw new Error("Incorrect secret");
-
-    const key = decryptKey(vaultGame.key, secret);
-
-    if (!/^[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}$/.test(key)) throw new Error("Decrypted key is in an invalid format");
+    if (!keyPattern.test(key)) throw new Error("Decrypted key is in an invalid format");
 
     return key;
 }, {
     namespace: "server.actions.vault-keys:getDecryptedKey",
+}));
+
+export const getDecryptedKeys = actionClientWithAuth.inputSchema(z.object({
+    vaultGameIds: z.array(z.cuid()).min(1).max(200),
+    secret: vaultSecretSchema.optional(),
+})).action<Array<{ vaultGameId: string; gameName: string; key?: string; error?: string; redeemed: boolean }>>(withLogging(async ({ parsedInput: { vaultGameIds, secret }, ctx }, { log }) => {
+    log.info("Fetching decrypted keys in bulk", {
+        userId: ctx.user.id,
+        count: vaultGameIds.length,
+    });
+
+    const vaultGames = await prisma.keyVaultGame.findMany({
+        where: {
+            id: { in: vaultGameIds },
+            ...getVaultKeyAccessWhere(ctx.user.id),
+        },
+        include: {
+            game: {
+                select: {
+                    name: true,
+                },
+            },
+            keyVault: {
+                select: {
+                    id: true,
+                    authType: true,
+                    authHash: true,
+                    authSalt: true,
+                    keySalt: true,
+                    encryptedVaultKey: true,
+                },
+            },
+        },
+    });
+
+    // Unwrap vault keys once per vault (not per game key) for performance
+    const vaultKeyCache = new Map<string, string | null>();
+
+    const inputIdSet = new Set(vaultGameIds);
+    const foundIdSet = new Set(vaultGames.map((game) => game.id));
+
+    const results = vaultGames.map((vaultGame) => {
+        const gameName = vaultGame.game?.name ?? vaultGame.originalName ?? "Unknown Game";
+
+        try {
+            let vaultKeyHex: string | null;
+
+            if (vaultKeyCache.has(vaultGame.keyVault.id)) {
+                vaultKeyHex = vaultKeyCache.get(vaultGame.keyVault.id)!;
+            } else {
+                vaultKeyHex = unwrapVaultKeyFromVault({
+                    ...vaultGame.keyVault,
+                    secret,
+                });
+                vaultKeyCache.set(vaultGame.keyVault.id, vaultKeyHex);
+            }
+
+            const key = vaultKeyHex
+                ? decryptGameKey(vaultGame.key, vaultKeyHex)
+                : vaultGame.key;
+
+            if (!keyPattern.test(key)) {
+                throw new Error("Decrypted key is in an invalid format");
+            }
+
+            return {
+                vaultGameId: vaultGame.id,
+                gameName,
+                key,
+                redeemed: vaultGame.redeemed,
+            };
+        } catch (error) {
+            return {
+                vaultGameId: vaultGame.id,
+                gameName,
+                redeemed: vaultGame.redeemed,
+                error: error instanceof Error ? error.message : "Failed to decrypt key",
+            };
+        }
+    });
+
+    for (const vaultGameId of inputIdSet) {
+        if (!foundIdSet.has(vaultGameId)) {
+            results.push({
+                vaultGameId,
+                gameName: "Unknown Game",
+                redeemed: false,
+                error: "Vault game not found or access denied",
+            });
+        }
+    }
+
+    return results;
+}, {
+    namespace: "server.actions.vault-keys:getDecryptedKeys",
 }));
 
 /**
@@ -83,8 +234,6 @@ export const getDecryptedKey = actionClientWithAuth.inputSchema(z.object({
  *
  * @param input.vaultGameId - CUID of the vault game entry to mark as redeemed.
  * @returns `true` on success.
- * @throws {Error} If the vault game is not found or the user does not have access.
- * @throws {Error} If the key has already been redeemed.
  */
 export const redeemKey = actionClientWithAuth.inputSchema(z.object({
     vaultGameId: z.cuid(),
@@ -97,25 +246,7 @@ export const redeemKey = actionClientWithAuth.inputSchema(z.object({
     const vaultGame = await prisma.keyVaultGame.findUnique({
         where: {
             id: vaultGameId,
-            OR: [
-                {
-                    keyVault: {
-                        createdBy: {
-                            id: ctx.user.id
-                        }
-                    }
-                },
-                {
-                    keyVault: {
-                        users: {
-                            some: {
-                                userId: ctx.user.id,
-                                canRedeem: true,
-                            }
-                        }
-                    }
-                }
-            ]
+            ...getVaultKeyAccessWhere(ctx.user.id),
         }
     });
 
@@ -137,13 +268,41 @@ export const redeemKey = actionClientWithAuth.inputSchema(z.object({
     namespace: "server.actions.vault-keys:redeemKey",
 }));
 
+export const redeemKeys = actionClientWithAuth.inputSchema(z.object({
+    vaultGameIds: z.array(z.cuid()).min(1).max(200),
+})).action<{ updatedCount: number }>(withLogging(async ({ parsedInput: { vaultGameIds }, ctx }, { log }) => {
+    log.info("Redeeming keys in bulk", {
+        userId: ctx.user.id,
+        count: vaultGameIds.length,
+    });
+
+    const result = await prisma.keyVaultGame.updateMany({
+        where: {
+            id: {
+                in: vaultGameIds,
+            },
+            redeemed: false,
+            ...getVaultKeyAccessWhere(ctx.user.id),
+        },
+        data: {
+            redeemedAt: new Date(),
+            redeemed: true,
+            redeemedById: ctx.user.id,
+        },
+    });
+
+    return {
+        updatedCount: result.count,
+    };
+}, {
+    namespace: "server.actions.vault-keys:redeemKeys",
+}));
+
 /**
  * Marks a previously redeemed vault game key as unredeemed.
  *
  * @param input.vaultGameId - CUID of the vault game entry to mark as unredeemed.
  * @returns `true` on success.
- * @throws {Error} If the vault game is not found or the user does not have access.
- * @throws {Error} If the key is not currently redeemed.
  */
 export const unredeemKey = actionClientWithAuth.inputSchema(z.object({
     vaultGameId: z.cuid(),
@@ -156,25 +315,7 @@ export const unredeemKey = actionClientWithAuth.inputSchema(z.object({
     const vaultGame = await prisma.keyVaultGame.findUnique({
         where: {
             id: vaultGameId,
-            OR: [
-                {
-                    keyVault: {
-                        createdBy: {
-                            id: ctx.user.id
-                        }
-                    }
-                },
-                {
-                    keyVault: {
-                        users: {
-                            some: {
-                                userId: ctx.user.id,
-                                canRedeem: true,
-                            }
-                        }
-                    }
-                }
-            ]
+            ...getVaultKeyAccessWhere(ctx.user.id),
         }
     });
 
@@ -197,15 +338,12 @@ export const unredeemKey = actionClientWithAuth.inputSchema(z.object({
 }));
 
 /**
- * Imports one or more game keys into a vault, encrypting them if the vault requires authentication.
+ * Imports one or more game keys into a vault, encrypting them with the vault key.
  *
  * @param input.vaultId - CUID of the target vault.
  * @param input.keys - Array of `{ name, code }` objects representing the keys to import.
  * @param input.secret - PIN or password required for authenticated vaults.
  * @returns A record mapping each key code to its import result `{ success, reason? }`.
- * @throws {Error} If the vault is not found or the user does not have create permission.
- * @throws {Error} If the vault requires authentication but no secret is provided.
- * @throws {Error} If the provided credentials are invalid.
  */
 export const importKeys = actionClientWithAuth.inputSchema(z.object({
     vaultId: z.cuid(),
@@ -229,26 +367,39 @@ export const importKeys = actionClientWithAuth.inputSchema(z.object({
                 { users: { some: { userId: ctx.user.id, canCreate: true } } },
             ],
         },
-        select: { id: true, authType: true, authHash: true, authSalt: true },
+        select: {
+            id: true,
+            authType: true,
+            authHash: true,
+            authSalt: true,
+            keySalt: true,
+            encryptedVaultKey: true,
+        },
     });
 
     if (!vault) throw new Error("Vault not found or access denied");
 
-    if (vault.authType !== "NONE") {
-        if (!secret) throw new Error("Authentication required");
-        if (!vault.authHash || !vault.authSalt) throw new Error("Vault auth not configured");
-        const isValid = verifyPassword(secret, vault.authSalt, vault.authHash);
-        if (!isValid) throw new Error("Invalid credentials");
-    }
+    // Unwrap vault key once for the entire import batch
+    const vaultKeyHex = unwrapVaultKeyFromVault({
+        ...vault,
+        secret,
+    });
 
     const results: Record<string, { success: boolean; reason?: string }> = {};
 
     for (const key of keys) {
         try {
-            let storedKey = key.code;
-            if (vault.authType !== "NONE" && secret) {
-                storedKey = encryptKey(key.code, secret);
+            const normalizedCode = key.code.trim().toUpperCase();
+            if (!keyPattern.test(normalizedCode)) {
+                throw new Error("Invalid key format");
             }
+
+            const hashedKey = hashKey(normalizedCode);
+
+            // Encrypt with vault key, or store plaintext for NONE vaults
+            const storedKey = vaultKeyHex
+                ? encryptGameKey(normalizedCode, vaultKeyHex)
+                : normalizedCode;
 
             const game = await prisma.game.findFirst({
                 where: { name: { contains: key.name, mode: "insensitive" } },
@@ -259,6 +410,7 @@ export const importKeys = actionClientWithAuth.inputSchema(z.object({
                 data: {
                     keyVaultId: vaultId,
                     key: storedKey,
+                    hashedKey,
                     originalName: key.name,
                     gameId: game?.id ?? null,
                     addedById: ctx.user.id,

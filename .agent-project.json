@@ -1,0 +1,144 @@
+{
+  "name": "GamePile",
+  "description": "Self-hosted Steam game library management platform. Users authenticate via Steam OpenID 2.0, import libraries, build collections, store game keys in encrypted vaults, and explore a shared catalog.",
+  "version": "0.1.0",
+  "language": "TypeScript",
+  "frameworks": ["Next.js 16", "React 19", "BullMQ"],
+  "packageManager": "npm workspaces",
+
+  "packages": {
+    "web": {
+      "path": "packages/web",
+      "description": "Next.js 16 full-stack app (App Router, Server Actions, React 19)",
+      "entryPoints": {
+        "app": "app/",
+        "components": "components/",
+        "lib": "lib/",
+        "server": "server/",
+        "types": "types/",
+        "env": "env.ts"
+      }
+    },
+    "worker": {
+      "path": "packages/worker",
+      "description": "BullMQ background worker (ESM, tsx dev, tsup prod)",
+      "entryPoints": {
+        "jobs": "src/jobs/",
+        "lib": "src/lib/",
+        "worker": "src/worker.ts"
+      }
+    }
+  },
+
+  "database": {
+    "engine": "PostgreSQL",
+    "orm": "Prisma v7",
+    "schema": "prisma/schema.prisma",
+    "generatedClients": [
+      "packages/web/prisma/generated",
+      "packages/worker/src/prisma/generated"
+    ],
+    "features": ["full-text search (tsvector + GIN)", "CUID IDs", "UUID for Game"]
+  },
+
+  "queue": {
+    "broker": "Redis (ioredis)",
+    "library": "BullMQ",
+    "queues": {
+      "gamepile.jobs": "Main job queue (SYNC_STEAM_GAMES, IMPORT_USER_LIBRARY, IMPORT_USER_ACHIEVEMENTS)",
+      "gamepile.game-details": "Per-game detail fetching (REFRESH_GAME_DETAILS)"
+    }
+  },
+
+  "auth": {
+    "provider": "Steam OpenID 2.0",
+    "session": "Cookie-based server-side sessions (no JWT)",
+    "sessionCookie": "__session (configurable)",
+    "files": {
+      "steam": "packages/web/lib/auth/steam.ts",
+      "session": "packages/web/lib/auth/session.ts",
+      "crypto": "packages/web/lib/auth/crypto.ts",
+      "rateLimit": "packages/web/lib/auth/rate-limit.ts",
+      "admin": "packages/web/lib/auth/admin.ts"
+    }
+  },
+
+  "serverActions": {
+    "library": "next-safe-action",
+    "clientFactory": "packages/web/server/actions.ts",
+    "tiers": {
+      "actionClientWithoutAuth": "Public endpoints — rate-limited",
+      "actionClientWithAuth": "Authenticated user — ctx.user available",
+      "actionClientWithAdmin": "Admin role required — ctx.user guaranteed admin"
+    },
+    "actionsDir": "packages/web/server/actions/",
+    "queriesDir": "packages/web/server/queries/"
+  },
+
+  "ui": {
+    "styling": "Tailwind CSS v4",
+    "components": "shadcn/ui (Radix UI) — packages/web/components/ui/",
+    "darkMode": "always (html className='dark')",
+    "fonts": {
+      "--font-heading": "Outfit",
+      "--font-sans": "Space Grotesk",
+      "--font-mono": "Space Mono"
+    },
+    "images": "Use <SafeImage> component; Steam CDN domains allowlisted in next.config.ts"
+  },
+
+  "observability": {
+    "tracing": "OpenTelemetry SDK → OTLP",
+    "logging": "Structured OTel-aware logger — packages/web/lib/logger.ts",
+    "logPattern": "logger.child('layer.module:operation')",
+    "forbidden": ["console.log", "console.error"]
+  },
+
+  "pathAliases": {
+    "@/": "packages/web/ (web package)",
+    "@/src/": "packages/worker/src/ (worker package)"
+  },
+
+  "envValidation": {
+    "file": "packages/web/env.ts",
+    "schema": "Zod schema, validated at startup via validateEnv()",
+    "rule": "Every new env var must be added to this schema with .describe() documentation"
+  },
+
+  "keyModels": [
+    "User", "Session", "UserSettings",
+    "Game", "Category", "Genre", "Achievement",
+    "UserGame", "UserGameAchievement",
+    "Collection", "CollectionUser", "CollectionGame",
+    "KeyVault", "KeyVaultUser", "KeyVaultGame",
+    "InviteCode", "InviteCodeUsage",
+    "Job", "JobLog", "FailedChildJob",
+    "AppSetting"
+  ],
+
+  "commands": {
+    "dev": "npm run dev",
+    "devWeb": "npm run dev:web",
+    "devWorker": "npm run dev:worker",
+    "build": "npm run build",
+    "dbGenerate": "npm run db:generate",
+    "dbMigrateDev": "npm run db:migrate:dev -- --name <name>",
+    "dbMigrateDeploy": "npm run db:migrate:deploy",
+    "dbStudio": "npm run db:studio",
+    "lintWeb": "npm run lint:web",
+    "unusedWeb": "npm run unused:web",
+    "unusedWorker": "npm run unused:worker"
+  },
+
+  "hardRules": [
+    "Never use console.log — use logger.child() structured logger",
+    "Never instantiate PrismaClient directly — use the singleton",
+    "Never edit files in prisma/generated/ directories — auto-generated",
+    "Never import server-only modules from Client Components",
+    "Never store raw game keys — always hash with hashedKey",
+    "Never bypass next-safe-action clients for server actions",
+    "Never skip Zod schema when adding new env vars",
+    "Never add heavy Steam API sync in request handlers — enqueue a Job"
+  ]
+}
+

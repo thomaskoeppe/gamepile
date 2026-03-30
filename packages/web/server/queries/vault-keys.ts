@@ -17,6 +17,7 @@ export const getKeys = queryClientWithAuth.inputSchema(z.object({
         name: z.string().optional(),
         tags: z.array(z.string()),
         isOwned: z.boolean().optional(),
+        isRedeemed: z.boolean().optional(),
     })
 })).query<{ games: Array<KeyVaultGameGetPayload<{ include: { game: { include: { categories: true, genres: true }}, addedBy: true, redeemedBy: true }}> & { isInMultipleVaults: boolean; }>; total: number; pages: number; page: number; }>(withLogging(async ({ parsedInput: { keyVaultId, page, pageSize, sortBy, sortOrder, filters }, ctx }, { log }) => {
     const offset = (page - 1) * pageSize;
@@ -103,14 +104,22 @@ export const getKeys = queryClientWithAuth.inputSchema(z.object({
         }
     }
 
+    if (filters.isRedeemed !== null && filters.isRedeemed !== undefined) {
+        filter.push({
+            redeemed: filters.isRedeemed,
+        });
+    }
+
+    const where = {
+        AND: [
+            { keyVaultId },
+            ...filter,
+        ],
+    };
+
     const [games, total] = await Promise.all([
         prisma.keyVaultGame.findMany({
-            where: {
-                AND: [
-                    { keyVaultId },
-                    ...filter
-                ]
-            },
+            where,
             include: {
                 game: {
                     include: {
@@ -126,9 +135,7 @@ export const getKeys = queryClientWithAuth.inputSchema(z.object({
             take: pageSize,
         }),
         prisma.keyVaultGame.count({
-            where: {
-                keyVaultId
-            }
+            where,
         })
     ]);
 
