@@ -153,7 +153,6 @@ export function TableWrapper({
                     canCreate={canCreate}
                     keyVaultAuthType={keyVaultAuthType}
                     onImportRefresh={() => mutateKeys()}
-                    canRedeem={canRedeem}
                     openMultiKeyRedeemDialog={() => setIsMultiDialogOpen(true)}
                     showMultiKeyRedeemDialogTrigger={canRedeem && selectedVaultGameIds.length > 0}
                 />
