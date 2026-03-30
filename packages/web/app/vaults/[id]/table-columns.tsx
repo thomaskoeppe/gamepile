@@ -8,6 +8,7 @@ import {
 import { GameDetailCard } from "@/components/game/game-detail-card";
 import { SafeImage } from "@/components/safe-image";
 import { Button } from "@/components/ui/button";
+import {Checkbox} from "@/components/ui/checkbox";
 import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem,
     DropdownMenuSeparator, DropdownMenuTrigger,
@@ -15,7 +16,6 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { KeyVaultGameGetPayload } from "@/prisma/generated/models/KeyVaultGame";
-import {Checkbox} from "@/components/ui/checkbox";
 
 export type VaultGameRow = KeyVaultGameGetPayload<{
     include: {

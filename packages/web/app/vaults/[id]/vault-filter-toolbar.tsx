@@ -25,7 +25,6 @@ interface VaultFilterToolbarProps {
     canCreate: boolean;
     keyVaultAuthType: KeyVaultAuthType;
     onImportRefresh: () => void;
-    canRedeem: boolean;
     openMultiKeyRedeemDialog: () => void;
     showMultiKeyRedeemDialogTrigger: boolean;
 }
@@ -45,7 +44,6 @@ export function VaultFilterToolbar({
     canCreate,
     keyVaultAuthType,
     onImportRefresh,
-    canRedeem,
     openMultiKeyRedeemDialog,
     showMultiKeyRedeemDialogTrigger,
 }: VaultFilterToolbarProps) {
