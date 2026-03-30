@@ -1,6 +1,7 @@
 import { useAction } from "next-safe-action/hooks";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 
+import { Button } from "@/components/ui/button";
 import { useServerQuery } from "@/lib/hooks/use-server-query";
 import { useSession } from "@/lib/providers/session";
 import { KeyVaultAuthType } from "@/prisma/generated/browser";
@@ -9,6 +10,7 @@ import { getGameCategories, getGameGenres } from "@/server/queries/games";
 import { getKeys } from "@/server/queries/vault-keys";
 
 import { KeyDialog, useKeyDialog } from "./key-dialog";
+import { MultiKeyDialog } from "./multi-key-dialog";
 import { DataTable } from "./table";
 import { createVaultKeyColumns, type VaultGameRow } from "./table-columns";
 import { VaultFilterToolbar } from "./vault-filter-toolbar";
@@ -32,8 +34,15 @@ export function TableWrapper({
     const [pageSize] = useState(10);
     const [sortBy, setSortBy] = useState("game_name");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-    const [filters, setFilters] = useState({ name: "", tags: [] as string[], isOwned: null as boolean | null });
+    const [filters, setFilters] = useState({
+        name: "",
+        tags: [] as string[],
+        isOwned: null as boolean | null,
+        isRedeemed: null as boolean | null,
+    });
     const [debouncedName, setDebouncedName] = useState("");
+    const [selectedVaultGameIds, setSelectedVaultGameIds] = useState<string[]>([]);
+    const [isMultiDialogOpen, setIsMultiDialogOpen] = useState(false);
     const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const activeFilters = { ...filters, name: debouncedName };
@@ -49,6 +58,7 @@ export function TableWrapper({
                 name: activeFilters.name || undefined,
                 tags: activeFilters.tags,
                 isOwned: activeFilters.isOwned ?? undefined,
+                isRedeemed: activeFilters.isRedeemed ?? undefined,
             }})
     );
 
@@ -80,6 +90,7 @@ export function TableWrapper({
     const handleNameChange = useCallback((name: string) => {
         setFilters((prev) => ({ ...prev, name }));
         setPage(1);
+        setSelectedVaultGameIds([]);
         if (searchDebounce.current) clearTimeout(searchDebounce.current);
         searchDebounce.current = setTimeout(() => setDebouncedName(name), 500);
     }, []);
@@ -89,8 +100,36 @@ export function TableWrapper({
             canRedeem,
             openKeyDialog: keyDialogHook.openKeyDialog,
             onUnredeem: (vaultGameId) => unredeemAction.execute({ vaultGameId }),
+            selectedVaultGameIds,
+            onToggleSelect: (vaultGameId, checked) => {
+                setSelectedVaultGameIds((prev) => {
+                    if (!checked) {
+                        return prev.filter((id) => id !== vaultGameId);
+                    }
+                    if (prev.includes(vaultGameId)) {
+                        return prev;
+                    }
+                    return [...prev, vaultGameId];
+                });
+            },
+            onToggleSelectPage: (checked) => {
+                const selectableIds = data
+                    .filter((row) => !row.redeemed)
+                    .map((row) => row.id);
+
+                setSelectedVaultGameIds((prev) => {
+                    if (!checked) {
+                        return prev.filter((id) => !selectableIds.includes(id));
+                    }
+
+                    const merged = new Set([...prev, ...selectableIds]);
+                    return Array.from(merged);
+                });
+            },
+            allPageRowsSelected: data.length > 0 && data.filter((row) => !row.redeemed).every((row) => selectedVaultGameIds.includes(row.id)),
+            somePageRowsSelected: data.some((row) => !row.redeemed && selectedVaultGameIds.includes(row.id)),
         }),
-        [canRedeem, keyDialogHook.openKeyDialog, unredeemAction]
+        [canRedeem, data, keyDialogHook.openKeyDialog, selectedVaultGameIds, unredeemAction]
     );
 
     return (
@@ -101,15 +140,23 @@ export function TableWrapper({
                     genres={genres}
                     categories={categories}
                     onNameChange={handleNameChange}
-                    onTagsChange={(tags) => { setFilters((prev) => ({ ...prev, tags })); setPage(1); }}
-                    onOwnedChange={(isOwned) => { setFilters((prev) => ({ ...prev, isOwned })); setPage(1); }}
-                    onClearFilters={() => { setFilters({ name: "", tags: [], isOwned: null }); setDebouncedName(""); }}
+                    onTagsChange={(tags) => { setFilters((prev) => ({ ...prev, tags })); setPage(1); setSelectedVaultGameIds([]); }}
+                    onOwnedChange={(isOwned) => { setFilters((prev) => ({ ...prev, isOwned })); setPage(1); setSelectedVaultGameIds([]); }}
+                    onRedeemedChange={(isRedeemed) => { setFilters((prev) => ({ ...prev, isRedeemed })); setPage(1); setSelectedVaultGameIds([]); }}
+                    onClearFilters={() => {
+                        setFilters({ name: "", tags: [], isOwned: null, isRedeemed: null });
+                        setDebouncedName("");
+                        setSelectedVaultGameIds([]);
+                    }}
                     onRefresh={() => mutateKeys()}
                     isLoading={isRevalidating}
                     keyVaultId={keyVaultId}
                     canCreate={canCreate}
                     keyVaultAuthType={keyVaultAuthType}
                     onImportRefresh={() => mutateKeys()}
+                    canRedeem={canRedeem}
+                    openMultiKeyRedeemDialog={() => setIsMultiDialogOpen(true)}
+                    showMultiKeyRedeemDialogTrigger={canRedeem && selectedVaultGameIds.length > 0}
                 />
 
                 <DataTable
@@ -119,13 +166,29 @@ export function TableWrapper({
                     currentPage={page}
                     pageSize={pageSize}
                     totalPages={keysData?.pages ?? 0}
-                    onPageChange={setPage}
-                    onSortChange={(newSortBy, newSortOrder) => { setSortBy(newSortBy); setSortOrder(newSortOrder); setPage(1); }}
+                    onPageChange={(nextPage) => {
+                        setPage(nextPage);
+                        setSelectedVaultGameIds([]);
+                    }}
+                    onSortChange={(newSortBy, newSortOrder) => {
+                        setSortBy(newSortBy);
+                        setSortOrder(newSortOrder);
+                        setPage(1);
+                        setSelectedVaultGameIds([]);
+                    }}
                     isLoading={isInitialLoading || keysResult === undefined}
                 />
             </div>
 
             <KeyDialog {...keyDialogHook} />
+            <MultiKeyDialog
+                open={isMultiDialogOpen}
+                onOpenChange={setIsMultiDialogOpen}
+                keyVaultAuthType={keyVaultAuthType}
+                selectedGames={data.filter((row) => selectedVaultGameIds.includes(row.id))}
+                onMutate={() => mutateKeys()}
+                onClearSelection={() => setSelectedVaultGameIds([])}
+            />
         </>
     );
 }

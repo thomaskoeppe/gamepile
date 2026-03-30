@@ -15,6 +15,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { KeyVaultGameGetPayload } from "@/prisma/generated/models/KeyVaultGame";
+import {Checkbox} from "@/components/ui/checkbox";
 
 export type VaultGameRow = KeyVaultGameGetPayload<{
     include: {
@@ -28,14 +29,45 @@ interface CreateColumnsOptions {
     canRedeem: boolean;
     openKeyDialog: (game: VaultGameRow) => void;
     onUnredeem: (vaultGameId: string) => void;
+    selectedVaultGameIds: string[];
+    onToggleSelect: (vaultGameId: string, checked: boolean) => void;
+    onToggleSelectPage: (checked: boolean) => void;
+    allPageRowsSelected: boolean;
+    somePageRowsSelected: boolean;
 }
 
 export function createVaultKeyColumns({
                                           canRedeem,
                                           openKeyDialog,
                                           onUnredeem,
+                                          selectedVaultGameIds,
+                                          onToggleSelect,
+                                          onToggleSelectPage,
+                                          allPageRowsSelected,
+                                          somePageRowsSelected,
                                       }: CreateColumnsOptions): ColumnDef<VaultGameRow>[] {
+    const selectionColumn: ColumnDef<VaultGameRow> = {
+        id: "select",
+        enableSorting: false,
+        header: () => (
+            <Checkbox
+                checked={allPageRowsSelected ? allPageRowsSelected : !allPageRowsSelected && somePageRowsSelected ? "indeterminate" : false}
+                onCheckedChange={(checked) => onToggleSelectPage(checked as boolean)}
+                disabled={!canRedeem}
+            />
+        ),
+        cell: ({ row }) => (
+            <Checkbox
+                checked={selectedVaultGameIds.includes(row.original.id)}
+                onCheckedChange={(checked) => onToggleSelect(row.original.id, checked as boolean)}
+                disabled={!canRedeem || row.original.redeemed}
+            />
+        ),
+        size: 24,
+    };
+
     return [
+        ...(canRedeem ? [selectionColumn] : []),
         {
             accessorKey: "image",
             enableSorting: false,
@@ -120,8 +152,6 @@ export function createVaultKeyColumns({
             enableResizing: false,
             size: 10,
             cell: ({ row }) => {
-                const hasDropdownItems = canRedeem;
-
                 return (
                     <div className="flex gap-2 justify-end">
                         {canRedeem && (
@@ -137,7 +167,7 @@ export function createVaultKeyColumns({
                             </Button>
                         )}
 
-                        {hasDropdownItems && (
+                        {canRedeem && (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" className="hover:text-primary hover:bg-muted/50">

@@ -1,9 +1,10 @@
 "use client";
 
 import dayjs from "dayjs";
-import { Pencil, Trash2 } from "lucide-react";
+import { KeyRound, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { ChangeVaultCredentialsDialog } from "@/app/vaults/[id]/change-vault-credentials-dialog";
 import { DeleteVaultDialog } from "@/components/dialogs/delete-vault";
 import { RenameVaultDialog } from "@/components/dialogs/rename-vault";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,19 @@ export function VaultInfoCard({ vault, isOwner, onReload }: VaultInfoCardProps) 
 
                     {isOwner && (
                         <div className="flex items-center gap-1 shrink-0">
+                            {vault.authType !== "NONE" && (
+                                <ChangeVaultCredentialsDialog
+                                    vaultId={vault.id}
+                                    currentAuthType={vault.authType}
+                                    onSuccess={onReload}
+                                >
+                                    <Button variant="ghost" size="icon" className="size-8">
+                                        <KeyRound className="size-4" />
+                                        <span className="sr-only">Change vault credentials</span>
+                                    </Button>
+                                </ChangeVaultCredentialsDialog>
+                            )}
+
                             <RenameVaultDialog
                                 vaultId={vault.id}
                                 currentName={vault.name}

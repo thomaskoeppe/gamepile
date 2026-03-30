@@ -19,7 +19,7 @@ import {cn} from "@/lib/utils";
 import type {Prisma} from "@/prisma/generated/browser";
 import { getVaults } from "@/server/queries/vaults";
 
-function VaultCard({ vault, isOwner }: { vault: Prisma.KeyVaultGetPayload<{ include: { _count: { select: { games: true; users: true } } }, omit: { authHash: true, authSalt: true } }>; isOwner: boolean }) {
+function VaultCard({ vault, isOwner }: { vault: Prisma.KeyVaultGetPayload<{ include: { _count: { select: { games: true; users: true } } }, omit: { authHash: true, authSalt: true, keySalt: true, encryptedVaultKey: true, recoveryEncryptedVaultKey: true, recoveryKeyHash: true } }>; isOwner: boolean }) {
     return (
         <Link href={`/vaults/${vault.id}`} className="group">
             <Card className="h-full bg-card border-border transition-all duration-200 hover:border-primary/40 hover:shadow-md hover:shadow-primary/5">

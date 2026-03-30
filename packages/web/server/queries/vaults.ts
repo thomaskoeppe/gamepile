@@ -15,7 +15,7 @@ import {queryClientWithAuth} from "@/server/query";
  * @returns Array of vault objects with game and user counts, excluding sensitive
  *   auth fields (`authHash`, `authSalt`).
  */
-export const getVaults = queryClientWithAuth.query<Array<Prisma.KeyVaultGetPayload<{ include: { _count: { select: { games: true; users: true } } }, omit: { authHash: true, authSalt: true } }>>>(withLogging(async ({ ctx }, { log }) => {
+export const getVaults = queryClientWithAuth.query<Array<Prisma.KeyVaultGetPayload<{ include: { _count: { select: { games: true; users: true } } }, omit: { authHash: true, authSalt: true, keySalt: true, encryptedVaultKey: true, recoveryEncryptedVaultKey: true, recoveryKeyHash: true } }>>>(withLogging(async ({ ctx }, { log }) => {
     log.info("Fetching vaults for user", {
         userId: ctx.user.id,
     });
@@ -43,7 +43,11 @@ export const getVaults = queryClientWithAuth.query<Array<Prisma.KeyVaultGetPaylo
         },
         omit: {
             authHash: true,
-            authSalt: true
+            authSalt: true,
+            keySalt: true,
+            encryptedVaultKey: true,
+            recoveryEncryptedVaultKey: true,
+            recoveryKeyHash: true,
         }
     });
 }, {
@@ -114,6 +118,10 @@ export const getVaultDetail = queryClientWithAuth.inputSchema(z.object({
         omit: {
             authHash: true,
             authSalt: true,
+            keySalt: true,
+            encryptedVaultKey: true,
+            recoveryEncryptedVaultKey: true,
+            recoveryKeyHash: true,
             createdById: true,
         },
     });
