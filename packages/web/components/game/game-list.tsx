@@ -83,7 +83,7 @@ export function GameList({
         count: adjustedTileSize && columnCount ? Math.ceil(visibleGames.length / columnCount) : 0,
         getScrollElement: () => ref.current,
         estimateSize: () => (adjustedTileSize ?? 200) * 1.5,
-        overscan: 5,
+        overscan: 2,
     });
 
     const columnVirtualizer = useVirtualizer({

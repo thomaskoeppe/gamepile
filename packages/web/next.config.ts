@@ -57,7 +57,8 @@ const nextConfig: NextConfig = {
               protocol: "https",
               hostname: "placehold.co"
           }
-      ]
+      ],
+        minimumCacheTTL: 60 * 60 * 24 * 30
     },
     poweredByHeader: false,
     async headers() {

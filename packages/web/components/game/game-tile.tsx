@@ -43,7 +43,7 @@ export function GameTile({ game, onRevalidate }: { game: Prisma.GameGetPayload<{
                 });
             },
             {
-                rootMargin: "200px",
+                rootMargin: "50px",
             },
         );
 
