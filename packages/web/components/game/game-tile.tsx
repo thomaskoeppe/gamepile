@@ -39,6 +39,8 @@ export function GameTile({ game, onRevalidate }: { game: Prisma.GameGetPayload<{
                 entries.forEach((entry) => {
                     if (entry.isIntersecting && !isVisible) {
                         setIsVisible(true);
+                    } else if (!entry.isIntersecting && isVisible) {
+                        setIsVisible(false);
                     }
                 });
             },
@@ -65,15 +67,11 @@ export function GameTile({ game, onRevalidate }: { game: Prisma.GameGetPayload<{
                         onMouseLeave={handleMouseLeave}
                     >
                         <SafeImage
-                            srcs={[
-                                `https://steamcdn-a.akamaihd.net/steam/apps/${game.appId}/library_600x900_2x.jpg`,
-                                `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.appId}/header.jpg`,
-                                `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.appId}/library_hero.jpg`,
-                            ]}
+                            srcs={[`https://steamcdn-a.akamaihd.net/steam/apps/${game.appId}/library_600x900.jpg`]}
                             alt={String(game.id)}
                             className="rounded-lg object-cover h-full w-full"
-                            width={600}
-                            height={900}
+                            width={200}
+                            height={300}
                             fallbackLabel={game.name}
                             fallbackClassName="rounded-lg"
                         />
