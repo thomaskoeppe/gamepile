@@ -190,7 +190,8 @@ async function recoverStaleJobs(): Promise<void> {
  */
 async function registerScheduledJobs(): Promise<void> {
     const syncCron = process.env.WORKER_SYNC_STEAM_GAMES_CRON ?? "0 3 * * 0";
-    const refreshCron = process.env.WORKER_REFRESH_GAME_DETAILS_CRON  ?? "0 2 * * *";
+    const refreshCron = process.env.WORKER_REFRESH_GAME_DETAILS_CRON  ?? "0 0 * * *";
+    const internalScheduledTaskCron =  "0 * * * *";
     const schedulerConfigKey = "gamepile:worker:scheduler-config:v1";
     const desiredSchedulerConfig = JSON.stringify({ syncCron, refreshCron });
 
@@ -221,6 +222,15 @@ async function registerScheduledJobs(): Promise<void> {
             data: { type: JobType.REFRESH_GAME_DETAILS },
         }
     );
+
+    await jobsQueue.upsertJobScheduler(
+        "gamepile.schedule.internal-scheduled-task",
+        { pattern: internalScheduledTaskCron },
+        {
+            name: JobType.INTERNAL_SCHEDULED_TASK,
+            data: { type: JobType.INTERNAL_SCHEDULED_TASK },
+        }
+    )
 
     log.info("Scheduled jobs registered", {
         hostname: HOSTNAME,
@@ -390,6 +400,117 @@ async function initWorkers(): Promise<void> {
                         break;
                     case JobType.REFRESH_GAME_DETAILS:
                         await refreshGameDetails({jobId: resolvedJobId});
+                        break;
+                    case JobType.INTERNAL_SCHEDULED_TASK:
+                        const IMPORT_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
+                        const cutoffDate = new Date(Date.now() - IMPORT_INTERVAL_MS);
+
+                        const [recentlyImported, alreadyPending] = await Promise.all([
+                            prisma.job.findMany({
+                                where: {
+                                    type: JobType.IMPORT_USER_LIBRARY,
+                                    status: { in: [JobStatus.COMPLETED, JobStatus.PARTIALLY_COMPLETED] },
+                                    finishedAt: { gte: cutoffDate },
+                                    userId: { not: null },
+                                },
+                                select: { userId: true },
+                                distinct: ["userId"],
+                            }),
+                            prisma.job.findMany({
+                                where: {
+                                    type: JobType.IMPORT_USER_LIBRARY,
+                                    status: { in: [JobStatus.QUEUED, JobStatus.ACTIVE] },
+                                    userId: { not: null },
+                                },
+                                select: { userId: true },
+                                distinct: ["userId"],
+                            }),
+                        ]);
+
+                        const skipUserIds = new Set([
+                            ...recentlyImported.map((j) => j.userId!),
+                            ...alreadyPending.map((j) => j.userId!),
+                        ]);
+
+                        const usersToImport = await prisma.user.findMany({
+                            where: { id: { notIn: [...skipUserIds] } },
+                            select: { id: true },
+                        });
+
+                        for (const user of usersToImport) {
+                            const dbJob = await prisma.job.create({
+                                data: { type: JobType.IMPORT_USER_LIBRARY, userId: user.id },
+                            });
+
+                            log.info("Scheduling recurring library import for user", {
+                                jobId: resolvedJobId,
+                                userId: user.id,
+                            });
+
+                            await jobsQueue.add(JobType.IMPORT_USER_LIBRARY, {
+                                jobId: dbJob.id,
+                                type: JobType.IMPORT_USER_LIBRARY,
+                                userId: user.id,
+                            });
+
+                            await createLog(dbJob.id, "info", "Scheduled recurring library import for user");
+                        }
+
+                        const unmatchedKeys = await prisma.keyVaultGame.findMany({
+                            where: { gameId: null },
+                            select: { id: true, originalName: true },
+                        });
+
+                        if (!unmatchedKeys.length) {
+                            log.info("No unmatched game keys to resolve", { jobId: resolvedJobId });
+                            return;
+                        }
+
+                        const uniqueNames = [...new Set(unmatchedKeys.map((k) => k.originalName))];
+
+                        const matchingGames = await prisma.game.findMany({
+                            where: { name: { in: uniqueNames, mode: "insensitive" } },
+                            select: { id: true, name: true },
+                        });
+
+                        if (!matchingGames.length) {
+                            log.info("No matching games found for unmatched keys", { jobId: resolvedJobId });
+                            return;
+                        }
+
+                        const nameToGameId = new Map(matchingGames.map((g) => [g.name, g.id]));
+
+                        const matched = unmatchedKeys.filter((k) => nameToGameId.has(k.originalName));
+                        const unresolved = unmatchedKeys.length - matched.length;
+
+                        log.info("Resolving game keys", {
+                            jobId: resolvedJobId,
+                            total: unmatchedKeys.length,
+                            matched: matched.length,
+                            unresolved,
+                        });
+
+                        const BATCH_SIZE = 100;
+
+                        for (let i = 0; i < matched.length; i += BATCH_SIZE) {
+                            const batch = matched.slice(i, i + BATCH_SIZE);
+
+                            await prisma.$transaction(
+                                batch.map((k) =>
+                                    prisma.keyVaultGame.update({
+                                        where: { id: k.id },
+                                        data: { gameId: nameToGameId.get(k.originalName) },
+                                    })
+                                )
+                            );
+                        }
+
+                        log.info("Finished resolving game keys", {
+                            jobId: resolvedJobId,
+                            resolved: matched.length,
+                            stillUnresolved: unresolved,
+                        });
+
                         break;
                     default:
                         throw new Error(`Unknown job type: ${type}`);
