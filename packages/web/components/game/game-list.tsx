@@ -7,6 +7,7 @@ import {MultiSelectCombobox} from "@/components/multi-select-combobox";
 import {Shimmer} from "@/components/shimmer";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import { browserLog } from "@/lib/browser-logger";
+import {AppSettingKey, useAppSettings} from "@/lib/providers/app-settings";
 import {Prisma} from "@/prisma/generated/client";
 
 function GameTileSkeleton({ width, height }: { width: number; height: number }) {
@@ -32,6 +33,8 @@ export function GameList({
     isLoading?: boolean;
     onRevalidate?: () => void;
 }) {
+    const { getSetting } = useAppSettings();
+
     const [visibleGames, setVisibleGames] = useState(games);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [sortOption, setSortOption] = useState<string>("playtime_desc");
@@ -83,7 +86,7 @@ export function GameList({
         count: adjustedTileSize && columnCount ? Math.ceil(visibleGames.length / columnCount) : 0,
         getScrollElement: () => ref.current,
         estimateSize: () => (adjustedTileSize ?? 200) * 1.5,
-        overscan: 2,
+        overscan: getSetting(AppSettingKey.UI_GAME_LIBRARY_PRERENDERED_ROWS),
     });
 
     const columnVirtualizer = useVirtualizer({

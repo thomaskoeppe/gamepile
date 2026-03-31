@@ -3,6 +3,18 @@ import prisma from "@/lib/prisma";
 import {AppSettingKey, KeyVaultAuthType} from "@/prisma/generated/enums";
 import type { AppSettingValueType } from "@/types/app-setting";
 
+/**
+ * The subset of {@link AppSettingKey} values that are safe to expose to the browser.
+ * Security-sensitive keys (brute-force thresholds, session timeouts) are intentionally
+ * excluded.
+ */
+export const PUBLIC_SETTING_KEYS = [
+    AppSettingKey.UI_GAME_LIBRARY_PRERENDERED_ROWS
+] as const satisfies readonly AppSettingKey[];
+
+/** The type of settings that are safe to expose client-side. */
+export type PublicAppSettings = Pick<AppSettingValueType, (typeof PUBLIC_SETTING_KEYS)[number]>;
+
 const log = logger.child("server.services.appSettings");
 
 const DEFAULTS: AppSettingValueType = {
@@ -29,6 +41,7 @@ const DEFAULTS: AppSettingValueType = {
     [AppSettingKey.ALLOW_PUBLIC_COLLECTIONS]: true,
     [AppSettingKey.MAX_VAULTS_PER_USER]: 10,
     [AppSettingKey.MAX_COLLECTIONS_PER_USER]: 10,
+    [AppSettingKey.UI_GAME_LIBRARY_PRERENDERED_ROWS]: 2,
 };
 
 type SettingsStore = Partial<AppSettingValueType>;
@@ -101,6 +114,19 @@ export function getSetting<K extends AppSettingKey>(key: K): AppSettingValueType
  */
 export function getAllSettings(): AppSettingValueType {
     return { ...DEFAULTS, ...store() } as AppSettingValueType;
+}
+
+/**
+ * Returns only the settings that are safe to expose to the browser (see {@link PUBLIC_SETTING_KEYS}).
+ * Reads from the in-memory store, falling back to defaults for keys not yet loaded.
+ *
+ * @returns A {@link PublicAppSettings} record ready to be serialised and sent to the client.
+ */
+export function getPublicSettings(): PublicAppSettings {
+    const all = getAllSettings();
+    return Object.fromEntries(
+        PUBLIC_SETTING_KEYS.map((key) => [key, all[key]]),
+    ) as PublicAppSettings;
 }
 
 /**

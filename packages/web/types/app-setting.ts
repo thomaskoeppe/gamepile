@@ -24,4 +24,5 @@ export type AppSettingValueType = {
     [AppSettingKey.SESSION_TIMEOUT_SECONDS]: number;
     [AppSettingKey.ADMIN_CAN_DELETE_ANY_VAULT]: boolean;
     [AppSettingKey.ADMIN_CAN_DELETE_ANY_COLLECTION]: boolean;
+    [AppSettingKey.UI_GAME_LIBRARY_PRERENDERED_ROWS]: number;
 }

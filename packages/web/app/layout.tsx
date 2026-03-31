@@ -9,6 +9,8 @@ import {ReactNode} from "react";
 import * as React from "react";
 
 import { AnimatedBackground } from "@/components/animated-background";
+import { getPublicSettings } from "@/lib/app-settings";
+import { AppSettingsProvider } from "@/lib/providers/app-settings";
 import {SessionProvider} from "@/lib/providers/session";
 
 const outfit = Outfit({
@@ -33,20 +35,22 @@ export const metadata: Metadata = {
     title: "GAMEPILE | Your Game Library"
 };
 
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
     return (
         <html lang="en" className="dark" suppressHydrationWarning>
             <body
                 className={`${outfit.variable} ${spaceGrotesk.variable} ${spaceMono.variable} antialiased`}
             >
-                <SessionProvider>
-                    <div className="min-h-screen bg-linear-to-b from-card via-background to-background text-foreground">
-                        <AnimatedBackground />
+                <AppSettingsProvider initialSettings={getPublicSettings()}>
+                    <SessionProvider>
+                        <div className="min-h-screen bg-linear-to-b from-card via-background to-background text-foreground">
+                            <AnimatedBackground />
 
-                        {children}
-                    </div>
-                    <Analytics />
-                </SessionProvider>
+                            {children}
+                        </div>
+                        <Analytics />
+                    </SessionProvider>
+                </AppSettingsProvider>
             </body>
         </html>
     );
