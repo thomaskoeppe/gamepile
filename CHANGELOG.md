@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/thomaskoeppe/gamepile/compare/v1.1.0...v1.2.0) (2026-03-31)
+
+### Features
+
+* **app-settings:** add AppSettingsProvider and public settings retrieval ([167d394](https://github.com/thomaskoeppe/gamepile/commit/167d394ddc28928b5319691b977e638c7b24e5fb)), closes [#46](https://github.com/thomaskoeppe/gamepile/issues/46)
+
 ## [1.1.0](https://github.com/thomaskoeppe/gamepile/compare/v1.0.0...v1.1.0) (2026-03-31)
 
 ### Features
