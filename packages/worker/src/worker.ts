@@ -469,7 +469,7 @@ async function initWorkers(): Promise<void> {
                         const uniqueNames = [...new Set(unmatchedKeys.map((k) => k.originalName))];
 
                         const matchingGames = await prisma.game.findMany({
-                            where: { name: { in: uniqueNames, mode: "insensitive" } },
+                            where: { name: { in: uniqueNames } },
                             select: { id: true, name: true },
                         });
 
@@ -510,6 +510,13 @@ async function initWorkers(): Promise<void> {
                             resolved: matched.length,
                             stillUnresolved: unresolved,
                         });
+
+                        await prisma.job.update({
+                            where: { id: resolvedJobId },
+                            data: { status: JobStatus.COMPLETED, finishedAt: new Date() },
+                        });
+
+                        log.info("Internal scheduled task completed", { jobId: resolvedJobId });
 
                         break;
                     default:
