@@ -38,6 +38,7 @@ const SETTING_TYPES: Record<AppSettingKey, "boolean" | "number" | "string"> = {
     [AppSettingKey.ADMIN_CAN_CHANGE_RESOURCE_OWNER]: "boolean",
     [AppSettingKey.MAX_VAULTS_PER_USER]: "number",
     [AppSettingKey.MAX_COLLECTIONS_PER_USER]: "number",
+    [AppSettingKey.UI_GAME_LIBRARY_PRERENDERED_ROWS]: "number",
 };
 
 const updateSettingSchema = z.object({
@@ -96,6 +97,7 @@ const configurationSchema = z.object({
     [AppSettingKey.ALLOW_PUBLIC_COLLECTIONS]: z.boolean(),
     [AppSettingKey.MAX_VAULTS_PER_USER]: z.number().int().positive(),
     [AppSettingKey.MAX_COLLECTIONS_PER_USER]: z.number().int().positive(),
+    [AppSettingKey.UI_GAME_LIBRARY_PRERENDERED_ROWS]: z.number().int().min(0),
 });
 
 /**
