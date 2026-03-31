@@ -29,6 +29,7 @@ const DETAILS_CONCURRENCY = Number(process.env.WORKER_DETAILS_CONCURRENCY ?? 10)
 const STARTUP_DELAY_MS = Number(process.env.WORKER_STARTUP_DELAY_MS ?? 5 * 60 * 1_000);
 const STALE_ACTIVE_RECOVERY_DELAY_MS = Number(process.env.WORKER_STALE_ACTIVE_RECOVERY_DELAY_MS ?? 30 * 60 * 1_000);
 const ACTIVE_RECOVERY_LOCK_TTL_MS = Number(process.env.WORKER_ACTIVE_RECOVERY_LOCK_TTL_MS ?? 60_000);
+const IMPORT_USER_LIBRARY_INTERVAL_MS = Number(process.env.WORKER_IMPORT_USER_LIBRARY_INTERVAL_MS ?? 7 * 24 * 60 * 60 * 1_000);
 
 let shuttingDown = false;
 
@@ -402,8 +403,7 @@ async function initWorkers(): Promise<void> {
                         await refreshGameDetails({jobId: resolvedJobId});
                         break;
                     case JobType.INTERNAL_SCHEDULED_TASK:
-                        const IMPORT_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
-                        const cutoffDate = new Date(Date.now() - IMPORT_INTERVAL_MS);
+                        const cutoffDate = new Date(Date.now() - IMPORT_USER_LIBRARY_INTERVAL_MS);
 
                         const [recentlyImported, alreadyPending] = await Promise.all([
                             prisma.job.findMany({

@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderCircle, RefreshCw, Settings } from "lucide-react";
+import {LoaderCircle, RefreshCw, Settings, TriangleAlert} from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { type ReactNode, useState } from "react";
 
@@ -28,11 +28,13 @@ function SwitchField({
     description,
     checked,
     onCheckedChange,
+    warning,
 }: {
     label: string;
     description: string;
     checked: boolean;
     onCheckedChange: (checked: boolean) => void;
+    warning?: string;
 }) {
     return (
         <div className="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-background/40 p-4">
@@ -41,6 +43,13 @@ function SwitchField({
                 <p className="text-sm text-muted-foreground">{description}</p>
             </div>
             <Switch checked={checked} onCheckedChange={onCheckedChange} />
+
+            {warning && (
+                <div className="flex items-center gap-1 text-sm text-yellow-500">
+                    <TriangleAlert className="h-4 w-4" />
+                    {warning}
+                </div>
+            )}
         </div>
     );
 }
@@ -51,12 +60,14 @@ function NumberField({
     value,
     onChange,
     min,
+    warning
 }: {
     label: string;
     description: string;
     value: number;
     onChange: (value: number) => void;
     min?: number;
+    warning?: string;
 }) {
     return (
         <div className="grid gap-3 rounded-lg border border-border/60 bg-background/40 p-4 lg:grid-cols-[minmax(0,1fr)_180px] lg:items-center">
@@ -64,6 +75,7 @@ function NumberField({
                 <p className="font-medium text-foreground">{label}</p>
                 <p className="text-sm text-muted-foreground">{description}</p>
             </div>
+
             <Input
                 type="number"
                 value={value}
@@ -71,6 +83,13 @@ function NumberField({
                 onChange={(e) => onChange(parseInt(e.target.value, 10) || 0)}
                 className="bg-background"
             />
+
+            {warning && (
+                <div className="flex items-center gap-1 text-sm text-yellow-500">
+                    <TriangleAlert className="h-4 w-4" />
+                    {warning}
+                </div>
+            )}
         </div>
     );
 }
@@ -81,12 +100,14 @@ function SelectField({
     value,
     onValueChange,
     children,
+    warning
 }: {
     label: string;
     description: string;
     value: string;
     onValueChange: (value: string) => void;
     children: ReactNode;
+    warning?: string;
 }) {
     return (
         <div className="grid gap-3 rounded-lg border border-border/60 bg-background/40 p-4 lg:grid-cols-[minmax(0,1fr)_180px] lg:items-center">
@@ -100,6 +121,13 @@ function SelectField({
                 </SelectTrigger>
                 <SelectContent>{children}</SelectContent>
             </Select>
+
+            {warning && (
+                <div className="flex items-center gap-1 text-sm text-yellow-500">
+                    <TriangleAlert className="h-4 w-4" />
+                    {warning}
+                </div>
+            )}
         </div>
     );
 }
@@ -332,6 +360,16 @@ export function ConfigurationForm({ settings, onSaved }: ConfigurationFormProps)
                         description="Allow admins to transfer vault or collection ownership to another user."
                         checked={bool(AppSettingKey.ADMIN_CAN_CHANGE_RESOURCE_OWNER)}
                         onCheckedChange={(v) => update(AppSettingKey.ADMIN_CAN_CHANGE_RESOURCE_OWNER, v)}
+                    />
+
+                    <SectionHeading>UI Configuration</SectionHeading>
+                    <NumberField
+                        label="Game Library Preload Rows"
+                        description="Determines how many additional rows (beyond the visible area) are pre-rendered in the game library for smoother scrolling."
+                        value={num(AppSettingKey.UI_GAME_LIBRARY_PRERENDERED_ROWS)}
+                        onChange={(v) => update(AppSettingKey.UI_GAME_LIBRARY_PRERENDERED_ROWS, v)}
+                        min={0}
+                        warning="Higher values may increase server CPU usage."
                     />
 
                     <div className="flex justify-end gap-2 pt-2">
