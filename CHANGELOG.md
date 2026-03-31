@@ -1,3 +1,13 @@
+## [1.3.0](https://github.com/thomaskoeppe/gamepile/compare/v1.2.0...v1.3.0) (2026-03-31)
+
+### Features
+
+* **configuration:** add .env variables, configuration option and warning to config option ([#56](https://github.com/thomaskoeppe/gamepile/issues/56)) ([0dd4817](https://github.com/thomaskoeppe/gamepile/commit/0dd481704e4710c4c45bc0b1c3fa352a69084b1d))
+
+### Bug Fixes
+
+* **admin:** added missing schema and type to action ([06058a7](https://github.com/thomaskoeppe/gamepile/commit/06058a7c4e8eee087bd0271dbb27baaee77d5e83))
+
 ## [1.2.0](https://github.com/thomaskoeppe/gamepile/compare/v1.1.0...v1.2.0) (2026-03-31)
 
 ### Features
