@@ -1,3 +1,14 @@
+## [1.1.0](https://github.com/thomaskoeppe/gamepile/compare/v1.0.0...v1.1.0) (2026-03-31)
+
+### Features
+
+* **worker:** add internal scheduled task for user library imports ([#54](https://github.com/thomaskoeppe/gamepile/issues/54)) ([#32](https://github.com/thomaskoeppe/gamepile/issues/32)) ([24ae3ce](https://github.com/thomaskoeppe/gamepile/commit/24ae3ce9a15f0e67c15f4ece8f715ae878fb045e))
+
+### Bug Fixes
+
+* **web:** add internal scheduled task constant ([3a0bb4f](https://github.com/thomaskoeppe/gamepile/commit/3a0bb4f6bc098a280e24b94d78a90649ecdeebf4))
+* **worker:** complete internal scheduled job and update status ([4105c3e](https://github.com/thomaskoeppe/gamepile/commit/4105c3eb267672a12ab0f7031c07e5e8001b887f))
+
 ## 1.0.0 (2026-03-30)
 
 ### Bug Fixes
