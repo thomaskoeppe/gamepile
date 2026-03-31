@@ -38,4 +38,5 @@ export const JOB_TYPE_LABEL: Record<JobType, string> = {
     IMPORT_USER_LIBRARY:     "Library Import",
     IMPORT_USER_ACHIEVEMENTS: "Achievement Import",
     REFRESH_GAME_DETAILS:    "Refresh Game Details",
+    INTERNAL_SCHEDULED_TASK: "Scheduled Task",
 };
