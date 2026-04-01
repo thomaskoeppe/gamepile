@@ -9,12 +9,12 @@ Megaphone, Monitor, Package, Package2,
 import Link from "next/link";
 import { ElementType } from "react";
 
-import { ExpandablePills } from "@/components/shared/expandable-pills";
 import { AddToCollectionDropdown } from "@/components/game/add-to-collection-dropdown";
+import { ExpandablePills } from "@/components/shared/expandable-pills";
 import { SafeImage } from "@/components/shared/safe-image";
+import { TablePagination } from "@/components/table-pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TablePagination } from "@/components/table-pagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";

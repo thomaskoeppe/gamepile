@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
     CheckCircle2, ChevronRight, Globe, Library, LoaderCircle,
-    Lock, ShieldAlert, Users,
+    Lock, ShieldAlert,
 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { KeyboardEvent,ReactNode, useCallback, useState } from "react";
