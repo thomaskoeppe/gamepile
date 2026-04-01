@@ -54,8 +54,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository }}/web
           tags: |
-            type=semver,pattern={{version}},value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
+            type=semver,pattern={{version}},value=${{ github.event.release.tag_name }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ github.event.release.tag_name }}
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
 
@@ -96,8 +96,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository }}/migrate
           tags: |
-            type=semver,pattern={{version}},value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
+            type=semver,pattern={{version}},value=${{ github.event.release.tag_name }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ github.event.release.tag_name }}
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
 
@@ -105,7 +105,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: packages/migrate/Dockerfile
+          file: packages/web/Dockerfile.migrate
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -138,8 +138,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository }}/worker
           tags: |
-            type=semver,pattern={{version}},value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
+            type=semver,pattern={{version}},value=${{ github.event.release.tag_name }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ github.event.release.tag_name }}
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
 
