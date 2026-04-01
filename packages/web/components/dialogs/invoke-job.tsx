@@ -230,7 +230,6 @@ export function InvokeJobDialog() {
 
                 {step === 2 && config && (
                     <div className="space-y-4">
-                        {/* Selected job summary */}
                         <div className={cn(
                             "flex items-start gap-3 rounded-xl border p-3.5",
                             config.color,
@@ -242,7 +241,6 @@ export function InvokeJobDialog() {
                             </div>
                         </div>
 
-                        {/* User selector — only for user-specific jobs */}
                         {config.requiresUser && (
                             <div className="space-y-1.5">
                                 <label className="text-sm font-medium text-foreground flex items-center gap-1.5">

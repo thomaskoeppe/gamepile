@@ -1,10 +1,10 @@
 import { useVirtualizer } from '@tanstack/react-virtual';
-import React, {Fragment, useEffect, useState} from "react";
+import React, {Fragment, useEffect, useMemo, useState} from "react";
 import { useRef } from "react";
 
 import {GameTile} from "@/components/game/game-tile";
-import {MultiSelectCombobox} from "@/components/multi-select-combobox";
-import {Shimmer} from "@/components/shimmer";
+import { MultiSelectCombobox } from "@/components/shared/multi-select-combobox";
+import { Shimmer } from "@/components/shared/shimmer";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import { browserLog } from "@/lib/browser-logger";
 import {AppSettingKey, useAppSettings} from "@/lib/providers/app-settings";
@@ -35,7 +35,6 @@ export function GameList({
 }) {
     const { getSetting } = useAppSettings();
 
-    const [visibleGames, setVisibleGames] = useState(games);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [sortOption, setSortOption] = useState<string>("playtime_desc");
     const [showOnlyOwnedState, setShowOnlyOwnedState] = useState<"owned" | "unowned" | "all">("all");
@@ -81,6 +80,34 @@ export function GameList({
     const leftoverSpace = tileSize && columnCount && containerWidth ? containerWidth - columnCount * tileSize : 0;
     const adjustedTileSize = tileSize && columnCount ? tileSize + leftoverSpace / columnCount : null;
 
+    const visibleGames = useMemo(() => {
+        const filteredGames = games.filter((ug) => {
+            const gameCategories = ug.categories.map(c => `category_${c.name}`);
+            const gameGenres = ug.genres.map(g => `genre_${g.name}`);
+            const gameTags = [...gameCategories, ...gameGenres];
+
+            if (showOnlyOwnedState === "owned" && !ug.owned) return false;
+            if (showOnlyOwnedState === "unowned" && ug.owned) return false;
+
+            return selectedTags.every(tag => gameTags.includes(tag));
+        });
+
+        return filteredGames.sort((a, b) => {
+            switch (sortOption) {
+                case "name_asc":
+                    return a.name.localeCompare(b.name);
+                case "name_desc":
+                    return b.name.localeCompare(a.name);
+                case "playtime_asc":
+                    return (a.owned ? (a.playtime ?? -1) : -1) - (b.owned ? (b.playtime ?? -1) : -1);
+                case "playtime_desc":
+                    return (b.owned ? (b.playtime ?? -1) : -1) - (a.owned ? (a.playtime ?? -1) : -1);
+                default:
+                    return 0;
+            }
+        });
+    }, [games, selectedTags, sortOption, showOnlyOwnedState]);
+
     // eslint-disable-next-line react-hooks/incompatible-library
     const rowVirtualizer = useVirtualizer({
         count: adjustedTileSize && columnCount ? Math.ceil(visibleGames.length / columnCount) : 0,
@@ -98,36 +125,9 @@ export function GameList({
     });
 
     useEffect(() => {
-        const filteredGames = games.filter(ug => {
-            const gameCategories = ug.categories.map(c => `category_${c.name}`);
-            const gameGenres = ug.genres.map(g => `genre_${g.name}`);
-            const gameTags = [...gameCategories, ...gameGenres];
-
-            if (showOnlyOwnedState === "owned" && !ug.owned) return false;
-            if (showOnlyOwnedState === "unowned" && ug.owned) return false;
-
-            return selectedTags.every(tag => gameTags.includes(tag));
-        });
-
-        const filteredGames2 = filteredGames.sort((a, b) => {
-            switch (sortOption) {
-                case "name_asc":
-                    return a.name.localeCompare(b.name);
-                case "name_desc":
-                    return b.name.localeCompare(a.name);
-                case "playtime_asc":
-                    return (a.owned ? (a.playtime ?? -1) : -1) - (b.owned ? (b.playtime ?? -1) : -1);
-                case "playtime_desc":
-                    return (b.owned ? (b.playtime ?? -1) : -1) - (a.owned ? (a.playtime ?? -1) : -1);
-                default:
-                    return 0;
-            }
-        });
-
-        setVisibleGames(filteredGames2);
         columnVirtualizer.measure();
         rowVirtualizer.measure();
-    }, [selectedTags, games, sortOption, columnVirtualizer, rowVirtualizer, showOnlyOwnedState]);
+    }, [visibleGames.length, columnVirtualizer, rowVirtualizer]);
 
     return (
         <div ref={ref} style={{ height: '100%', width: '100%', overflow: 'auto' }}>

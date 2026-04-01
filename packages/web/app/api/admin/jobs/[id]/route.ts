@@ -53,36 +53,6 @@ export async function GET(
                     avatarUrl: true,
                 },
             },
-            logs: {
-                orderBy: { timestamp: "desc" },
-                skip: (logPage - 1) * logLimit,
-                take: logLimit,
-                select: {
-                    id: true,
-                    message: true,
-                    level: true,
-                    timestamp: true,
-                },
-            },
-            _count: {
-                select: {
-                    logs: true,
-                    FailedChildJob: true,
-                },
-            },
-            FailedChildJob: {
-                orderBy: { createdAt: "desc" },
-                skip: (failedPage - 1) * failedLimit,
-                take: failedLimit,
-                select: {
-                    id: true,
-                    appId: true,
-                    gameId: true,
-                    errorMessage: true,
-                    attempts: true,
-                    createdAt: true,
-                },
-            },
         },
     });
 
@@ -90,26 +60,57 @@ export async function GET(
         return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
+    const [logs, failedChildJobs, logsCount, failedChildCount] = await Promise.all([
+        prisma.jobLog.findMany({
+            where: { jobId },
+            orderBy: { timestamp: "desc" },
+            skip: (logPage - 1) * logLimit,
+            take: logLimit,
+            select: {
+                id: true,
+                message: true,
+                level: true,
+                timestamp: true,
+            },
+        }),
+        prisma.failedChildJob.findMany({
+            where: { jobId },
+            orderBy: { createdAt: "desc" },
+            skip: (failedPage - 1) * failedLimit,
+            take: failedLimit,
+            select: {
+                id: true,
+                appId: true,
+                gameId: true,
+                errorMessage: true,
+                attempts: true,
+                createdAt: true,
+            },
+        }),
+        prisma.jobLog.count({ where: { jobId } }),
+        prisma.failedChildJob.count({ where: { jobId } }),
+    ]);
+
     return NextResponse.json({
         ...job,
         startedAt: job.startedAt?.toISOString() ?? null,
         finishedAt: job.finishedAt?.toISOString() ?? null,
         createdAt: job.createdAt.toISOString(),
         updatedAt: job.updatedAt.toISOString(),
-        logs: job.logs.map((l) => ({ ...l, timestamp: l.timestamp.toISOString() })),
+        logs: logs.map((l) => ({ ...l, timestamp: l.timestamp.toISOString() })),
         logsPagination: {
             page: logPage,
             limit: logLimit,
-            total: job._count.logs,
-            pages: Math.max(1, Math.ceil(job._count.logs / logLimit)),
+            total: logsCount,
+            pages: Math.max(1, Math.ceil(logsCount / logLimit)),
         },
         failedPagination: {
             page: failedPage,
             limit: failedLimit,
-            total: job._count.FailedChildJob,
-            pages: Math.max(1, Math.ceil(job._count.FailedChildJob / failedLimit)),
+            total: failedChildCount,
+            pages: Math.max(1, Math.ceil(failedChildCount / failedLimit)),
         },
-        FailedChildJob: job.FailedChildJob.map((f) => ({
+        failedChildJobs: failedChildJobs.map((f) => ({
             ...f,
             createdAt: f.createdAt.toISOString(),
         })),

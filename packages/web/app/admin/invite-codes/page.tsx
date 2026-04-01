@@ -1,28 +1,29 @@
-"use client";
+'use client';
 
-import { LoaderCircle } from "lucide-react";
+import { RefreshCw, TriangleAlert } from 'lucide-react';
 
-import { AdminInviteCodesPanel } from "@/components/admin/admin-invite-codes-panel";
-import { Shimmer } from "@/components/shimmer";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { useServerQuery } from "@/lib/hooks/use-server-query";
-import { cn } from "@/lib/utils";
-import { getInviteCodes } from "@/server/queries/invite-codes";
+import { AdminInviteCodesPanel } from '@/components/admin/invite-codes/panel';
+import { LoadingIndicator } from '@/components/shared/loading-indicator';
+import { Shimmer } from '@/components/shared/shimmer';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { useServerQuery } from '@/lib/hooks/use-server-query';
+import { cn } from '@/lib/utils';
+import { getInviteCodes } from '@/server/queries/invite-codes';
 
 function InviteCodesSkeleton() {
     return (
         <div className="space-y-6">
             <div className="grid gap-4 md:grid-cols-3">
                 {Array.from({ length: 3 }).map((_, index) => (
-                    <Shimmer key={index} className="h-28" />
+                    <Shimmer key={index} className="h-28 rounded-lg" />
                 ))}
             </div>
-            <Shimmer className="h-24 w-full" />
+            <Shimmer className="h-24 w-full rounded-lg" />
             <div className="space-y-3">
-                <Shimmer className="h-10 w-full" />
+                <Shimmer className="h-10 w-full rounded-lg" />
                 {Array.from({ length: 4 }).map((_, index) => (
-                    <Shimmer key={index} className="h-14 w-full" />
+                    <Shimmer key={index} className="h-14 w-full rounded-lg" />
                 ))}
             </div>
         </div>
@@ -34,51 +35,72 @@ export default function AdminInviteCodesPage() {
         data: inviteCodesResult,
         isInitialLoading,
         isRevalidating,
+        isValidating,
         mutate,
-    } = useServerQuery(["admin-invite-codes"], () => getInviteCodes());
+    } = useServerQuery(['admin-invite-codes'], () => getInviteCodes());
 
     const error = inviteCodesResult?.success === false ? inviteCodesResult.error : null;
     const data = inviteCodesResult?.success ? inviteCodesResult.data : null;
 
     return (
-        <div className="space-y-6">
-            <div className="space-y-1">
-                <h1 className="text-2xl font-semibold tracking-tight text-foreground">Invite Codes</h1>
-                <p className="text-sm text-muted-foreground">
-                    Generate onboarding codes, review their usage, and inspect which users redeemed each code.
-                </p>
-            </div>
+        <>
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Invite Codes</h1>
+                        <p className="text-sm text-muted-foreground">
+                            Create and manage registration invite codes
+                        </p>
+                    </div>
 
-            {isInitialLoading ? (
-                <InviteCodesSkeleton />
-            ) : error ? (
-                <Alert variant="destructive">
-                    <AlertTitle>Failed to load invite codes</AlertTitle>
-                    <AlertDescription className="space-y-3">
-                        <p>{error}</p>
-                        <Button type="button" variant="outline" onClick={() => mutate()}>
-                            Retry
-                        </Button>
-                    </AlertDescription>
-                </Alert>
-            ) : data ? (
-                <div
-                    className={cn(
-                        "relative transition-opacity duration-200",
-                        isRevalidating && "opacity-80",
-                    )}
-                >
-                    {isRevalidating && (
-                        <div className="absolute right-0 top-0 z-10">
-                            <div className="flex items-center gap-1.5 rounded-full border border-border bg-muted/80 px-2.5 py-1 text-xs text-muted-foreground backdrop-blur-sm">
-                                <LoaderCircle className="size-3 animate-spin" />
-                                <span>Updating</span>
-                            </div>
-                        </div>
-                    )}
-                    <AdminInviteCodesPanel data={data} onMutate={() => mutate()} />
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => mutate()}
+                        disabled={isValidating || isInitialLoading}
+                    >
+                        {isValidating || isInitialLoading ? (
+                            <>
+                                <RefreshCw className="size-4 animate-spin mr-2" />
+                                Refreshing
+                            </>
+                        ) : (
+                            <>
+                                <RefreshCw className="size-4 mr-2" />
+                                Refresh
+                            </>
+                        )}
+                    </Button>
                 </div>
-            ) : null}
-        </div>
+
+                {isInitialLoading ? (
+                    <InviteCodesSkeleton />
+                ) : error ? (
+                    <Card className="bg-card border-destructive/50">
+                        <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                            <TriangleAlert className="size-10 text-destructive mb-4" />
+                            <p className="text-sm font-medium mb-1">Failed to load invite codes</p>
+                            <p className="text-sm text-muted-foreground mb-6">{error}</p>
+
+                            <Button variant="outline" size="sm" onClick={() => mutate()}>
+                                <RefreshCw className="size-4 mr-1.5" />
+                                Retry
+                            </Button>
+                        </CardContent>
+                    </Card>
+                ) : data ? (
+                    <div
+                        className={cn(
+                            'relative transition-opacity duration-200',
+                            isRevalidating && 'opacity-80'
+                        )}
+                    >
+                        <AdminInviteCodesPanel data={data} onMutate={() => mutate()} />
+                    </div>
+                ) : null}
+
+                <LoadingIndicator show={isRevalidating} />
+            </div>
+        </>
     );
 }

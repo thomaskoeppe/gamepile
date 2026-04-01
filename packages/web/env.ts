@@ -12,9 +12,7 @@ const schema = z.object({
         }),
 
     DATABASE_URL: z.string()
-        .optional()
         .refine(val => {
-            if (!val) return true;
             try {
                 const url = new URL(val);
                 return url.protocol === "postgresql:";
@@ -70,7 +68,7 @@ const schema = z.object({
     OTEL_EXPORTER_OTLP_HEADERS: z.string()
         .optional()
         .refine(val => {
-            if (!val) return true; // optional
+            if (!val) return true;
             return val
                 .split(",")
                 .every(item => /^[^=]+=[^=]+$/.test(item.trim()));
@@ -85,6 +83,10 @@ const schema = z.object({
 
     NEXT_OTEL_VERBOSE: z.preprocess(val => Number(val ?? 0), z.number().int().min(0).max(1).default(0))
         .describe("Set to 1 for verbose OTel debug output in Next.js."),
+
+    PRISMA_LOG_QUERIES: z.enum(["true", "false"])
+        .default("true")
+        .describe("Enable Prisma query-event logging for slow query warnings in web and worker services."),
 
     WEB_APP_URL: z.string()
         .refine(val => /^https?:\/\/\S+$/.test(val), {

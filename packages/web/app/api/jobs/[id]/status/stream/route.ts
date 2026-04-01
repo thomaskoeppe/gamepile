@@ -1,19 +1,13 @@
 import { getCurrentSession } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
+import { sseEvent, ssePing } from "@/lib/sse";
 import { isTerminal,JobSnapshot } from "@/types/job";
 
 const POLL_INTERVAL_MS     = 2_000;
 const KEEPALIVE_INTERVAL_MS = 15_000;
 const LOG_TAIL              = 20;
 
-function sseEvent(name: string, data: unknown): string {
-    return `event: ${name}\ndata: ${JSON.stringify(data)}\n\n`;
-}
-
-function ssePing(): string {
-    return `: ping\n\n`;
-}
 
 async function fetchSnapshot(
     jobId: string,
@@ -63,10 +57,12 @@ async function fetchSnapshot(
 }
 
 export async function GET(
-    _req: Request,
+    req: Request,
     { params }: { params: Promise<{ id: string }> },
 ) {
-    const log = logger.child("api.routes.jobs:statusStream");
+    const log = logger.child("api.routes.jobs:statusStream", {
+        requestId: req.headers.get("x-request-id") ?? undefined,
+    });
     const { id: jobId } = await params;
 
     const session = await getCurrentSession();

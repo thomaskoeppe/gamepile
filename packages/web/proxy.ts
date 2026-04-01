@@ -43,7 +43,8 @@ const AUTH_ROUTES = ["/"];
  */
 export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
-    const reqLog = log.child("proxy", { pathname, method: request.method });
+    const requestId = crypto.randomUUID();
+    const reqLog = log.child("proxy", { pathname, method: request.method, requestId });
 
     const clientIp = getClientIp(request);
     const sessionCookieName = process.env.WEB_SESSION_COOKIE_NAME || "__session";
@@ -102,7 +103,7 @@ export async function proxy(request: NextRequest) {
 
     const csp = [
         `default-src 'self'`,
-        `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com`,
+        `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV !== "production" ? "'unsafe-eval' " : ""}https://va.vercel-scripts.com`,
         `style-src 'self' 'unsafe-inline'`,
         `img-src 'self' data: blob: https://avatars.steamstatic.com https://steamcdn-a.akamaihd.net https://cdn.cloudflare.steamstatic.com https://shared.akamai.steamstatic.com https://placehold.co`,
         `connect-src 'self' https://vitals.vercel-insights.com https://video.akamai.steamstatic.com`,
@@ -116,9 +117,11 @@ export async function proxy(request: NextRequest) {
     ].join(";");
 
     const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-request-id", requestId);
 
     const response = NextResponse.next({ request: { headers: requestHeaders } });
     response.headers.set("Content-Security-Policy", csp);
+    response.headers.set("x-request-id", requestId);
 
     const isPublicRoute = PUBLIC_ROUTES.some(
         (route) => pathname === route || pathname.startsWith(route + "/"),

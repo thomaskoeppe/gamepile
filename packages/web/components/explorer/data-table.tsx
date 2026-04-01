@@ -5,11 +5,10 @@ import {
     getCoreRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-import {ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight} from "lucide-react";
 import {useMemo} from "react";
 
 import {createColumns} from "@/components/explorer/columns";
-import {Button} from "@/components/ui/button";
+import { TablePagination } from "@/components/table-pagination";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {
     Table,
@@ -113,7 +112,6 @@ export function DataTable({
                 </Table>
             </div>
 
-            {/* Pagination */}
             <div className="flex items-center justify-between">
                 <div className="text-sm text-muted-foreground">
                     {total > 0 ? (
@@ -143,25 +141,7 @@ export function DataTable({
                         </Select>
                     </div>
 
-                    <div className="flex items-center gap-1">
-                        <Button variant="outline" size="icon" className="h-8 w-8 border-border" onClick={() => onPageChange(1)} disabled={page <= 1}>
-                            <ChevronsLeft className="h-4 w-4"/>
-                        </Button>
-                        <Button variant="outline" size="icon" className="h-8 w-8 border-border" onClick={() => onPageChange(page - 1)} disabled={page <= 1}>
-                            <ChevronLeft className="h-4 w-4"/>
-                        </Button>
-
-                        <span className="px-3 text-sm text-muted-foreground">
-                            {page} / {totalPages || 1}
-                        </span>
-
-                        <Button variant="outline" size="icon" className="h-8 w-8 border-border" onClick={() => onPageChange(page + 1)} disabled={page >= totalPages}>
-                            <ChevronRight className="h-4 w-4"/>
-                        </Button>
-                        <Button variant="outline" size="icon" className="h-8 w-8 border-border" onClick={() => onPageChange(totalPages)} disabled={page >= totalPages}>
-                            <ChevronsRight className="h-4 w-4"/>
-                        </Button>
-                    </div>
+                    <TablePagination page={page} totalPages={totalPages || 1} onPageChange={onPageChange} />
                 </div>
             </div>
         </div>

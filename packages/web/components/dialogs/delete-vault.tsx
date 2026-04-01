@@ -8,7 +8,7 @@ import {
     DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { browserLog } from "@/lib/browser-logger";
-import { deleteVault } from "@/server/actions/vaults";
+import { deleteVault } from "@/server/actions/vaults/manage";
 
 export function DeleteVaultDialog({
     vaultId,

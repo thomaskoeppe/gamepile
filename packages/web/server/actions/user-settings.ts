@@ -3,6 +3,7 @@
 import { z } from "zod";
 
 import { getSetting } from "@/lib/app-settings";
+import { clearSessionCookie } from "@/lib/auth/session";
 import prisma from "@/lib/prisma";
 import { withLogging } from "@/lib/with-logging";
 import { AppSettingKey } from "@/prisma/generated/enums";
@@ -74,6 +75,8 @@ export const deleteAccount = actionClientWithAuth.inputSchema(z.object({
     await prisma.user.delete({
         where: { id: ctx.user.id },
     });
+
+    await clearSessionCookie();
 
     return { success: true, message: "Account deleted successfully." };
 }, {

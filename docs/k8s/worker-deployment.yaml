@@ -36,8 +36,8 @@ spec:
                 echo "Waiting for PostgreSQL..."
                 sleep 3
               done
-              until psql "$DATABASE_URL" -tAc "SELECT to_regclass('_prisma_migrations')" | grep -q "_prisma_migrations"; do
-                echo "Waiting for prisma migrations to complete..."
+              until psql "$DATABASE_URL" -tAc "SELECT to_regclass('schema_migrations')" | grep -q "schema_migrations"; do
+                echo "Waiting for SQL migrations to complete..."
                 sleep 3
               done
       containers:

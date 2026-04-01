@@ -1,0 +1,12 @@
+{
+  "name": "@gamepile/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./logger": "./src/logger.ts",
+    "./logs-exporter": "./src/logs-exporter.ts",
+    "./redis": "./src/redis.ts"
+  }
+}
+

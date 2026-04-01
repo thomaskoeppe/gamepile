@@ -30,6 +30,18 @@ const serverActionAllowedOrigins =
         ? configuredAllowedOrigins
         : [...new Set([webAppHost, ...configuredAllowedOrigins].filter((origin): origin is string => Boolean(origin)))];
 
+const contentSecurityPolicy = [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "img-src 'self' data: https:",
+    `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
+    "style-src 'self' 'unsafe-inline'",
+    "connect-src 'self' https:",
+    "object-src 'none'",
+].join("; ");
+
 const nextConfig: NextConfig = {
     output: "standalone",
     reactCompiler: true,
@@ -85,16 +97,16 @@ const nextConfig: NextConfig = {
                         value: "nosniff",
                     },
                     {
-                        key: "X-XSS-Protection",
-                        value: "1; mode=block",
-                    },
-                    {
                         key: "Referrer-Policy",
                         value: "strict-origin-when-cross-origin",
                     },
                     {
                         key: "Permissions-Policy",
                         value: "camera=(), microphone=(), geolocation=()",
+                    },
+                    {
+                        key: "Content-Security-Policy",
+                        value: contentSecurityPolicy,
                     }
                 ]
             }

@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { LoaderCircle } from "lucide-react";
+import { RefreshCw, TriangleAlert } from "lucide-react";
 
-import { AdminVaultsTable } from "@/components/admin/admin-vaults-table";
-import { LoadingIndicator } from "@/components/loading-indicator";
-import { Shimmer } from "@/components/shimmer";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AdminVaultsTable } from "@/components/admin/vaults-table";
+import { LoadingIndicator } from "@/components/shared/loading-indicator";
+import { Shimmer } from "@/components/shared/shimmer";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useServerQuery } from "@/lib/hooks/use-server-query";
 import { cn } from "@/lib/utils";
 import { getAdminVaults, getAllUsers } from "@/server/queries/admin";
@@ -14,9 +14,9 @@ import { getAdminVaults, getAllUsers } from "@/server/queries/admin";
 function VaultsSkeleton() {
     return (
         <div className="space-y-3">
-            <Shimmer className="h-10 w-full" />
+            <Shimmer className="h-10 w-full rounded-lg" />
             {Array.from({ length: 6 }).map((_, i) => (
-                <Shimmer key={i} className="h-16 w-full" />
+                <Shimmer key={i} className="h-16 w-full rounded-lg" />
             ))}
         </div>
     );
@@ -27,6 +27,7 @@ export default function AdminVaultsPage() {
         data: vaultsResult,
         isInitialLoading,
         isRevalidating,
+        isValidating,
         mutate,
     } = useServerQuery(["admin-vaults"], () => getAdminVaults());
 
@@ -37,43 +38,61 @@ export default function AdminVaultsPage() {
     const users = usersResult?.success ? usersResult.data : [];
 
     return (
-        <div className="space-y-6">
-            <div className="space-y-1">
-                <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-                    Vaults
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                    Review all vaults and manage owner assignments from the admin console.
-                </p>
-            </div>
+        <>
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+                            Vaults
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                            View all vaults and manage ownership assignments
+                        </p>
+                    </div>
 
-            {isInitialLoading ? (
-                <VaultsSkeleton />
-            ) : error ? (
-                <Alert variant="destructive">
-                    <AlertTitle>Failed to load vaults</AlertTitle>
-                    <AlertDescription className="space-y-3">
-                        <p>{error}</p>
-                        <Button type="button" variant="outline" onClick={() => mutate()}>
-                            Retry
-                        </Button>
-                    </AlertDescription>
-                </Alert>
-            ) : vaults ? (
-                <div className={cn("relative transition-opacity duration-200", isRevalidating && "opacity-80")}>
-                    {isRevalidating && (
-                        <div className="absolute right-0 top-0 z-10">
-                            <div className="flex items-center gap-1.5 rounded-full border border-border bg-muted/80 px-2.5 py-1 text-xs text-muted-foreground backdrop-blur-sm">
-                                <LoaderCircle className="size-3 animate-spin" />
-                                <span>Updating</span>
-                            </div>
-                        </div>
-                    )}
-                    <AdminVaultsTable vaults={vaults} users={users} onMutate={() => mutate()} />
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => mutate()}
+                        disabled={isValidating || isInitialLoading}
+                    >
+                        {isValidating || isInitialLoading ? (
+                            <>
+                                <RefreshCw className="size-4 animate-spin mr-2" />
+                                Refreshing
+                            </>
+                        ) : (
+                            <>
+                                <RefreshCw className="size-4 mr-2" />
+                                Refresh
+                            </>
+                        )}
+                    </Button>
                 </div>
-            ) : null}
 
-            <LoadingIndicator show={isRevalidating} />
-        </div>
+                {isInitialLoading ? (
+                    <VaultsSkeleton />
+                ) : error ? (
+                    <Card className="bg-card border-destructive/50">
+                        <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                            <TriangleAlert className="size-10 text-destructive mb-4" />
+                            <p className="text-sm font-medium mb-1">Failed to load vaults</p>
+                            <p className="text-sm text-muted-foreground mb-6">{error}</p>
+
+                            <Button variant="outline" size="sm" onClick={() => mutate()}>
+                                <RefreshCw className="size-4 mr-1.5" />
+                                Retry
+                            </Button>
+                        </CardContent>
+                    </Card>
+                ) : vaults ? (
+                    <div className={cn("relative transition-opacity duration-200", isRevalidating && "opacity-80")}>
+                        <AdminVaultsTable vaults={vaults} users={users} onMutate={() => mutate()} />
+                    </div>
+                ) : null}
+
+                <LoadingIndicator show={isRevalidating} />
+            </div>
+        </>
     );
 }

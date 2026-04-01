@@ -1,4 +1,5 @@
 import {steamRateLimiter, SteamRateLimitError} from "@/src/lib/steam/ratelimiter.js";
+import { getWorkerEnv } from "@/src/lib/env.js";
 import { parseDate } from "chrono-node";
 
 export type SteamOwnedGame = {
@@ -165,9 +166,10 @@ export function parseSteamReleaseDate(dateStr?: string, comingSoon?: boolean): D
  */
 export async function fetchSteamOwnedGames(steamId: string): Promise<SteamOwnedGame[]> {
     await steamRateLimiter.acquire();
+    const steamApiKey = getWorkerEnv().STEAM_API_KEY;
 
     const response = await fetch(
-        `https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${process.env.STEAM_API_KEY!}&steamid=${steamId}&include_appinfo=true&skip_unvetted_apps=false&include_played_free_games=true&include_free_sub=true&format=json`,
+        `https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${steamApiKey}&steamid=${steamId}&include_appinfo=true&skip_unvetted_apps=false&include_played_free_games=true&include_free_sub=true&format=json`,
         {
             headers: { Accept: "application/json" }
         }

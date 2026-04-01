@@ -13,51 +13,17 @@ import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import {StatusBadge} from "@/components/job-status";
-import { Shimmer } from "@/components/shimmer";
+import { Shimmer } from "@/components/shared/shimmer";
+import { TablePagination } from "@/components/table-pagination";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { browserLog } from "@/lib/browser-logger";
 import {cn, formatDurationMs} from "@/lib/utils";
-import { JobStatus, JobType } from "@/prisma/generated/browser";
+import { JobStatus } from "@/prisma/generated/browser";
+import type { AdminJobDetail, JobLogEntry } from "@/types/job";
 import { JOB_TYPE_LABEL } from "@/types/job";
 
 dayjs.extend(relativeTime);
-
-type LogEntry = { id: string; message: string; level: string; timestamp: string };
-type FailedChild = { id: string; appId: number; gameId: string | null; errorMessage: string | null; attempts: number; createdAt: string };
-type JobUser = { id: string; username: string; avatarUrl: string | null } | null;
-
-type AdminJobDetail = {
-    id: string;
-    type: JobType;
-    status: JobStatus;
-    progress: number;
-    processedItems: number;
-    totalItems: number;
-    failedItems: number;
-    allItemsQueued: boolean;
-    startedAt: string | null;
-    finishedAt: string | null;
-    errorMessage: string | null;
-    createdAt: string;
-    updatedAt: string;
-    claimedBy: string | null;
-    user: JobUser;
-    logs: LogEntry[];
-    logsPagination: {
-        page: number;
-        limit: number;
-        total: number;
-        pages: number;
-    };
-    failedPagination: {
-        page: number;
-        limit: number;
-        total: number;
-        pages: number;
-    };
-    FailedChildJob: FailedChild[];
-};
 
 function logLevelClass(level: string): string {
     switch (level.toLowerCase()) {
@@ -122,8 +88,8 @@ export default function AdminJobDetailPage() {
     useEffect(() => {
         if (!jobId) return;
 
-        const mergeLogs = (currentLogs: LogEntry[], incomingLogs: LogEntry[]) => {
-            const byId = new Map<string, LogEntry>();
+        const mergeLogs = (currentLogs: JobLogEntry[], incomingLogs: JobLogEntry[]) => {
+            const byId = new Map<string, JobLogEntry>();
 
             for (const entry of [...incomingLogs, ...currentLogs]) {
                 byId.set(entry.id, entry);
@@ -140,7 +106,7 @@ export default function AdminJobDetailPage() {
         es.addEventListener("snapshot", (ev: MessageEvent) => {
             try {
                 const payload = JSON.parse(ev.data) as Partial<AdminJobDetail> & {
-                    logs?: LogEntry[];
+                    logs?: JobLogEntry[];
                 };
 
                 setJob((prev) => {
@@ -337,31 +303,14 @@ export default function AdminJobDetailPage() {
                 )}
 
                 {job.logsPagination.pages > 1 ? (
-                    <div className="flex items-center justify-between pt-1 text-xs text-muted-foreground">
-                        <span>
-                            Page {job.logsPagination.page} of {job.logsPagination.pages}
-                        </span>
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setLogPage((currentPage) => Math.max(1, currentPage - 1))}
-                                disabled={logPage <= 1}
-                                className="h-7 px-2 border border-border text-muted-foreground hover:bg-card disabled:opacity-40"
-                            >
-                                Previous
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setLogPage((currentPage) => Math.min(job.logsPagination.pages, currentPage + 1))}
-                                disabled={logPage >= job.logsPagination.pages}
-                                className="h-7 px-2 border border-border text-muted-foreground hover:bg-card disabled:opacity-40"
-                            >
-                                Next
-                            </Button>
-                        </div>
-                    </div>
+                    <TablePagination
+                        page={job.logsPagination.page}
+                        totalPages={job.logsPagination.pages}
+                        totalCount={job.logsPagination.total}
+                        pageSize={job.logsPagination.limit}
+                        onPageChange={setLogPage}
+                        className="pt-1 text-xs text-muted-foreground flex items-center justify-between"
+                    />
                 ) : null}
             </div>
 
@@ -381,14 +330,14 @@ export default function AdminJobDetailPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {job.FailedChildJob.length === 0 ? (
+                                {job.failedChildJobs.length === 0 ? (
                                     <tr>
                                         <td colSpan={4} className="px-3 py-6 text-center text-xs text-muted-foreground/70">
                                             No failed items on this page.
                                         </td>
                                     </tr>
                                 ) : (
-                                    job.FailedChildJob.map((f) => (
+                                    job.failedChildJobs.map((f) => (
                                         <tr key={f.id} className="border-b border-border/60 hover:bg-card/20">
                                             <td className="px-3 py-2 font-mono text-xs text-foreground">{f.appId}</td>
                                             <td className="px-3 py-2 font-mono text-xs text-muted-foreground/70">{f.gameId ? `${f.gameId.slice(0, 8)}…` : "—"}</td>
@@ -402,31 +351,14 @@ export default function AdminJobDetailPage() {
                     </div>
 
                     {job.failedPagination.pages > 1 ? (
-                        <div className="flex items-center justify-between pt-1 text-xs text-muted-foreground">
-                            <span>
-                                Page {job.failedPagination.page} of {job.failedPagination.pages}
-                            </span>
-                            <div className="flex items-center gap-2">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setFailedPage((currentPage) => Math.max(1, currentPage - 1))}
-                                    disabled={failedPage <= 1}
-                                    className="h-7 px-2 border border-border text-muted-foreground hover:bg-card disabled:opacity-40"
-                                >
-                                    Previous
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setFailedPage((currentPage) => Math.min(job.failedPagination.pages, currentPage + 1))}
-                                    disabled={failedPage >= job.failedPagination.pages}
-                                    className="h-7 px-2 border border-border text-muted-foreground hover:bg-card disabled:opacity-40"
-                                >
-                                    Next
-                                </Button>
-                            </div>
-                        </div>
+                        <TablePagination
+                            page={job.failedPagination.page}
+                            totalPages={job.failedPagination.pages}
+                            totalCount={job.failedPagination.total}
+                            pageSize={job.failedPagination.limit}
+                            onPageChange={setFailedPage}
+                            className="pt-1 text-xs text-muted-foreground flex items-center justify-between"
+                        />
                     ) : null}
                 </div>
             )}

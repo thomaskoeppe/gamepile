@@ -5,7 +5,7 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE TYPE "Platform" AS ENUM ('WINDOWS', 'LINUX', 'MAC');
 
 -- CreateEnum
-CREATE TYPE "CollectionVisibility" AS ENUM ('PRIVATE', 'FRIENDS', 'PUBLIC');
+CREATE TYPE "CollectionVisibility" AS ENUM ('PRIVATE', 'PUBLIC');
 
 -- CreateEnum
 CREATE TYPE "GameType" AS ENUM ('GAME', 'DLC', 'DEMO', 'MOD', 'ADVERTISING', 'UNKNOWN');
@@ -17,10 +17,13 @@ CREATE TYPE "KeyVaultAuthType" AS ENUM ('NONE', 'PIN', 'PASSWORD');
 CREATE TYPE "UserRole" AS ENUM ('USER', 'ADMIN');
 
 -- CreateEnum
-CREATE TYPE "JobType" AS ENUM ('SYNC_STEAM_GAMES', 'IMPORT_USER_LIBRARY', 'IMPORT_USER_ACHIEVEMENTS', 'REFRESH_GAME_DETAILS');
+CREATE TYPE "JobType" AS ENUM ('SYNC_STEAM_GAMES', 'IMPORT_USER_LIBRARY', 'IMPORT_USER_ACHIEVEMENTS', 'REFRESH_GAME_DETAILS', 'INTERNAL_SCHEDULED_TASK');
 
 -- CreateEnum
 CREATE TYPE "JobStatus" AS ENUM ('QUEUED', 'ACTIVE', 'COMPLETED', 'PARTIALLY_COMPLETED', 'FAILED', 'CANCELED');
+
+-- CreateEnum
+CREATE TYPE "AppSettingKey" AS ENUM ('ALLOW_USER_SIGNUP', 'ALLOW_USER_ACCOUNT_DELETION', 'ALLOW_INVITE_CODE_GENERATION', 'SESSION_TIMEOUT_SECONDS', 'VAULT_ALLOW_PASSWORD_CHANGE', 'VAULT_BLOCK_USER_ON_INCORRECT_PASSWORD', 'VAULT_BLOCK_DURATION_SECONDS', 'VAULT_BLOCK_AFTER_ATTEMPTS', 'VAULT_DEFAULT_AUTH_TYPE', 'VAULT_AUTH_ALLOW_PASSWORD', 'VAULT_AUTH_ALLOW_PIN', 'VAULT_PASSWORD_MIN_LENGTH', 'VAULT_PASSWORD_MAX_LENGTH', 'VAULT_PIN_MIN_LENGTH', 'VAULT_PIN_MAX_LENGTH', 'ALLOW_VAULT_DELETION', 'DISABLE_VAULT_SHARING', 'ADMIN_CAN_DELETE_ANY_VAULT', 'ADMIN_CAN_DELETE_ANY_COLLECTION', 'ALLOW_PUBLIC_COLLECTIONS', 'ADMIN_CAN_CHANGE_RESOURCE_OWNER', 'MAX_VAULTS_PER_USER', 'MAX_COLLECTIONS_PER_USER', 'UI_GAME_LIBRARY_PRERENDERED_ROWS');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -161,7 +164,7 @@ CREATE TABLE "CollectionGame" (
     "collectionId" TEXT NOT NULL,
     "gameId" UUID NOT NULL,
     "addedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "addedById" TEXT NOT NULL,
+    "addedById" TEXT,
     "notes" TEXT,
 
     CONSTRAINT "CollectionGame_pkey" PRIMARY KEY ("id")
@@ -172,11 +175,15 @@ CREATE TABLE "KeyVault" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "authType" "KeyVaultAuthType" NOT NULL,
-    "authHash" TEXT,
-    "authSalt" TEXT,
+    "recoveryEncryptedVaultKey" TEXT,
+    "keySalt" TEXT,
+    "recoveryKeyHash" TEXT,
+    "encryptedVaultKey" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "createdById" TEXT NOT NULL,
+    "authHash" TEXT,
+    "authSalt" TEXT,
 
     CONSTRAINT "KeyVault_pkey" PRIMARY KEY ("id")
 );
@@ -202,7 +209,7 @@ CREATE TABLE "KeyVaultGame" (
     "addedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "addedById" TEXT NOT NULL,
     "key" TEXT NOT NULL,
-    "hashedKey" TEXT,
+    "hashedKey" TEXT NOT NULL,
     "originalName" TEXT NOT NULL,
     "redeemed" BOOLEAN NOT NULL DEFAULT false,
     "redeemedAt" TIMESTAMP(3),
@@ -270,6 +277,49 @@ CREATE TABLE "_GameToCategories" (
     "B" UUID NOT NULL,
 
     CONSTRAINT "_GameToCategories_AB_pkey" PRIMARY KEY ("A","B")
+);
+
+CREATE TABLE "AppSetting" (
+  "id" TEXT NOT NULL,
+  "key" "AppSettingKey" NOT NULL,
+  "value" JSONB NOT NULL,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT "AppSetting_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "UserSettings" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "privacyAllowVaultInvites" BOOLEAN NOT NULL DEFAULT true,
+    "privacyAllowCollectionInvites" BOOLEAN NOT NULL DEFAULT true,
+    "privacyAllowProfileView" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "UserSettings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "InviteCode" (
+  "id" TEXT NOT NULL,
+  "code" TEXT NOT NULL DEFAULT substring(md5(random()::text), 1, 8),
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "createdById" TEXT NOT NULL,
+  "expiresAt" TIMESTAMP(3),
+  "maxUses" INTEGER,
+
+  CONSTRAINT "InviteCode_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "InviteCodeUsage" (
+   "id" TEXT NOT NULL,
+   "inviteCodeId" TEXT NOT NULL,
+   "usedById" TEXT NOT NULL,
+   "usedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+   CONSTRAINT "InviteCodeUsage_pkey" PRIMARY KEY ("id")
 );
 
 CREATE FUNCTION game_search_vector_update()
@@ -362,16 +412,13 @@ CREATE UNIQUE INDEX "CollectionUser_collectionId_userId_key" ON "CollectionUser"
 CREATE UNIQUE INDEX "CollectionGame_collectionId_gameId_key" ON "CollectionGame"("collectionId", "gameId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "KeyVault_name_key" ON "KeyVault"("name");
+CREATE UNIQUE INDEX "KeyVault_createdById_name_key" ON "KeyVault"("createdById", "name");
 
 -- CreateIndex
 CREATE INDEX "KeyVault_createdById_idx" ON "KeyVault"("createdById");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "KeyVaultUser_keyVaultId_userId_key" ON "KeyVaultUser"("keyVaultId", "userId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "KeyVaultGame_keyVaultId_key_key" ON "KeyVaultGame"("keyVaultId", "key");
 
 -- CreateIndex
 CREATE INDEX "JobLog_jobId_idx" ON "JobLog"("jobId");
@@ -399,6 +446,30 @@ CREATE INDEX "_GameToGenres_B_index" ON "_GameToGenres"("B");
 
 -- CreateIndex
 CREATE INDEX "_GameToCategories_B_index" ON "_GameToCategories"("B");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AppSetting_key_key" ON "AppSetting"("key");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UserSettings_userId_key" ON "UserSettings"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "InviteCode_code_key" ON "InviteCode"("code");
+
+-- CreateIndex
+CREATE INDEX "InviteCode_createdById_idx" ON "InviteCode"("createdById");
+
+-- CreateIndex
+CREATE INDEX "InviteCode_code_idx" ON "InviteCode"("code");
+
+-- CreateIndex
+CREATE INDEX "InviteCodeUsage_inviteCodeId_idx" ON "InviteCodeUsage"("inviteCodeId");
+
+-- CreateIndex
+CREATE INDEX "InviteCodeUsage_usedById_idx" ON "InviteCodeUsage"("usedById");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "KeyVaultGame_keyVaultId_hashedKey_key" ON "KeyVaultGame"("keyVaultId", "hashedKey");
 
 -- AddForeignKey
 ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -437,7 +508,7 @@ ALTER TABLE "CollectionGame" ADD CONSTRAINT "CollectionGame_collectionId_fkey" F
 ALTER TABLE "CollectionGame" ADD CONSTRAINT "CollectionGame_gameId_fkey" FOREIGN KEY ("gameId") REFERENCES "Game"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CollectionGame" ADD CONSTRAINT "CollectionGame_addedById_fkey" FOREIGN KEY ("addedById") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "CollectionGame" ADD CONSTRAINT "CollectionGame_addedById_fkey" FOREIGN KEY ("addedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "KeyVault" ADD CONSTRAINT "KeyVault_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -483,3 +554,15 @@ ALTER TABLE "_GameToCategories" ADD CONSTRAINT "_GameToCategories_A_fkey" FOREIG
 
 -- AddForeignKey
 ALTER TABLE "_GameToCategories" ADD CONSTRAINT "_GameToCategories_B_fkey" FOREIGN KEY ("B") REFERENCES "Game"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserSettings" ADD CONSTRAINT "UserSettings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "InviteCode" ADD CONSTRAINT "InviteCode_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "InviteCodeUsage" ADD CONSTRAINT "InviteCodeUsage_inviteCodeId_fkey" FOREIGN KEY ("inviteCodeId") REFERENCES "InviteCode"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "InviteCodeUsage" ADD CONSTRAINT "InviteCodeUsage_usedById_fkey" FOREIGN KEY ("usedById") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

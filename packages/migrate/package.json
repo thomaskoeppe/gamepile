@@ -1,0 +1,13 @@
+{
+  "name": "@gamepile/migrate",
+  "version": "1.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "migrate:deploy": "node run-sql-migrations.mjs"
+  },
+  "dependencies": {
+    "postgres": "^3.4.7"
+  }
+}
+

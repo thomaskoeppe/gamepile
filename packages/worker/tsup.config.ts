@@ -9,5 +9,8 @@ export default defineConfig({
     sourcemap: true,
     splitting: false,
     tsconfig: "tsconfig.json",
+    // Bundle workspace packages (@gamepile/*) inline so the runner image
+    // does not need a separate @gamepile/shared package at runtime.
+    noExternal: [/@gamepile\//],
 });
 

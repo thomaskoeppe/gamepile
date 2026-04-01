@@ -21,7 +21,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { KeyVaultAuthType } from "@/prisma/generated/browser";
-import { changeVaultCredentials } from "@/server/actions/vaults";
+import { changeVaultCredentials } from "@/server/actions/vaults/credentials";
 
 const schema = z
     .object({
@@ -229,4 +229,3 @@ export function ChangeVaultCredentialsDialog({
         </Dialog>
     );
 }
-

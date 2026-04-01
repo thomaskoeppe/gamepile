@@ -7,8 +7,8 @@ export async function register() {
     const envValidateResult = validateEnv();
 
     if (!envValidateResult.success) {
-        console.error("Environment variable validation failed:");
-        console.error(z.prettifyError(envValidateResult.error));
+        process.stderr.write("Environment variable validation failed\n");
+        process.stderr.write(`${z.prettifyError(envValidateResult.error)}\n`);
         process.exit(1);
     }
 

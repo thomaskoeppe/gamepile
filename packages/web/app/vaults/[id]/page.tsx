@@ -1,15 +1,15 @@
 "use client";
 
-import {LoaderCircle,TriangleAlert} from "lucide-react";
-import {use, useState} from "react";
+import { LoaderCircle, TriangleAlert } from "lucide-react";
+import { use, useState } from "react";
 
 import { TableWrapper } from "@/app/vaults/[id]/table-wrapper";
-import { VaultAuthGate } from "@/app/vaults/[id]/vault-auth-gate";
-import { VaultInfoCard } from "@/app/vaults/[id]/vault-info-card";
 import { Header } from "@/components/header";
-import {LoadingIndicator} from "@/components/loading-indicator";
-import { MemberList, type MemberUser } from "@/components/member-list";
+import { LoadingIndicator } from "@/components/shared/loading-indicator";
+import { MemberList, type MemberUser } from "@/components/shared/member-list";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { VaultAuthGate } from "@/components/vault/vault-auth-gate";
+import { VaultInfoCard } from "@/components/vault/vault-info-card";
 import { useServerQuery } from "@/lib/hooks/use-server-query";
 import { useSession } from "@/lib/providers/session";
 import { KeyVaultAuthType } from "@/prisma/generated/browser";

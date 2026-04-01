@@ -1,25 +1,20 @@
 import { requireAdmin } from "@/lib/auth/admin";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
+import { sseEvent, ssePing } from "@/lib/sse";
 import { isTerminal } from "@/types/job";
 
 const POLL_INTERVAL_MS = 2_000;
 const KEEPALIVE_INTERVAL_MS = 15_000;
 const LOG_TAIL = 50;
 
-function sseEvent(name: string, data: unknown): string {
-    return `event: ${name}\ndata: ${JSON.stringify(data)}\n\n`;
-}
-
-function ssePing(): string {
-    return `: ping\n\n`;
-}
-
 export async function GET(
-    _req: Request,
+    req: Request,
     { params }: { params: Promise<{ id: string }> },
 ) {
-    const log = logger.child("api.routes.admin.jobs:stream");
+    const log = logger.child("api.routes.admin.jobs:stream", {
+        requestId: req.headers.get("x-request-id") ?? undefined,
+    });
     try {
         await requireAdmin();
     } catch {

@@ -15,26 +15,44 @@ import {
 import Link from "next/link";
 
 import {CreateCollectionDialog} from "@/components/dialogs/create-collection";
-import {Header} from "@/components/header";
-import {LoadingIndicator} from "@/components/loading-indicator";
-import {Shimmer} from "@/components/shimmer";
+import { Header } from "@/components/header";
+import { LoadingIndicator } from "@/components/shared/loading-indicator";
+import { Shimmer } from "@/components/shared/shimmer";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {Badge} from "@/components/ui/badge";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardDescription,CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {useServerQuery} from "@/lib/hooks/use-server-query";
+import {useAppSettings} from "@/lib/providers/app-settings";
 import {useSession} from "@/lib/providers/session";
 import {cn} from "@/lib/utils";
-import type {Prisma, User} from "@/prisma/generated/browser";
+import type {Prisma} from "@/prisma/generated/browser";
 import {getCollections} from "@/server/queries/collections";
+
+type CollectionUserPreview = { id: string; username: string; avatarUrl: string | null };
+
+type CollectionCardData = Prisma.CollectionGetPayload<{
+    include: {
+        _count: { select: { games: true } };
+        createdBy: { select: { id: true; username: true; avatarUrl: true } };
+        users: { include: { user: { select: { id: true; username: true; avatarUrl: true } } } };
+        games: {
+            take: 5;
+            orderBy: { addedAt: "asc" };
+            include: { game: { select: { appId: true } } };
+        };
+    };
+}>;
 
 function UserAvatarStack({
     creator,
     users,
 }: {
-    creator: User;
-    users: Prisma.CollectionUserGetPayload<{ include: { user: true } }>[];
+    creator: CollectionUserPreview;
+    users: Prisma.CollectionUserGetPayload<{
+        include: { user: { select: { id: true; username: true; avatarUrl: true } } };
+    }>[];
 }) {
     const allUsers = [
         { user: creator, isOwner: true },
@@ -97,18 +115,7 @@ function UserAvatarStack({
     );
 }
 
-function CollectionCard({ collection }: { collection: Prisma.CollectionGetPayload<{
-    include: {
-        _count: { select: { games: true } };
-        createdBy: true;
-        users: { include: { user: true } };
-        games: {
-            take: 5;
-            orderBy: { addedAt: "asc" };
-            include: { game: { select: { appId: true } } };
-        };
-    };
-}> }) {
+function CollectionCard({ collection }: { collection: CollectionCardData }) {
     return (
         <Link href={`/collections/${collection.id}`} className="group">
             <Card className="h-full bg-card border-border transition-all duration-200 hover:border-primary/40 hover:shadow-md hover:shadow-primary/5">
@@ -176,6 +183,7 @@ function CollectionCard({ collection }: { collection: Prisma.CollectionGetPayloa
 
 export default function CollectionsPage() {
     const { user, isLoading: sessionLoading } = useSession();
+    const { getSetting } = useAppSettings();
 
     const {
         data: result,
@@ -207,7 +215,7 @@ export default function CollectionsPage() {
 
                     <div className="flex items-center gap-2">
                         <CreateCollectionDialog onReload={() => mutate()}>
-                            <Button variant="outline" disabled={isLoading}>
+                            <Button variant="outline" disabled={isLoading || getSetting("MAX_COLLECTIONS_PER_USER") <= (collections?.length ?? 0)}>
                                 {!isLoading ? (
                                     <>
                                         <Plus className="size-4 mr-1.5" />

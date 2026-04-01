@@ -2,7 +2,6 @@
 
 import {
     Apple, Building2, CalendarDays, CheckCircle2,
-    ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
     CodeXml, Cpu, ExternalLink, FolderDown, FolderKanban,
     Gamepad2, Library,
 Megaphone, Monitor, Package, Package2,
@@ -10,9 +9,10 @@ Megaphone, Monitor, Package, Package2,
 import Link from "next/link";
 import { ElementType } from "react";
 
-import {ExpandablePills} from "@/components/expandable-pills";
 import { AddToCollectionDropdown } from "@/components/game/add-to-collection-dropdown";
-import { SafeImage } from "@/components/safe-image";
+import { ExpandablePills } from "@/components/shared/expandable-pills";
+import { SafeImage } from "@/components/shared/safe-image";
+import { TablePagination } from "@/components/table-pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -356,31 +356,7 @@ export function CardGrid({
                         </Select>
                     </div>
 
-                    <div className="flex items-center gap-1">
-                        <Button variant="outline" size="icon" className="h-8 w-8 border-border/50"
-                                onClick={() => onPageChange(1)} disabled={page <= 1}>
-                            <ChevronsLeft className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="icon" className="h-8 w-8 border-border/50"
-                                onClick={() => onPageChange(page - 1)} disabled={page <= 1}>
-                            <ChevronLeft className="h-4 w-4" />
-                        </Button>
-
-                        <span className="px-3 text-sm text-muted-foreground tabular-nums min-w-20 text-center">
-                            <span className="font-medium text-foreground">{page}</span>
-                            {" / "}
-                            {totalPages || 1}
-                        </span>
-
-                        <Button variant="outline" size="icon" className="h-8 w-8 border-border/50"
-                                onClick={() => onPageChange(page + 1)} disabled={page >= totalPages}>
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="icon" className="h-8 w-8 border-border/50"
-                                onClick={() => onPageChange(totalPages)} disabled={page >= totalPages}>
-                            <ChevronsRight className="h-4 w-4" />
-                        </Button>
-                    </div>
+                    <TablePagination page={page} totalPages={totalPages || 1} onPageChange={onPageChange} />
                 </div>
             </div>
         </div>

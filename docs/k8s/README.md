@@ -27,15 +27,15 @@ kubectl apply -f docs/k8s/ingress.yaml
 Why this order matters:
 
 1. PostgreSQL and Redis must be available first
-2. Prisma migrations must finish before app workloads start
+2. SQL migrations must finish before app workloads start
 3. `web` and `worker` pods have init containers that wait for migration state
 
 ## Quick checks after deploy
 
 ```bash
 kubectl -n gamepile get pods
-kubectl -n gamepile get job prisma-migrate
-kubectl -n gamepile logs job/prisma-migrate
+kubectl -n gamepile get job sql-migrate
+kubectl -n gamepile logs job/sql-migrate
 kubectl -n gamepile get ingress
 ```
 

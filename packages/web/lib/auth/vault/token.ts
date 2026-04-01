@@ -5,15 +5,14 @@ const VAULT_TOKEN_EXPIRY_MS = 15 * 60 * 1_000;
 
 /**
  * Retrieves the HMAC signing secret from the `WEB_VAULT_TOKEN_SECRET` environment variable.
- * Falls back to a deterministic derived secret using `WEB_SESSION_COOKIE_NAME` and
- * `NODE_ENV` if the environment variable is not set.
+ * Throws if the variable is not set.
  *
  * @returns The secret string used to sign and verify vault access tokens.
  */
 function getSecret(): string {
     const secret = process.env.WEB_VAULT_TOKEN_SECRET;
     if (!secret) {
-        return `vault-fallback-${process.env.WEB_SESSION_COOKIE_NAME ?? "__session"}-${process.env.NODE_ENV}`;
+        throw new Error("WEB_VAULT_TOKEN_SECRET must be configured");
     }
     return secret;
 }

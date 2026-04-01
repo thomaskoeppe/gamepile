@@ -1,17 +1,18 @@
 "use client";
 
+import {Cog, Library, RefreshCcw, Tickets, Users, Vault} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
 const ADMIN_SECTIONS = [
-  { href: "/admin/jobs", label: "Jobs" },
-  { href: "/admin/users", label: "Users" },
-  { href: "/admin/invite-codes", label: "Invite Codes" },
-  { href: "/admin/configuration", label: "Configuration" },
-  { href: "/admin/vaults", label: "Vaults" },
-  { href: "/admin/collections", label: "Collections" },
+  { href: "/admin/jobs", label: "Jobs", icon: RefreshCcw },
+  { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/invite-codes", label: "Invite Codes", icon: Tickets },
+  { href: "/admin/configuration", label: "Configuration", icon: Cog },
+  { href: "/admin/vaults", label: "Vaults", icon: Vault },
+  { href: "/admin/collections", label: "Collections", icon: Library },
 ] as const;
 
 export function AdminNav() {
@@ -27,10 +28,11 @@ export function AdminNav() {
             key={section.href}
             href={section.href}
             className={cn(
-              "rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+              "rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground flex items-center",
               isActive && "bg-primary/10 text-primary",
             )}
           >
+            <section.icon className="mr-2 h-4 w-4" />
             {section.label}
           </Link>
         );

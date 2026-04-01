@@ -8,12 +8,13 @@ import Link from "next/link";
 
 import { CreateVaultDialog } from "@/components/dialogs/create-vault";
 import { Header } from "@/components/header";
-import {LoadingIndicator} from "@/components/loading-indicator";
-import {Shimmer} from "@/components/shimmer";
+import { LoadingIndicator } from "@/components/shared/loading-indicator";
+import { Shimmer } from "@/components/shared/shimmer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription,CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useServerQuery } from "@/lib/hooks/use-server-query";
+import {useAppSettings} from "@/lib/providers/app-settings";
 import { useSession } from "@/lib/providers/session";
 import {cn} from "@/lib/utils";
 import type {Prisma} from "@/prisma/generated/browser";
@@ -76,6 +77,7 @@ function VaultCard({ vault, isOwner }: { vault: Prisma.KeyVaultGetPayload<{ incl
 
 export default function Page() {
     const { user, isLoading: sessionLoading } = useSession();
+    const { getSetting } = useAppSettings();
 
     const {
         data: result,
@@ -107,7 +109,7 @@ export default function Page() {
 
                     <div className="flex items-center gap-2">
                         <CreateVaultDialog onReload={() => mutate()}>
-                            <Button variant="outline" disabled={isLoading}>
+                            <Button variant="outline" disabled={isLoading || getSetting("MAX_VAULTS_PER_USER") <= (vaults?.length ?? 0)}>
                                 {!isLoading ? (
                                     <>
                                         <Plus className="size-4 mr-1.5" />

@@ -3,7 +3,7 @@
 import {Eraser, RefreshCw, Search, TicketCheck} from "lucide-react";
 
 import { KeyImport } from "@/app/vaults/[id]/key-import";
-import { MultiSelectCombobox } from "@/components/multi-select-combobox";
+import { MultiSelectCombobox } from "@/components/shared/multi-select-combobox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -145,4 +145,3 @@ export function VaultFilterToolbar({
         </div>
     );
 }
-

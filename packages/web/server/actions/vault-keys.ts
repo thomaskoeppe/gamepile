@@ -122,7 +122,6 @@ export const getDecryptedKey = actionClientWithAuth.inputSchema(z.object({
         secret,
     });
 
-    // For NONE vaults, the stored key IS the plaintext key
     const key = vaultKeyHex
         ? decryptGameKey(vaultGame.key, vaultKeyHex)
         : vaultGame.key;
@@ -167,7 +166,6 @@ export const getDecryptedKeys = actionClientWithAuth.inputSchema(z.object({
         },
     });
 
-    // Unwrap vault keys once per vault (not per game key) for performance
     const vaultKeyCache = new Map<string, string | null>();
 
     const inputIdSet = new Set(vaultGameIds);
@@ -379,7 +377,6 @@ export const importKeys = actionClientWithAuth.inputSchema(z.object({
 
     if (!vault) throw new Error("Vault not found or access denied");
 
-    // Unwrap vault key once for the entire import batch
     const vaultKeyHex = unwrapVaultKeyFromVault({
         ...vault,
         secret,
@@ -396,7 +393,6 @@ export const importKeys = actionClientWithAuth.inputSchema(z.object({
 
             const hashedKey = hashKey(normalizedCode);
 
-            // Encrypt with vault key, or store plaintext for NONE vaults
             const storedKey = vaultKeyHex
                 ? encryptGameKey(normalizedCode, vaultKeyHex)
                 : normalizedCode;

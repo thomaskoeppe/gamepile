@@ -22,8 +22,8 @@ import Image from "next/image";
 import Link from "next/link";
 import {useEffect, useRef, useState} from "react";
 
-import { SafeImage } from "@/components/safe-image";
-import { Shimmer } from "@/components/shimmer";
+import { SafeImage } from "@/components/shared/safe-image";
+import { Shimmer } from "@/components/shared/shimmer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";

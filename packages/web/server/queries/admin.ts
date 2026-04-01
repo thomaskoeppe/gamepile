@@ -149,7 +149,7 @@ type AdminUserQueryRecord = Prisma.UserGetPayload<{
         lastLogin: true;
         sessions: {
             select: {
-                expiresAt: true;
+                id: true;
             };
         };
         settings: {
@@ -210,8 +210,11 @@ export const getAdminUsers = queryClientWithAdmin.query<AdminUsersData>(withLogg
             createdAt: true,
             lastLogin: true,
             sessions: {
+                where: {
+                    expiresAt: { gt: now },
+                },
                 select: {
-                    expiresAt: true,
+                    id: true,
                 },
             },
             settings: {
@@ -266,7 +269,7 @@ export const getAdminUsers = queryClientWithAdmin.query<AdminUsersData>(withLogg
             role: user.role,
             createdAt: user.createdAt.toISOString(),
             lastLogin: user.lastLogin.toISOString(),
-            activeSessionCount: user.sessions.filter((session) => session.expiresAt > now).length,
+            activeSessionCount: user.sessions.length,
             counts: {
                 collectionsOwned: user._count.collectionsOwned,
                 collectionMemberships: user._count.collectionUsers,
@@ -328,7 +331,7 @@ export const getAdminJobs = queryClientWithAdmin.inputSchema(z.object({
         errorMessage: string | null;
         createdAt: string;
         user: { id: string; username: string; avatarUrl: string | null } | null;
-        _count: { logs: number; FailedChildJob: number };
+        _count: { logs: number; failedChildJobs: number };
     }>;
     pagination: { page: number; limit: number; total: number; pages: number };
 }>(withLogging(async ({ parsedInput: { page, limit, status, type }, ctx }, { log }) => {
@@ -359,7 +362,7 @@ export const getAdminJobs = queryClientWithAdmin.inputSchema(z.object({
                 errorMessage: true,
                 createdAt: true,
                 user: { select: { id: true, username: true, avatarUrl: true } },
-                _count: { select: { logs: true, FailedChildJob: true } },
+                _count: { select: { logs: true, failedChildJobs: true } },
             },
         }),
         prisma.job.count({ where }),

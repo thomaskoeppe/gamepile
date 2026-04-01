@@ -6,7 +6,7 @@ import { invalidateSettingsCache, loadSettings, upsertSetting, upsertSettings } 
 import prisma from "@/lib/prisma";
 import {jobsQueue} from "@/lib/queue";
 import { withLogging } from "@/lib/with-logging";
-import {AppSettingKey, JobType, KeyVaultAuthType} from "@/prisma/generated/enums";
+import {AppSettingKey, JobStatus, JobType, KeyVaultAuthType, UserRole} from "@/prisma/generated/enums";
 import { actionClientWithAdmin } from "@/server/actions";
 import type { AppSettingValueType } from "@/types/app-setting";
 
@@ -150,6 +150,15 @@ export const changeVaultOwner = actionClientWithAdmin
     .action(withLogging(async ({ parsedInput: { vaultId, ownerId }, ctx }, { log }) => {
         log.info("Changing vault owner", { userId: ctx.user.id, vaultId, ownerId });
 
+        const owner = await prisma.user.findUnique({
+            where: { id: ownerId },
+            select: { id: true },
+        });
+
+        if (!owner) {
+            throw new Error("Target owner not found.");
+        }
+
         await prisma.keyVault.update({
             where: { id: vaultId },
             data: { createdById: ownerId },
@@ -174,6 +183,15 @@ export const changeCollectionOwner = actionClientWithAdmin
     }))
     .action(withLogging(async ({ parsedInput: { collectionId, ownerId }, ctx }, { log }) => {
         log.info("Changing collection owner", { userId: ctx.user.id, collectionId, ownerId });
+
+        const owner = await prisma.user.findUnique({
+            where: { id: ownerId },
+            select: { id: true },
+        });
+
+        if (!owner) {
+            throw new Error("Target owner not found.");
+        }
 
         await prisma.collection.update({
             where: { id: collectionId },
@@ -205,6 +223,19 @@ export const invokeAdminJob = actionClientWithAdmin
             throw new Error("IMPORT_USER_LIBRARY requires a target user to be selected.");
         }
 
+        const existingJob = await prisma.job.findFirst({
+            where: {
+                type,
+                status: { in: [JobStatus.QUEUED, JobStatus.ACTIVE] },
+                ...(type === JobType.IMPORT_USER_LIBRARY ? { userId: userId ?? null } : {}),
+            },
+            select: { id: true },
+        });
+
+        if (existingJob) {
+            throw new Error(`A ${type} job is already queued or running.`);
+        }
+
         const job = await prisma.job.create({
             data: { type, userId: userId ?? null },
         });
@@ -215,3 +246,43 @@ export const invokeAdminJob = actionClientWithAdmin
 
         return { success: true, jobId: job.id, message: `Job "${type}" queued successfully.` };
     }, { namespace: "server.actions.admin:invokeAdminJob" }));
+
+/**
+ * Changes a user's role between ADMIN and USER.
+ *
+ * @param input.userId - ID of the user whose role should change.
+ * @param input.role - The new role (ADMIN or USER).
+ * @returns Success flag and a confirmation message.
+ */
+export const changeUserRole = actionClientWithAdmin
+    .inputSchema(z.object({
+        userId: z.string().min(1),
+        role: z.enum([UserRole.ADMIN, UserRole.USER]),
+    }))
+    .action(withLogging(async ({ parsedInput: { userId, role }, ctx }, { log }) => {
+        log.info("Changing user role", { userId, newRole: role, changedBy: ctx.user.id });
+
+        if (userId === ctx.user.id && role === UserRole.USER) {
+            throw new Error("You cannot downgrade your own admin role.");
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, username: true, role: true },
+        });
+
+        if (!user) {
+            throw new Error(`User with ID "${userId}" not found.`);
+        }
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { role },
+        });
+
+        log.info("User role updated successfully", { userId, oldRole: user.role, newRole: role });
+
+        return { success: true, message: `User "${user.username}" role changed to ${role}.` };
+    }, {
+        namespace: "server.actions.admin:changeUserRole",
+    }));

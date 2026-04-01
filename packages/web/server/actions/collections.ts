@@ -31,6 +31,18 @@ export const createCollection = actionClientWithAuth.inputSchema(z.object({
         }
     }
 
+    const maxCollectionsPerUser = getSetting(AppSettingKey.MAX_COLLECTIONS_PER_USER);
+    const existingCollections = await prisma.collection.count({
+        where: { createdById: ctx.user.id },
+    });
+
+    if (existingCollections >= maxCollectionsPerUser) {
+        return {
+            success: false,
+            message: `Collection limit reached (${maxCollectionsPerUser}).`,
+        };
+    }
+
     const collection = await prisma.collection.create({
         data: { name, description, type: type, createdBy: { connect: { id: ctx.user.id } } }
     });

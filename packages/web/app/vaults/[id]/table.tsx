@@ -12,14 +12,10 @@ import {
     ArrowDown,
     ArrowUp,
     ArrowUpDown,
-    ChevronLeft,
-    ChevronRight,
-    ChevronsLeft,
-    ChevronsRight,
 } from "lucide-react";
 import {useState} from "react";
 
-import {Button} from "@/components/ui/button";
+import { TablePagination } from "@/components/table-pagination";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 
 interface DataTableProps<TData> {
@@ -143,50 +139,7 @@ export function DataTable<TData>({
                     <span className="font-medium text-muted-foreground">{endRow}</span> of{" "}
                     <span className="font-medium text-muted-foreground">{totalCount}</span> results
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        className="border-border hover:bg-card hover:border-primary transition-all duration-300 bg-transparent hover:text-foreground"
-                        size="icon"
-                        onClick={() => onPageChange(1)}
-                        disabled={currentPage === 1 || isLoading}
-                    >
-                        <ChevronsLeft className="h-4 w-4"/>
-                    </Button>
-                    <Button
-                        variant="outline"
-                        className="border-border hover:bg-card hover:border-primary transition-all duration-300 bg-transparent hover:text-foreground"
-                        size="icon"
-                        onClick={() => onPageChange(currentPage - 1)}
-                        disabled={currentPage === 1 || isLoading}
-                    >
-                        <ChevronLeft className="h-4 w-4"/>
-                    </Button>
-                    <div className="flex items-center gap-1 text-sm">
-                        <span className="text-muted-foreground">Page</span>
-                        <span className="font-medium text-muted-foreground">{currentPage}</span>
-                        <span className="text-muted-foreground">of</span>
-                        <span className="font-medium text-muted-foreground">{totalPages}</span>
-                    </div>
-                    <Button
-                        variant="outline"
-                        className="border-border hover:bg-card hover:border-primary transition-all duration-300 bg-transparent hover:text-foreground"
-                        size="icon"
-                        onClick={() => onPageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages || isLoading}
-                    >
-                        <ChevronRight className="h-4 w-4"/>
-                    </Button>
-                    <Button
-                        variant="outline"
-                        className="border-border hover:bg-card hover:border-primary transition-all duration-300 bg-transparent hover:text-foreground"
-                        size="icon"
-                        onClick={() => onPageChange(totalPages)}
-                        disabled={currentPage === totalPages || isLoading}
-                    >
-                        <ChevronsRight className="h-4 w-4"/>
-                    </Button>
-                </div>
+                <TablePagination page={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
             </div>
             )}
         </div>

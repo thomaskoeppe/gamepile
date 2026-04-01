@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 import { GameDetailCard } from "@/components/game/game-detail-card";
-import { SafeImage } from "@/components/safe-image";
+import { SafeImage } from "@/components/shared/safe-image";
 import { Button } from "@/components/ui/button";
 import {Checkbox} from "@/components/ui/checkbox";
 import {
@@ -20,8 +20,8 @@ import { KeyVaultGameGetPayload } from "@/prisma/generated/models/KeyVaultGame";
 export type VaultGameRow = KeyVaultGameGetPayload<{
     include: {
         game: { include: { categories: true; genres: true } };
-        addedBy: true;
-        redeemedBy: true;
+        addedBy: { select: { id: true; username: true; avatarUrl: true } };
+        redeemedBy: { select: { id: true; username: true; avatarUrl: true } };
     };
 }> & { isOwned: boolean; isInMultipleVaults: boolean };
 
@@ -37,15 +37,15 @@ interface CreateColumnsOptions {
 }
 
 export function createVaultKeyColumns({
-                                          canRedeem,
-                                          openKeyDialog,
-                                          onUnredeem,
-                                          selectedVaultGameIds,
-                                          onToggleSelect,
-                                          onToggleSelectPage,
-                                          allPageRowsSelected,
-                                          somePageRowsSelected,
-                                      }: CreateColumnsOptions): ColumnDef<VaultGameRow>[] {
+  canRedeem,
+  openKeyDialog,
+  onUnredeem,
+  selectedVaultGameIds,
+  onToggleSelect,
+  onToggleSelectPage,
+  allPageRowsSelected,
+  somePageRowsSelected,
+}: CreateColumnsOptions): ColumnDef<VaultGameRow>[] {
     const selectionColumn: ColumnDef<VaultGameRow> = {
         id: "select",
         enableSorting: false,
@@ -106,8 +106,14 @@ export function createVaultKeyColumns({
                 const name = row.original.game?.name ?? row.original.originalName ?? "Unknown Game";
                 return (
                     <span className="inline-flex items-center">
-                        <span className={cn("mr-2 text-sm", row.original.isOwned ? "text-muted-foreground" : "text-green-500")}>●</span>
-                        <span>{name}</span>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <span className={cn("mr-2", row.original.isOwned ? "text-muted-foreground" : "text-green-500")}>●</span>
+                                <span>{name}</span>
+                            </TooltipTrigger>
+                            <TooltipContent>{row.original.isOwned ? "You already own this game" : "This game is not in your library"}</TooltipContent>
+                        </Tooltip>
+
                         {row.original.isInMultipleVaults && (
                             <Tooltip>
                                 <TooltipTrigger asChild>
@@ -198,4 +204,3 @@ export function createVaultKeyColumns({
         },
     ];
 }
-
