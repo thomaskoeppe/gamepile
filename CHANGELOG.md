@@ -1,3 +1,16 @@
+## [1.4.0](https://github.com/thomaskoeppe/gamepile/compare/v1.3.0...v1.4.0) (2026-04-01)
+
+### Features
+
+* **migrate:** rename migration job and update related configurations ([ebf6485](https://github.com/thomaskoeppe/gamepile/commit/ebf6485b43e800d5c39f3e4a02ba0fb9664c5c4f))
+* **shared:** add shared components for loading indicators and expandable pills ([b003d07](https://github.com/thomaskoeppe/gamepile/commit/b003d07a97747fa62403a2e7180e71cb4dab4f61))
+
+### Bug Fixes
+
+* **shared:** multiple fixes for PR ([bc4a429](https://github.com/thomaskoeppe/gamepile/commit/bc4a429b6b229023c45041aa7f0c420535cf3f27))
+* **web:** fix multiple eslint problems ([e8cb93d](https://github.com/thomaskoeppe/gamepile/commit/e8cb93d10dade14b5655b4d5b58db73209b29ffe))
+* **web:** fixed some eslint issues ([53cc97c](https://github.com/thomaskoeppe/gamepile/commit/53cc97ce85860722cc52f3d0dc89a3a25e21a936))
+
 ## [1.3.0](https://github.com/thomaskoeppe/gamepile/compare/v1.2.0...v1.3.0) (2026-03-31)
 
 ### Features
