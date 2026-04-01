@@ -6,7 +6,7 @@ services:
   migrate:
     build:
       context: .
-      dockerfile: packages/web/Dockerfile.migrate
+      dockerfile: packages/migrate/Dockerfile
     image: gamepile-migrate:local
 
   web:

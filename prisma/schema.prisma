@@ -20,7 +20,6 @@ enum Platform {
 
 enum CollectionVisibility {
   PRIVATE
-  FRIENDS
   PUBLIC
 }
 
@@ -68,7 +67,6 @@ enum AppSettingKey {
   ADMIN_CAN_CHANGE_RESOURCE_OWNER
   MAX_VAULTS_PER_USER
   MAX_COLLECTIONS_PER_USER
-
   UI_GAME_LIBRARY_PRERENDERED_ROWS
 }
 
@@ -158,7 +156,7 @@ model Game {
   userGames         UserGame[]
   collectionGames   CollectionGame[]
   keyVaultGames     KeyVaultGame[]
-  Achievement       Achievement[]
+  achievements      Achievement[]
 
   @@index([name])
   @@index([appId])
@@ -192,7 +190,7 @@ model Achievement {
   game        Game    @relation(fields: [gameId], references: [id], onDelete: Cascade)
   gameId      String  @db.Uuid
 
-  UserGameAchievement UserGameAchievement[]
+  userGameAchievements UserGameAchievement[]
 
   @@unique([gameId, name])
 }
@@ -208,7 +206,7 @@ model UserGame {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @default(now()) @updatedAt
 
-  UserGameAchievement UserGameAchievement[]
+  userGameAchievements UserGameAchievement[]
 
   @@unique([userId, gameId])
 }
@@ -264,8 +262,8 @@ model CollectionGame {
   game         Game       @relation(fields: [gameId], references: [id], onDelete: Cascade)
   gameId       String     @db.Uuid
   addedAt      DateTime   @default(now())
-  addedBy      User       @relation("CollectionGame_addedBy", fields: [addedById], references: [id], onDelete: Cascade)
-  addedById    String
+  addedBy      User?      @relation("CollectionGame_addedBy", fields: [addedById], references: [id], onDelete: SetNull)
+  addedById    String?
   notes        String?
 
   @@unique([collectionId, gameId])
@@ -273,7 +271,7 @@ model CollectionGame {
 
 model KeyVault {
   id                        String           @id @default(cuid())
-  name                      String           @unique
+  name                      String
   authType                  KeyVaultAuthType
   authHash                  String?
   authSalt                  String?
@@ -290,6 +288,7 @@ model KeyVault {
   users KeyVaultUser[]
 
   @@index([createdById])
+  @@unique([createdById, name])
 }
 
 model KeyVaultUser {
@@ -319,7 +318,7 @@ model KeyVaultGame {
   addedBy      User      @relation("KeyVaultGame_addedBy", fields: [addedById], references: [id], onDelete: Cascade)
   addedById    String
   key          String
-  hashedKey    String?
+  hashedKey    String
   originalName String
   redeemed     Boolean   @default(false)
   redeemedAt   DateTime?
@@ -401,7 +400,7 @@ model Job {
   userId         String?
   user           User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
   logs           JobLog[]
-  FailedChildJob FailedChildJob[]
+  failedChildJobs FailedChildJob[]
 
   @@index([status])
   @@index([claimedBy])

@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: prisma-migrate
+  name: sql-migrate
   namespace: gamepile
 spec:
   ttlSecondsAfterFinished: 300
@@ -25,8 +25,8 @@ spec:
               done
       containers:
         - name: migrate
-          image: ghcr.io/thomaskoeppe/gamepile-web:latest
-          command: ["npx", "prisma", "migrate", "deploy"]
+          image: ghcr.io/thomaskoeppe/gamepile/migrate:latest
+          command: ["node", "run-sql-migrations.mjs"]
           envFrom:
             - configMapRef:
                 name: gamepile-config

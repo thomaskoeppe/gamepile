@@ -3,8 +3,10 @@
   "version": "1.3.0",
   "private": true,
   "workspaces": [
+    "packages/migrate",
     "packages/web",
-    "packages/worker"
+    "packages/worker",
+    "packages/shared"
   ],
   "scripts": {
     "dev": "dotenv -e .env -- concurrently \"npm run dev --workspace=packages/web\" \"npm run dev --workspace=packages/worker\"",
@@ -12,7 +14,7 @@
     "dev:worker": "dotenv -e .env -- npm run dev --workspace=packages/worker",
     "db:generate": "dotenv -e .env -- npm run prisma:generate --workspace=packages/web && dotenv -e .env -- npm run prisma:generate --workspace=packages/worker",
     "db:migrate:dev": "dotenv -e .env -- npm run prisma:migrate:dev --workspace=packages/web --",
-    "db:migrate:deploy": "dotenv -e .env -- npm run prisma:migrate:deploy --workspace=packages/web",
+    "db:migrate:deploy": "dotenv -e .env -- npm run migrate:deploy --workspace=packages/migrate",
     "db:migrate:status": "dotenv -e .env -- npm run prisma:migrate:status --workspace=packages/web",
     "db:migrate:reset": "dotenv -e .env -- npm run prisma:migrate:reset --workspace=packages/web",
     "db:studio": "dotenv -e .env -- npm run prisma:studio --workspace=packages/web",

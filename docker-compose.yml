@@ -55,14 +55,13 @@ services:
       - gamepile-net
 
   # ────────────────────────────────────────────────────
-  # Prisma Migrations (run-once init container)
+  # SQL Migrations (run-once init container)
   # ────────────────────────────────────────────────────
   migrate:
     image: ghcr.io/thomaskoeppe/gamepile/migrate:latest
     environment:
       <<: *common-env
       DATABASE_URL: "postgresql://${POSTGRES_USER:-gamepile}:${POSTGRES_PASSWORD:-gamepile_secret}@postgres:5432/${POSTGRES_DB:-gamepile}?schema=public"
-      PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: 1
     depends_on:
       postgres:
         condition: service_healthy

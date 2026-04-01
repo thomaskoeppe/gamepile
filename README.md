@@ -1,26 +1,129 @@
 # 🎮 GAMEPILE
 
-**Your Game Library** — A self-hosted web application to manage, track, and share your Steam game library with key vault support.
+**Self-hosted Steam game library manager.** Import your library, build collections, and share game key vaults.
 
-> ⚠️ **Beta / Work in Progress** — Gamepile is under active development and not yet considered stable. Features may change, break, or be incomplete. Use at your own risk.
+> ⚠️ **Beta** — Gamepile is under active development. Expect breaking changes between versions. Use at your own risk.
 
 <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/library_1.png" width="30%" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/library_2.png" width="30%" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/explore_1.png" width="30%" />
 
 <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/search_1.png" width="30%" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/search_2.png" width="30%" />
 
-## Project status
-
-Gamepile is under active development and should be treated as beta software.
-
 ## Features
 
-- 🎮 **Steam Library Sync** — Import and sync your Steam game library
-- 🗂️ **Collections** — Organize games into named collections (private, friends-only, or public)
-- 🔐 **Key Vaults** — Securely store and share Steam license keys with encryption
-- 📊 **Playtime Tracking** — Track and sort games by playtime or last played date
-- 👥 **Multi-user** — Invite system, collection/vault sharing
-- 🔄 **Real-time Job Progress** — SSE-powered live progress for background jobs
-- ⚙️ **Admin Panel** — Configure app settings, manage users, vaults, and collections
+- **Steam Library Sync** — Import owned games, playtime, and achievements. Libraries re-sync automatically on a schedule.
+- **Collections** — Curated game lists, private or public, with per-member modify access and sharing.
+- **Key Vaults** — Store activation keys with optional PIN or password auth. Per-user redeem/create permissions.
+- **Explorer** — Full-text search across the shared Steam catalog.
+- **Multi-user** — Invite system with configurable open or invite-only registration.
+- **Admin Panel** — Manage users, configure platform settings, create invite codes, invoke background jobs, and view job logs at `/admin`.
+- **Real-time progress** — SSE-powered live progress bars on long-running imports.
+- **Observability** — OpenTelemetry traces and structured logs exported to any OTLP-compatible collector.
+
+---
+
+## Quick Deploy (Docker Compose)
+
+Official images are published to the GitHub Container Registry and updated on every release:
+
+| Image | Tag |
+|---|---|
+| `ghcr.io/thomaskoeppe/gamepile/web` | `latest` |
+| `ghcr.io/thomaskoeppe/gamepile/worker` | `latest` |
+| `ghcr.io/thomaskoeppe/gamepile/migrate` | `latest` |
+
+**1. Download the Compose file:**
+
+```bash
+curl -O https://raw.githubusercontent.com/thomaskoeppe/gamepile/main/docker-compose.yml
+```
+
+**2. Create `.env`:**
+
+```env
+STEAM_API_KEY=<your-32-char-steam-api-key>
+WEB_VAULT_TOKEN_SECRET=<random-string-min-32-chars>
+DOMAIN=localhost:8080
+WEB_APP_URL=http://localhost:8080
+WEB_ALLOWED_ORIGINS=localhost:8080
+```
+
+These five variables are the only ones you need to get started. Everything else has defaults. See [Minimal Configuration](#minimal-configuration) for what each one does, and [docs/CONFIGURATION.md](./docs/CONFIGURATION.md) for the full reference.
+
+**3. Pull and start:**
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+The app is available at **http://localhost:8080**.
+
+### What happens on first boot
+
+- PostgreSQL and Redis start and become healthy.
+- The `migrate` container runs all Prisma database migrations and exits.
+- `web` and `worker` start only after migrations complete successfully.
+- On first startup the worker queues an initial Steam catalog sync automatically.
+- No manual migration commands are ever needed.
+
+---
+
+## First Login and Admin Assignment
+
+**The first account created on the platform automatically becomes the admin.** This is handled atomically during the Steam OpenID callback — if the user count in the database is `1` immediately after account creation, the role is promoted to `ADMIN` in the same transaction.
+
+1. Navigate to `http://<your-domain>` and click **Sign in with Steam**.
+2. Steam redirects you back after authentication.
+3. Your account is created, your Steam library import is queued, and you land on your library page.
+4. Since you are the first user, you have access to the **Admin Panel** at `/admin`.
+
+Subsequent users sign up with the `USER` role. An admin can promote them manually from `/admin/users`.
+
+### Registration modes
+
+By default, open signup is enabled — any Steam user can create an account. The admin can change this from the admin panel:
+
+| Scenario | `ALLOW_USER_SIGNUP` | `ALLOW_INVITE_CODE_GENERATION` |
+|---|---|---|
+| Anyone can register | `true` (default) | any |
+| Registration closed | `false` | `false` |
+| Invite-only registration | `false` | `true` |
+
+When invite-only mode is active, the admin generates invite codes from `/admin/invite-codes`. Users append `?invite_code=<code>` to the sign-in URL to register.
+
+---
+
+## Minimal Configuration
+
+These five variables must be set. Everything else has sensible defaults.
+
+| Variable | What it does |
+|---|---|
+| `STEAM_API_KEY` | 32-char hex key from [steamcommunity.com/dev/apikey](https://steamcommunity.com/dev/apikey). Required for profile fetches, library imports, and catalog sync. |
+| `WEB_VAULT_TOKEN_SECRET` | HMAC secret used to sign per-vault access cookies. Must be at least 32 characters. Generate with `openssl rand -hex 32`. |
+| `DOMAIN` | Public hostname without protocol or path (e.g. `gamepile.example.com` or `localhost:8080`). Used by the Compose file to build internal URLs. |
+| `WEB_APP_URL` | Full public URL including protocol (e.g. `https://gamepile.example.com`). Used for Steam OpenID callback and CSRF origin checks. Must match what the browser sees. |
+| `WEB_ALLOWED_ORIGINS` | Comma-separated hostnames allowed to submit Server Actions (e.g. `gamepile.example.com`). Prevents cross-origin form abuse. |
+
+The `DATABASE_URL` and Redis connection are constructed automatically by the Compose file from `POSTGRES_*` and `REDIS_*` variables, which have secure defaults you can override:
+
+```env
+POSTGRES_PASSWORD=changeme          # default: gamepile_secret
+POSTGRES_USER=gamepile              # default: gamepile
+POSTGRES_DB=gamepile                # default: gamepile
+REDIS_PASSWORD=changeme             # default: redis_secret
+```
+
+---
+
+## Deep Configuration
+
+See **[docs/CONFIGURATION.md](./docs/CONFIGURATION.md)** for the full reference, including:
+
+- All web and worker environment variables with types and defaults
+- Worker concurrency and rate-limit tuning
+- Scheduled job cron expressions
+- All admin panel feature flags (App Settings) with their defaults and effects
 
 ---
 
@@ -28,145 +131,79 @@ Gamepile is under active development and should be treated as beta software.
 
 ![Architecture Diagram](./docs/architecture.png)
 
-| Component      | Description                                                                                |
-|----------------|--------------------------------------------------------------------------------------------|
-| **Web**        | Next.js 16 frontend with server components, Steam OpenID login, and API routes             |
-| **Worker**     | BullMQ-powered background job processor for Steam library imports and game detail fetching |
-| **PostgreSQL** | Primary data store (users, games, vaults, sessions, jobs)                                  |
-| **Redis**      | Job queue broker for BullMQ                                                                |
-| **Caddy**      | Simple reverse proxy                                                                       |
+| Component | Description |
+|---|---|
+| **web** | Next.js 16 app: UI, Server Actions, Steam OpenID auth, SSE job streaming |
+| **worker** | BullMQ job processor: library imports, game catalog sync, achievement imports |
+| **migrate** | One-shot Prisma migration container. Runs and exits before web/worker start. |
+| **postgres** | Primary data store |
+| **redis** | BullMQ job queue broker and rate-limit store |
+| **caddy** | Bundled reverse proxy on port 8080 |
 
----
+Startup ordering is enforced by Compose health checks:
 
-## Monorepo Packages
-
-| Package    | Path              | Description                                                                             |
-|------------|-------------------|-----------------------------------------------------------------------------------------|
-| **web**    | `packages/web`    | Next.js 16 App Router frontend — UI, API routes, server actions, and Prisma client      |
-| **worker** | `packages/worker` | BullMQ background worker — Steam library imports, game detail fetching, scheduled syncs |
-
-Shared Prisma schema lives at `prisma/schema.prisma` with per-package generated clients.
-
----
-
-## Tech Stack
-
-| Layer          | Technology                                   |
-|----------------|----------------------------------------------|
-| Framework      | Next.js 16 (App Router)                      |
-| UI             | ShadCN UI + Tailwind CSS v4 (dark mode only) |
-| Language       | TypeScript (strict)                          |
-| ORM            | Prisma 7 → PostgreSQL                        |
-| Queue          | BullMQ → Redis                               |
-| Auth           | Custom Steam OpenID                          |
-| Server Actions | next-safe-action                             |
-| Data Fetching  | SWR                                          |
-| Job Streaming  | Server-Sent Events (SSE)                     |
-| Observability  | OpenTelemetry (Pino logging + SigNoz APM)    |
-
----
-
-## Observability & Logging
-
-Gamepile includes built-in observability powered by OpenTelemetry and [SigNoz](https://signoz.io/) (APM platform).
-We decided to go for SigNoz as it can be self-hosted and provides a good free tier for starters, while still offering powerful features for log aggregation, distributed tracing, and metrics collection.
-
-### Features
-
-- 📊 **Centralized Logging** — Structured JSON logs aggregated in SigNoz
-- 🔍 **Distributed Tracing** — Trace requests across web and worker services
-- 📈 **Metrics Collection** — Application metrics and resource utilization
-- 🚨 **Alerting** — Automatic alerts for errors, slow requests, and anomalies
-- 🎯 **Log Search** — Full-text search and filtering in SigNoz UI
-
-### Setup
-
-**Option 1: Hosted SigNoz (Cloud)**
-```bash
-# Sign up at signoz.io/teams, create an account, create a new OpenTelemetry data source and get your ingestion key, then set in .env:
-OTEL_EXPORTER_OTLP_ENDPOINT=https://ingest.us2.signoz.cloud:443
-OTEL_EXPORTER_OTLP_HEADERS=signoz-ingestion-key=your-ingestion-key
+```
+postgres (healthy) ─┐
+                    ├─→ migrate (exits 0) ─→ web + worker
+redis (healthy) ────┘
 ```
 
-**Option 2: Self-Hosted SigNoz**  
-Use the official SigNoz installation guides:
-- Docker: <https://signoz.io/docs/install/docker/>
-- Kubernetes (local): <https://signoz.io/docs/install/kubernetes/local/>
-- GitHub repository: <https://github.com/SigNoz/signoz>
-
-📖 **Full Documentation**: See [docs/OBSERVABILITY.md](./docs/OBSERVABILITY.md) for detailed setup, configuration, and troubleshooting.
-
 ---
 
-## Prerequisites
+## Observability
 
-- [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/install/) v2+
-- A [Steam Web API Key](https://steamcommunity.com/dev/apikey)
-- A domain name (for production with TLS)
+Gamepile exports OpenTelemetry traces and structured logs from both `web` and `worker` via OTLP. Any compatible collector works — SigNoz, Grafana Alloy, Jaeger, etc.
 
----
+Observability is **optional**. Omitting the OTLP variables has no effect on normal operation.
 
-## Quick Start (Docker Compose)
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/thomaskoeppe/gamepile.git
-cd gamepile
-
-# 2. Copy and configure environment variables
-cp .env.example .env
-# Edit .env with your Steam API key, database URL, Redis password, etc.
-
-# 3. Start all services
-docker compose up -d
-
-# 4. Access the application
-open http://localhost:8080
-```
-
-Minimal environment variable configuration for quick start (no TLS):
 ```env
-STEAM_API_KEY=<your-steam-api-key>
-WEB_VAULT_TOKEN_SECRET=<random-secret>
-DOMAIN=localhost:8080
-WEB_APP_URL=http://localhost:8080
-WEB_ALLOWED_ORIGINS=localhost:8080
+OTEL_EXPORTER_OTLP_ENDPOINT=https://ingest.us2.signoz.cloud/
+OTEL_EXPORTER_OTLP_HEADERS=signoz-ingestion-key=your-key
 ```
 
-Startup ordering in Compose is enforced automatically:
-- `postgres` must become healthy first
-- `migrate` runs Prisma migrations next
-- `web` and `worker` start only after migrations complete
+See [docs/OBSERVABILITY.md](./docs/OBSERVABILITY.md) for setup options and configuration details.
 
-## Local Development (without Docker)
+---
+
+## Local Development
 
 ```bash
 # 1. Install dependencies
 npm install
 
-# 2. Copy and configure environment variables
+# 2. Configure environment
 cp .env.example .env
 # Edit .env — at minimum set DATABASE_URL, REDIS_HOST, and STEAM_API_KEY
 
 # 3. Generate Prisma clients
 npm run db:generate
 
-# 4. Run database migrations
+# 4. Run migrations
 npm run db:migrate:dev
 
-# 5. Start both web and worker in development mode
+# 5. Start web and worker
 npm run dev
 ```
 
-Individual packages can be started separately:
-- `npm run dev:web` — Next.js dev server on port 3000
-- `npm run dev:worker` — BullMQ worker with hot-reload
+Individual services:
 
-Kubernetes manifests in `docs/k8s` follow the same ordering pattern:
-- migration Job waits for PostgreSQL readiness
-- `web`/`worker` use init containers to wait for migration state
-- ingress is Traefik-oriented (no NGINX-specific ingress class settings)
+```bash
+npm run dev:web      # Next.js dev server on port 3000
+npm run dev:worker   # BullMQ worker with hot-reload
+```
+
+To build from source with Docker instead of using the published images:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+```
 
 ---
 
-<sub>Note on AI Usage: AI tools were used during development to assist with code review and the implementation of simpler tasks. The majority of this codebase was designed, architected, and programmed by [Thomas Koeppe](https://github.com/thomaskoeppe).</sub>
+## Kubernetes
+
+Manifests are provided in [`docs/k8s/`](./docs/k8s/). The migration runs as a Kubernetes `Job`. The `web` and `worker` `Deployment`s use init containers to wait for the migration job to complete before starting.
+
+---
+
+<sub>AI tools were used during development to assist with code review and the implementation of simpler tasks. The majority of this codebase was designed, architected, and programmed by [Thomas Koeppe](https://github.com/thomaskoeppe).</sub>

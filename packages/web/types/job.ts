@@ -22,6 +22,33 @@ export type JobSnapshot = {
     logs: JobLogEntry[];
 };
 
+export type AdminJobDetail = JobSnapshot & {
+    progress: number;
+    updatedAt: string;
+    claimedBy: string | null;
+    user: { id: string; username: string; avatarUrl: string | null } | null;
+    logsPagination: {
+        page: number;
+        limit: number;
+        total: number;
+        pages: number;
+    };
+    failedPagination: {
+        page: number;
+        limit: number;
+        total: number;
+        pages: number;
+    };
+    failedChildJobs: Array<{
+        id: string;
+        appId: number;
+        gameId: string | null;
+        errorMessage: string | null;
+        attempts: number;
+        createdAt: string;
+    }>;
+};
+
 const TERMINAL_STATUSES = new Set<JobStatus>([
     JobStatus.COMPLETED,
     JobStatus.PARTIALLY_COMPLETED,

@@ -26,7 +26,7 @@ This document describes the PostgreSQL database schema defined in `schema.prisma
 | Enum                   | Values                                                                                        | Used By             |
 |------------------------|-----------------------------------------------------------------------------------------------|---------------------|
 | `Platform`             | `WINDOWS`, `LINUX`, `MAC`                                                                     | `Game.platforms`    |
-| `CollectionVisibility` | `PRIVATE`, `FRIENDS`, `PUBLIC`                                                                | `Collection.type`   |
+| `CollectionVisibility` | `PRIVATE`, `PUBLIC`                                                                           | `Collection.type`   |
 | `GameType`             | `GAME`, `DLC`, `DEMO`, `MOD`, `ADVERTISING`, `UNKNOWN`                                        | `Game.type`         |
 | `KeyVaultAuthType`     | `NONE`, `PIN`, `PASSWORD`                                                                     | `KeyVault.authType` |
 | `UserRole`             | `USER`, `ADMIN`                                                                               | `User.role`         |
@@ -135,7 +135,7 @@ Records a specific user earning a specific achievement. Junction between `UserGa
 
 A curated list of games created by a user. Has:
 
-- `type` — visibility: `PRIVATE`, `FRIENDS`, or `PUBLIC`
+- `type` — visibility: `PRIVATE` or `PUBLIC`
 - A list of member `User`s via `CollectionUser`
 - A list of `Game`s via `CollectionGame`
 
