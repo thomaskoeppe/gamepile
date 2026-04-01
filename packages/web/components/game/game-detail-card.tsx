@@ -2,9 +2,9 @@ import {CalendarDays, Gem, Library} from "lucide-react";
 import Link from "next/link";
 import {ReactNode, useState} from "react";
 
-import {ExpandablePills} from "@/components/expandable-pills";
 import {AddToCollectionDropdown} from "@/components/game/add-to-collection-dropdown";
-import { SafeImage } from "@/components/safe-image";
+import { ExpandablePills } from "@/components/shared/expandable-pills";
+import { SafeImage } from "@/components/shared/safe-image";
 import {Button} from "@/components/ui/button";
 import {
     HoverCard,

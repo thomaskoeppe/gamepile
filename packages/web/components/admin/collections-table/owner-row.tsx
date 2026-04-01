@@ -22,13 +22,13 @@ import {
 import { browserLog } from "@/lib/browser-logger";
 import { changeCollectionOwner } from "@/server/actions/admin";
 
-interface AdminUserOption {
+export interface AdminUserOption {
   id: string;
   username: string;
   steamId: string;
 }
 
-interface AdminCollectionListItem {
+export interface AdminCollectionListItem {
   id: string;
   name: string;
   type: string;
@@ -38,7 +38,7 @@ interface AdminCollectionListItem {
   memberCount: number;
 }
 
-function CollectionOwnerRow({
+export function CollectionOwnerRow({
   collection,
   users,
   onMutate,
@@ -52,7 +52,10 @@ function CollectionOwnerRow({
 
   const { execute, isPending, result } = useAction(changeCollectionOwner, {
     onSuccess: () => {
-      browserLog.info('Collection owner changed', { collectionId: collection.id, newOwnerId: selectedOwnerId });
+      browserLog.info("Collection owner changed", {
+        collectionId: collection.id,
+        newOwnerId: selectedOwnerId,
+      });
       setOpen(false);
       onMutate?.();
     },
@@ -112,9 +115,7 @@ function CollectionOwnerRow({
                 New owner: <span className="font-medium text-foreground">{selectedOwner?.username ?? "Unknown"}</span>
               </div>
 
-              {result?.serverError && (
-                <p className="text-xs text-destructive">{result.serverError}</p>
-              )}
+              {result?.serverError && <p className="text-xs text-destructive">{result.serverError}</p>}
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
@@ -136,50 +137,3 @@ function CollectionOwnerRow({
   );
 }
 
-export function AdminCollectionsTable({
-  collections,
-  users,
-  onMutate,
-}: {
-  collections: AdminCollectionListItem[];
-  users: AdminUserOption[];
-  onMutate?: () => void;
-}) {
-  return (
-    <div className="space-y-4">
-      <div className="overflow-hidden rounded-xl border border-border/70 bg-card/95">
-        <table className="w-full text-sm">
-          <thead className="bg-background/70 text-left text-xs uppercase tracking-wide text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3">Collection</th>
-              <th className="px-4 py-3">Visibility</th>
-              <th className="px-4 py-3">Games</th>
-              <th className="px-4 py-3">Members</th>
-              <th className="px-4 py-3">Created</th>
-              <th className="px-4 py-3">Current owner</th>
-              <th className="px-4 py-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {collections.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
-                  No collections found.
-                </td>
-              </tr>
-            ) : (
-              collections.map((collection) => (
-                <CollectionOwnerRow
-                  key={collection.id}
-                  collection={collection}
-                  users={users}
-                  onMutate={onMutate}
-                />
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}

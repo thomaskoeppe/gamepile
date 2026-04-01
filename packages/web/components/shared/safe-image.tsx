@@ -18,8 +18,8 @@ interface SafeImageProps extends Omit<ImageProps, "src" | "onError"> {
 }
 
 /**
- * Renders a Next.js `Image` that falls through a prioritised list of source URLs
- * on error. Displays a customisable fallback when all sources are exhausted.
+ * Renders a Next.js `Image` that falls through a prioritized list of source URLs
+ * on error. Displays a customizable fallback when all sources are exhausted.
  *
  * @param srcs - Ordered list of image URLs to try. Falls through to the next on error.
  * @param fallback - Custom React node shown when all URLs fail. Overrides the default icon fallback.

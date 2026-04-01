@@ -6,8 +6,8 @@ import {
 import { useRouter } from "next/navigation";
 import {useCallback, useEffect, useState, useTransition} from "react";
 
-import {GameDetailDialog} from "@/components/game/game-detail-dialog";
-import {SafeImage} from "@/components/safe-image";
+import { GameDetailDialog } from "@/components/game/game-detail-dialog";
+import { SafeImage } from "@/components/shared/safe-image";
 import { Badge } from "@/components/ui/badge";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";

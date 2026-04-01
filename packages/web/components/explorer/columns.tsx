@@ -1,11 +1,11 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Apple, ArrowDown, ArrowUp, ArrowUpDown, Cpu,Monitor } from "lucide-react";
-import {ElementType, useState} from "react";
+import { Apple, ArrowDown, ArrowUp, ArrowUpDown, Cpu, Monitor } from "lucide-react";
+import { ElementType, useState } from "react";
 
 import { AddToCollectionDropdown } from "@/components/game/add-to-collection-dropdown";
-import { SafeImage } from "@/components/safe-image";
+import { SafeImage } from "@/components/shared/safe-image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

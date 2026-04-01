@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { sanitizePostAuthRedirect } from "@/lib/auth/redirect";
 import { getSteamLoginUrl } from "@/lib/auth/steam";
 import { logger } from "@/lib/logger";
 
@@ -7,9 +8,9 @@ export async function GET(request: Request) {
     const log = logger.child("api.routes.auth:signin");
     try {
         const url = new URL(request.url);
-        const redirectPath = url.searchParams.get("redirect") || "/dashboard";
+        const redirectPath = sanitizePostAuthRedirect(url.searchParams.get("redirect"));
 
-        log.info("Login redirect initiated", { redirectPath, url });
+        log.info("Login redirect initiated", { redirectPath });
 
         const appUrl = process.env.WEB_APP_URL || url.origin;
         const callbackUrl = new URL("/api/auth/callback", appUrl);

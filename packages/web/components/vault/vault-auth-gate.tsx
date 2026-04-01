@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import {Card, CardContent} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { KeyVaultAuthType } from "@/prisma/generated/browser";
-import { authenticateVault } from "@/server/actions/vaults";
+import { authenticateVault } from "@/server/actions/vaults/auth";
 
 interface VaultAuthGateProps {
     vaultId: string;

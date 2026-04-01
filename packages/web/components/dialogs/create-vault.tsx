@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { browserLog } from "@/lib/browser-logger";
 import { cn } from "@/lib/utils";
 import { KeyVaultAuthType } from "@/prisma/generated/enums";
-import { createVault } from "@/server/actions/vaults";
+import { createVault } from "@/server/actions/vaults/create";
 
 const schema = z.object({
     name: z.string().min(5).max(25),
@@ -183,10 +183,8 @@ export function CreateVaultDialog({
                     <DialogDescription>Secure vault for storing your game keys</DialogDescription>
                 </DialogHeader>
 
-                {/* Only show step indicator on steps 1 & 2 */}
                 {step !== 3 && <StepIndicator current={step} />}
 
-                {/* Step 1 — Name */}
                 {step === 1 && (
                     <div className="space-y-4">
                         <FieldGroup>
@@ -217,7 +215,6 @@ export function CreateVaultDialog({
                     </div>
                 )}
 
-                {/* Step 2 — Auth */}
                 {step === 2 && (
                     <div className="space-y-4">
                         <FieldGroup>
@@ -305,7 +302,6 @@ export function CreateVaultDialog({
                     </div>
                 )}
 
-                {/* Step 3 — completion / error */}
                 {step === 3 && (
                     <div className="space-y-4">
                         {createdRecoveryKey ? (

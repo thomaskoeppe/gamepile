@@ -13,7 +13,7 @@ import {
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { browserLog } from "@/lib/browser-logger";
-import { renameVault } from "@/server/actions/vaults";
+import { renameVault } from "@/server/actions/vaults/manage";
 
 const schema = z.object({
     name: z.string().min(5).max(25),

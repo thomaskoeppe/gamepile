@@ -8,7 +8,8 @@ import { unredeemKey as unredeemKeyAction } from "@/server/actions/vault-keys";
 import { getGameCategories, getGameGenres } from "@/server/queries/games";
 import { getKeys } from "@/server/queries/vault-keys";
 
-import { KeyDialog, useKeyDialog } from "./key-dialog";
+import { KeyDialog } from "./key-dialog";
+import { useKeyDialog } from "./key-dialog.hook";
 import { MultiKeyDialog } from "./multi-key-dialog";
 import { DataTable } from "./table";
 import { createVaultKeyColumns, type VaultGameRow } from "./table-columns";
@@ -28,10 +29,11 @@ export function TableWrapper({
     onRevalidating?: (status: boolean) => void;
 }) {
     const { user } = useSession();
+    type VaultKeySortField = "addedAt" | "originalName" | "redeemedAt" | "game_name";
 
     const [page, setPage] = useState(1);
     const [pageSize] = useState(10);
-    const [sortBy, setSortBy] = useState("game_name");
+    const [sortBy, setSortBy] = useState<VaultKeySortField>("game_name");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
     const [filters, setFilters] = useState({
         name: "",
@@ -169,7 +171,7 @@ export function TableWrapper({
                         setSelectedVaultGameIds([]);
                     }}
                     onSortChange={(newSortBy, newSortOrder) => {
-                        setSortBy(newSortBy);
+                        setSortBy(newSortBy as VaultKeySortField);
                         setSortOrder(newSortOrder);
                         setPage(1);
                         setSelectedVaultGameIds([]);
@@ -190,4 +192,3 @@ export function TableWrapper({
         </>
     );
 }
-

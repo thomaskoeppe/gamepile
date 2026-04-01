@@ -1,13 +1,12 @@
 "use client";
 
-import {Cog, FolderKanban, KeyRound, LogIn, LogOut, Settings, Shapes,Shield} from "lucide-react";
-import {Heart} from "lucide-react";
+import {Cog, FolderKanban, Heart, KeyRound, LogIn, LogOut, Settings, Shapes, Shield} from "lucide-react";
 import Link from "next/link";
 import {usePathname} from "next/navigation";
 import {ReactNode, useState} from "react";
 
+import {SearchDialog, SearchTrigger} from "@/components/dialogs/search";
 import {MobileMenu} from "@/components/mobile-menu";
-import {SearchDialog, SearchTrigger} from "@/components/search-dialog";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {Button} from "@/components/ui/button";
 import {

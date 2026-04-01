@@ -68,7 +68,6 @@ function StepIndicator({ current }: { current: Step }) {
 
 const visibilityIcon = {
     [CollectionVisibility.PRIVATE]: <Lock className="size-4 text-muted-foreground" />,
-    [CollectionVisibility.FRIENDS]: <Users className="size-4 text-muted-foreground" />,
     [CollectionVisibility.PUBLIC]: <Globe className="size-4 text-muted-foreground" />,
 };
 
@@ -159,7 +158,6 @@ export function CreateCollectionDialog({
 
                 {step !== 3 && <StepIndicator current={step} />}
 
-                {/* Step 1 — Name & Description */}
                 {step === 1 && (
                     <div className="space-y-4">
                         <FieldGroup>
@@ -213,7 +211,6 @@ export function CreateCollectionDialog({
                     </div>
                 )}
 
-                {/* Step 2 — Visibility */}
                 {step === 2 && (
                     <div className="space-y-4">
                         <FieldGroup>
@@ -232,7 +229,6 @@ export function CreateCollectionDialog({
                                         </SelectTrigger>
                                         <SelectContent position="item-aligned">
                                             <SelectItem value={CollectionVisibility.PRIVATE}>Private</SelectItem>
-                                            <SelectItem value={CollectionVisibility.FRIENDS}>Friends</SelectItem>
                                             <SelectItem value={CollectionVisibility.PUBLIC}>Public</SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -242,9 +238,7 @@ export function CreateCollectionDialog({
                             <div className="rounded-lg border border-border/60 bg-muted/30 p-3 text-sm text-muted-foreground">
                                 {type === CollectionVisibility.PRIVATE
                                     ? "Only you can see and manage this collection."
-                                    : type === CollectionVisibility.FRIENDS
-                                        ? "Friends you add can view this collection."
-                                        : "Anyone can view this collection."}
+                                    : "Anyone can view this collection."}
                             </div>
                         </FieldGroup>
 
@@ -263,7 +257,6 @@ export function CreateCollectionDialog({
                     </div>
                 )}
 
-                {/* Step 3 — Error only */}
                 {step === 3 && (
                     <div className="space-y-4">
                         <div className="flex flex-col items-center gap-3 py-4 text-center">

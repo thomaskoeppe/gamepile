@@ -9,6 +9,7 @@ import {Alert, AlertDescription} from "@/components/ui/alert";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
+import {useAppSettings} from "@/lib/providers/app-settings";
 import {useSession} from "@/lib/providers/session";
 import {cn} from "@/lib/utils";
 
@@ -26,7 +27,10 @@ const ERROR_MESSAGES: Record<string, string> = {
 
 export default function Home() {
     const { authenticated, isLoading, login } = useSession();
+    const { getSetting } = useAppSettings();
     const searchParams = useSearchParams();
+
+    const allowInviteCodes = getSetting("ALLOW_INVITE_CODE_GENERATION");
 
     const error = searchParams.get("error");
     const redirect = searchParams.get("redirect") || "/library";
@@ -44,7 +48,7 @@ export default function Home() {
     }, [authenticated, isLoading, redirect]);
 
     const handleLogin = () => {
-        login(redirect, inviteCode.trim() || undefined);
+        login(redirect, allowInviteCodes ? inviteCode.trim() || undefined : undefined);
     };
 
     return (
@@ -87,47 +91,48 @@ export default function Home() {
                         Sign in with Steam
                     </Button>
 
-                    {/* Invite code collapsible */}
-                    <div className="space-y-2">
-                        <button
-                            type="button"
-                            onClick={() => setInviteOpen((o) => !o)}
-                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer select-none w-fit"
-                        >
-                            <ChevronDown
-                                className={cn(
-                                    "h-3.5 w-3.5 transition-transform duration-200",
-                                    inviteOpen && "rotate-180"
-                                )}
-                            />
-                            Have an invite code?
-                        </button>
+                    {allowInviteCodes && (
+                        <div className="space-y-2">
+                            <button
+                                type="button"
+                                onClick={() => setInviteOpen((o) => !o)}
+                                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer select-none w-fit"
+                            >
+                                <ChevronDown
+                                    className={cn(
+                                        "h-3.5 w-3.5 transition-transform duration-200",
+                                        inviteOpen && "rotate-180"
+                                    )}
+                                />
+                                Have an invite code?
+                            </button>
 
-                        <div
-                            className={cn(
-                                "grid transition-all duration-200 ease-in-out",
-                                inviteOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-                            )}
-                        >
-                            <div className="overflow-hidden">
-                                <div className="flex gap-2 pt-1">
-                                    <div className="relative flex-1">
-                                        <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-                                        <Input
-                                            placeholder="Enter invite code"
-                                            value={inviteCode}
-                                            onChange={(e) => setInviteCode(e.target.value)}
-                                            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                                            className="pl-8 h-9 text-sm font-mono tracking-wide"
-                                            autoComplete="off"
-                                            spellCheck={false}
-                                        />
+
+                            <div
+                                className={cn(
+                                    "grid transition-all duration-200 ease-in-out",
+                                    inviteOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                                )}
+                            >
+                                <div className="overflow-hidden">
+                                    <div className="flex gap-2 pt-1">
+                                        <div className="relative flex-1">
+                                            <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                                            <Input
+                                                placeholder="Enter invite code"
+                                                value={inviteCode}
+                                                onChange={(e) => setInviteCode(e.target.value)}
+                                                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                                                className="pl-8 h-9 text-sm font-mono tracking-wide"
+                                                autoComplete="off"
+                                                spellCheck={false}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
+                    )}
                 </CardContent>
             </Card>
         </div>

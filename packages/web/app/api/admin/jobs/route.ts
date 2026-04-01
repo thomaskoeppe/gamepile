@@ -57,21 +57,38 @@ export async function GET(request: NextRequest) {
                         avatarUrl: true,
                     },
                 },
-                _count: {
-                    select: {
-                        logs: true,
-                        FailedChildJob: true,
-                    },
-                },
             },
         }),
         prisma.job.count({ where }),
     ]);
 
+    const jobIds = jobs.map((job) => job.id);
+    const [logCounts, failedChildCounts] = await Promise.all([
+        prisma.jobLog.groupBy({
+            by: ["jobId"],
+            where: { jobId: { in: jobIds } },
+            _count: { _all: true },
+        }),
+        prisma.failedChildJob.groupBy({
+            by: ["jobId"],
+            where: { jobId: { in: jobIds } },
+            _count: { _all: true },
+        }),
+    ]);
+
+    const logCountByJobId = new Map(logCounts.map((entry) => [entry.jobId, entry._count._all]));
+    const failedCountByJobId = new Map(failedChildCounts.map((entry) => [entry.jobId, entry._count._all]));
+
     log.info("Admin jobs fetched", { durationMs: Date.now() - start, total });
 
     return NextResponse.json({
-        jobs,
+        jobs: jobs.map((job) => ({
+            ...job,
+            _count: {
+                logs: logCountByJobId.get(job.id) ?? 0,
+                failedChildJobs: failedCountByJobId.get(job.id) ?? 0,
+            },
+        })),
         pagination: {
             page,
             limit,

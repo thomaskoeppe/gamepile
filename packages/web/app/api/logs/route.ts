@@ -16,9 +16,17 @@ import { initializeLogsExporter } from '@/lib/logs-exporter';
 
 initializeLogsExporter();
 
-const log = logger.child("api.routes.logs:ingest");
-
 export async function POST(request: NextRequest): Promise<NextResponse> {
+    const log = logger.child("api.routes.logs:ingest", {
+        requestId: request.headers.get("x-request-id") ?? undefined,
+    });
+    const origin = request.headers.get("origin");
+    const allowedOrigin = process.env.WEB_APP_URL;
+
+    if (origin && allowedOrigin && !origin.startsWith(allowedOrigin)) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     let entries: unknown;
 
     try {

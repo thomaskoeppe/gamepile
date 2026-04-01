@@ -3,7 +3,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 
 import {GameDetailCard} from "@/components/game/game-detail-card";
-import { SafeImage } from "@/components/safe-image";
+import { SafeImage } from "@/components/shared/safe-image";
 import {cn, formatMinutesToHoursMinutes} from "@/lib/utils";
 import {Prisma} from "@/prisma/generated/client";
 

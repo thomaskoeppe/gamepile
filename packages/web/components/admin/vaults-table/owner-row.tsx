@@ -22,13 +22,13 @@ import {
 import { browserLog } from "@/lib/browser-logger";
 import { changeVaultOwner } from "@/server/actions/admin";
 
-interface AdminUserOption {
+export interface AdminUserOption {
   id: string;
   username: string;
   steamId: string;
 }
 
-interface AdminVaultListItem {
+export interface AdminVaultListItem {
   id: string;
   name: string;
   authType: string;
@@ -38,7 +38,7 @@ interface AdminVaultListItem {
   gameCount: number;
 }
 
-function VaultOwnerRow({
+export function VaultOwnerRow({
   vault,
   users,
   onMutate,
@@ -52,7 +52,7 @@ function VaultOwnerRow({
 
   const { execute, isPending, result } = useAction(changeVaultOwner, {
     onSuccess: () => {
-      browserLog.info('Vault owner changed', { vaultId: vault.id, newOwnerId: selectedOwnerId });
+      browserLog.info("Vault owner changed", { vaultId: vault.id, newOwnerId: selectedOwnerId });
       setOpen(false);
       onMutate?.();
     },
@@ -90,8 +90,7 @@ function VaultOwnerRow({
             <DialogHeader>
               <DialogTitle>Change Vault Owner</DialogTitle>
               <DialogDescription>
-                Select a new owner for{" "}
-                <span className="font-medium text-foreground">{vault.name}</span>.
+                Select a new owner for <span className="font-medium text-foreground">{vault.name}</span>.
               </DialogDescription>
             </DialogHeader>
 
@@ -110,15 +109,10 @@ function VaultOwnerRow({
               </Select>
 
               <div className="rounded-lg border border-border/60 bg-background/40 p-3 text-sm text-muted-foreground">
-                New owner:{" "}
-                <span className="font-medium text-foreground">
-                  {selectedOwner?.username ?? "Unknown"}
-                </span>
+                New owner: <span className="font-medium text-foreground">{selectedOwner?.username ?? "Unknown"}</span>
               </div>
 
-              {result?.serverError && (
-                <p className="text-xs text-destructive">{result.serverError}</p>
-              )}
+              {result?.serverError && <p className="text-xs text-destructive">{result.serverError}</p>}
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
@@ -140,45 +134,3 @@ function VaultOwnerRow({
   );
 }
 
-export function AdminVaultsTable({
-  vaults,
-  users,
-  onMutate,
-}: {
-  vaults: AdminVaultListItem[];
-  users: AdminUserOption[];
-  onMutate?: () => void;
-}) {
-  return (
-    <div className="space-y-4">
-      <div className="overflow-hidden rounded-xl border border-border/70 bg-card/95">
-        <table className="w-full text-sm">
-          <thead className="bg-background/70 text-left text-xs uppercase tracking-wide text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3">Vault</th>
-              <th className="px-4 py-3">Auth</th>
-              <th className="px-4 py-3">Games</th>
-              <th className="px-4 py-3">Members</th>
-              <th className="px-4 py-3">Created</th>
-              <th className="px-4 py-3">Current owner</th>
-              <th className="px-4 py-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {vaults.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
-                  No vaults found.
-                </td>
-              </tr>
-            ) : (
-              vaults.map((vault) => (
-                <VaultOwnerRow key={vault.id} vault={vault} users={users} onMutate={onMutate} />
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}

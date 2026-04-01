@@ -8,8 +8,8 @@ import Link from "next/link";
 
 import { CreateVaultDialog } from "@/components/dialogs/create-vault";
 import { Header } from "@/components/header";
-import {LoadingIndicator} from "@/components/loading-indicator";
-import {Shimmer} from "@/components/shimmer";
+import { LoadingIndicator } from "@/components/shared/loading-indicator";
+import { Shimmer } from "@/components/shared/shimmer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription,CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +18,7 @@ import { useSession } from "@/lib/providers/session";
 import {cn} from "@/lib/utils";
 import type {Prisma} from "@/prisma/generated/browser";
 import { getVaults } from "@/server/queries/vaults";
+import {useAppSettings} from "@/lib/providers/app-settings";
 
 function VaultCard({ vault, isOwner }: { vault: Prisma.KeyVaultGetPayload<{ include: { _count: { select: { games: true; users: true } } }, omit: { authHash: true, authSalt: true, keySalt: true, encryptedVaultKey: true, recoveryEncryptedVaultKey: true, recoveryKeyHash: true } }>; isOwner: boolean }) {
     return (
@@ -76,6 +77,7 @@ function VaultCard({ vault, isOwner }: { vault: Prisma.KeyVaultGetPayload<{ incl
 
 export default function Page() {
     const { user, isLoading: sessionLoading } = useSession();
+    const { getSetting } = useAppSettings();
 
     const {
         data: result,
@@ -107,7 +109,7 @@ export default function Page() {
 
                     <div className="flex items-center gap-2">
                         <CreateVaultDialog onReload={() => mutate()}>
-                            <Button variant="outline" disabled={isLoading}>
+                            <Button variant="outline" disabled={isLoading || getSetting("MAX_VAULTS_PER_USER") <= (vaults?.length ?? 0)}>
                                 {!isLoading ? (
                                     <>
                                         <Plus className="size-4 mr-1.5" />
