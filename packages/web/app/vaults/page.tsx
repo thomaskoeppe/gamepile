@@ -14,11 +14,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription,CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useServerQuery } from "@/lib/hooks/use-server-query";
+import {useAppSettings} from "@/lib/providers/app-settings";
 import { useSession } from "@/lib/providers/session";
 import {cn} from "@/lib/utils";
 import type {Prisma} from "@/prisma/generated/browser";
 import { getVaults } from "@/server/queries/vaults";
-import {useAppSettings} from "@/lib/providers/app-settings";
 
 function VaultCard({ vault, isOwner }: { vault: Prisma.KeyVaultGetPayload<{ include: { _count: { select: { games: true; users: true } } }, omit: { authHash: true, authSalt: true, keySalt: true, encryptedVaultKey: true, recoveryEncryptedVaultKey: true, recoveryKeyHash: true } }>; isOwner: boolean }) {
     return (

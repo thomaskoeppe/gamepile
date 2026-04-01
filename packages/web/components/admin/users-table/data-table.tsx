@@ -241,6 +241,7 @@ export function UsersDataTable({ data, onDataChangeAction }: UsersTableProps) {
     const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
     const safePage = Math.min(page, totalPages);
 
+    // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable({
         data,
         columns,
