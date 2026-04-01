@@ -40,6 +40,7 @@ When using `docker-compose.yml`, `DATABASE_URL` is constructed automatically fro
 | `REDIS_PORT` | integer | `6379` | Redis port. |
 | `REDIS_PASSWORD` | string | — | Redis password. Leave empty for an unauthenticated local Redis. |
 | `REDIS_USERNAME` | string | — | Redis ACL username, if the provider requires one. |
+| `PRISMA_LOG_QUERIES` | `true` \| `false` | `true` | Enables Prisma query-event logging for slow queries (\>500ms). Set to `false` to disable query-event logging entirely. |
 | `NODE_ENV` | `development` \| `production` \| `test` | `development` | Controls Prisma singleton behaviour and cookie security flags. Set to `production` in all deployed environments. |
 
 ### Optional — observability
@@ -76,6 +77,7 @@ These are read by the `worker` service. Many overlap with the web variables (sam
 |---|---|---|---|
 | `REDIS_PASSWORD` | string | — | Redis password. |
 | `REDIS_USERNAME` | string | — | Redis ACL username. |
+| `PRISMA_LOG_QUERIES` | `true` \| `false` | `true` | Enables Prisma query-event logging for slow queries (\>500ms). Set to `false` to disable query-event logging entirely. |
 | `NODE_ENV` | enum | `development` | Set to `production` in deployed environments. |
 
 ### Optional — concurrency and job tuning

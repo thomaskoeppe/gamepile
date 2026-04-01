@@ -26,7 +26,6 @@ spec:
       containers:
         - name: migrate
           image: ghcr.io/thomaskoeppe/gamepile/migrate:latest
-          command: ["node", "run-sql-migrations.mjs"]
           envFrom:
             - configMapRef:
                 name: gamepile-config

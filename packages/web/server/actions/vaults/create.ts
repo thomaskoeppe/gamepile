@@ -14,6 +14,7 @@ import {
 } from "@/lib/auth/crypto";
 import prisma from "@/lib/prisma";
 import { withLogging } from "@/lib/with-logging";
+import { Prisma } from "@/prisma/generated/client";
 import { AppSettingKey, KeyVaultAuthType } from "@/prisma/generated/enums";
 import { actionClientWithAuth } from "@/server/actions";
 
@@ -75,21 +76,34 @@ export const createVault = actionClientWithAuth
                     recoveryKeyHash = hashKey(recoveryKey);
                 }
 
-                const vault = await prisma.keyVault.create({
-                    data: {
-                        name,
-                        authType,
-                        authHash,
-                        authSalt,
-                        keySalt,
-                        encryptedVaultKey,
-                        recoveryEncryptedVaultKey,
-                        recoveryKeyHash,
-                        createdBy: {
-                            connect: { id: ctx.user.id },
+                let vault;
+
+                try {
+                    vault = await prisma.keyVault.create({
+                        data: {
+                            name,
+                            authType,
+                            authHash,
+                            authSalt,
+                            keySalt,
+                            encryptedVaultKey,
+                            recoveryEncryptedVaultKey,
+                            recoveryKeyHash,
+                            createdBy: {
+                                connect: { id: ctx.user.id },
+                            },
                         },
-                    },
-                });
+                    });
+                } catch (error) {
+                    if (
+                        error instanceof Prisma.PrismaClientKnownRequestError
+                        && error.code === "P2002"
+                    ) {
+                        throw new Error("You already have a vault with that name.");
+                    }
+
+                    throw error;
+                }
 
                 return { id: vault.id, name: vault.name, recoveryKey };
             },

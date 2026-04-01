@@ -28,6 +28,7 @@ const workerEnvSchema = z.object({
         message: "OTEL_EXPORTER_OTLP_HEADERS must be comma-separated key=value pairs",
     }),
     OTEL_SERVICE_NAME: z.string().min(1).default("gamepile-worker"),
+    PRISMA_LOG_QUERIES: z.enum(["true", "false"]).optional().default("true"),
     WORKER_LOG_TO_STDOUT: z.enum(["true", "false"]).optional().default("true"),
     WORKER_JOBS_CONCURRENCY: z.preprocess((value) => Number(value ?? 3), z.number().int().positive()),
     WORKER_DETAILS_CONCURRENCY: z.preprocess((value) => Number(value ?? 10), z.number().int().positive()),

@@ -10,25 +10,25 @@ const globalForPrisma = global as unknown as {
 };
 
 function createPrismaClient() {
+    const shouldLogQueries = (process.env.PRISMA_LOG_QUERIES ?? "true") === "true";
     const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
     const prisma = new PrismaClient({
         adapter,
-        log: [{ emit: 'event', level: 'query' }],
+        log: shouldLogQueries ? [{ emit: 'event', level: 'query' }] : [],
     });
 
-    prisma.$on('query', (e) => {
-        log.debug(`Prisma query: ${e.query} (${e.duration}ms)`, {
-            'prisma.query': e.query,
-            'prisma.duration': e.duration,
-        });
+    if (shouldLogQueries) {
+        prisma.$on('query', (e) => {
+            if (e.duration <= 500) {
+                return;
+            }
 
-        if (e.duration > 500) {
             log.warn(`Slow Prisma query detected: ${e.query} (${e.duration}ms)`, {
                 'prisma.query': e.query,
                 'prisma.duration': e.duration,
             });
-        }
-    });
+        });
+    }
 
     return prisma;
 }

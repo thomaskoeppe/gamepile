@@ -16,14 +16,23 @@ import { initializeLogsExporter } from '@/lib/logs-exporter';
 
 initializeLogsExporter();
 
+function parseOrigin(value: string): string | null {
+    try {
+        return new URL(value).origin;
+    } catch {
+        return null;
+    }
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
     const log = logger.child("api.routes.logs:ingest", {
         requestId: request.headers.get("x-request-id") ?? undefined,
     });
-    const origin = request.headers.get("origin");
-    const allowedOrigin = process.env.WEB_APP_URL;
+    const originHeader = request.headers.get("origin");
+    const requestOrigin = parseOrigin(originHeader ?? "");
+    const allowedOrigin = parseOrigin(process.env.WEB_APP_URL ?? "");
 
-    if (origin && allowedOrigin && !origin.startsWith(allowedOrigin)) {
+    if (originHeader && allowedOrigin && requestOrigin !== allowedOrigin) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
