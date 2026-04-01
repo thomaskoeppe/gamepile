@@ -1,4 +1,5 @@
 import prisma from "@/src/lib/prisma.js";
+import { getWorkerEnv } from "@/src/lib/env.js";
 import {logger} from "@/src/lib/logger.js";
 import { gameDetailsQueue } from "@/src/lib/job/queue.js";
 import { readCheckpoint, writeCheckpoint, clearCheckpoint } from "@/src/lib/job/checkpoint.js";
@@ -7,13 +8,14 @@ import { createLog } from "@/src/lib/job/log.js";
 import {PRIORITY} from "@/src/lib/job/priority.js";
 
 const PAGE_SIZE = 500;
+const env = getWorkerEnv();
 
 export default async function refreshGameDetails(opts: { jobId: string; }): Promise<void> {
     const { jobId } = opts;
     const log = logger.child("worker.jobs:refreshGameDetails", { jobId });
     const start = Date.now();
 
-    const staleAfterDays = Number(process.env.WORKER_GAME_DETAILS_REFRESH_DAYS ?? 30);
+    const staleAfterDays = env.WORKER_GAME_DETAILS_REFRESH_DAYS;
     const staleThreshold = new Date(Date.now() - staleAfterDays * 24 * 60 * 60 * 1_000);
 
     const checkpoint = await readCheckpoint(jobId);

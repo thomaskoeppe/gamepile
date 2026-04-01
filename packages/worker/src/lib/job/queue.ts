@@ -12,6 +12,7 @@ export type JobsQueuePayload = {
     userId?: string;
     jobId?: string;
     type: JobType;
+    internalScheduler?: boolean;
 }
 
 export type GameDetailsQueuePayload = {

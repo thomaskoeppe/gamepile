@@ -7,6 +7,7 @@ import {gameDetailsQueue} from "@/src/lib/job/queue.js";
 import {tryCompleteParentJob} from "@/src/lib/job/completion.js";
 import {getConnectedGameIds, upsertGameStubs} from "@/src/lib/helper.js";
 import {PRIORITY} from "@/src/lib/job/priority.js";
+import { getWorkerEnv } from "@/src/lib/env.js";
 
 const MAX_RESULTS_PER_PAGE = 50_000;
 
@@ -15,6 +16,7 @@ export default async function job(opts: { ifModifiedSince?: number; ignoreLastMo
     const log = logger.child("worker.jobs:syncSteamGames", { jobId });
     const start = Date.now();
     const checkpoint = await readCheckpoint(jobId);
+    const steamApiKey = getWorkerEnv().STEAM_API_KEY;
 
     let lastAppId = checkpoint ? Number(checkpoint.cursor) : 0;
     let totalQueued = checkpoint?.queuedItems ?? 0;
@@ -36,7 +38,7 @@ export default async function job(opts: { ifModifiedSince?: number; ignoreLastMo
 
     while (haveMoreResults) {
         const data = await getAppList({
-            key: process.env.STEAM_API_KEY!,
+            key: steamApiKey,
             includeGames: true,
             includeDlc: true,
             maxResults: MAX_RESULTS_PER_PAGE,

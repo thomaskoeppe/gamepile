@@ -9,7 +9,7 @@ const UPSERT_CHUNK_SIZE = 500;
 type StubInput = {
     appId: number;
     name:  string;
-    steamLastModified: number;
+    steamLastModified: number | null;
 };
 
 /**

@@ -1,4 +1,5 @@
 import {gameDetailsQueue} from "@/src/lib/job/queue.js";
+import { getWorkerEnv } from "@/src/lib/env.js";
 import prisma from "@/src/lib/prisma.js";
 import {fetchSteamOwnedGames} from "@/src/lib/steam/games.js";
 import {createLog} from "@/src/lib/job/log.js";
@@ -7,7 +8,8 @@ import {tryCompleteParentJob} from "@/src/lib/job/completion.js";
 import {upsertGameStubs} from "@/src/lib/helper.js";
 import {PRIORITY} from "@/src/lib/job/priority.js";
 
-const DETAILS_STALE_AFTER_MS = 7 * 24 * 60 * 60 * 1_000;
+const env = getWorkerEnv();
+const DETAILS_STALE_AFTER_MS = env.WORKER_GAME_DETAILS_REFRESH_DAYS * 24 * 60 * 60 * 1_000;
 
 function isStaleOrStub(game: { detailsFetchedAt: Date | null; createdAt: Date }): boolean {
     if (!game.detailsFetchedAt) return true;
@@ -67,7 +69,7 @@ export default async function job(payload: { jobId: string; userId: string; }) {
         ownedGames.map((o) => ({
             appId: o.appid,
             name: o.name ?? `App ${o.appid}`,
-            steamLastModified: 0,
+            steamLastModified: null,
         }))
     );
 

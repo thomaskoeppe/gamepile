@@ -1,5 +1,6 @@
 import {logger} from "@/src/lib/logger.js";
 import {redis} from "@/src/lib/redis.js";
+import { getWorkerEnv } from "@/src/lib/env.js";
 
 const log = logger.child("steam.ratelimiter");
 
@@ -175,8 +176,8 @@ function sleep(ms: number): Promise<void> {
 }
 
 export const steamRateLimiter = new SteamRateLimiter(
-    Number(process.env.WORKER_STEAM_RATE_LIMIT_MAX ?? DEFAULT_MAX),
-    Number(process.env.WORKER_STEAM_RATE_LIMIT_WINDOW_MS ?? DEFAULT_WINDOW_MS),
-    Number(process.env.WORKER_STEAM_RATE_LIMIT_MIN_INTERVAL_MS ?? DEFAULT_MIN_INTERVAL_MS),
-    (process.env.WORKER_STEAM_RATE_LIMIT_SCOPE as "local" | "distributed" | undefined) ?? DEFAULT_SCOPE,
+    getWorkerEnv().WORKER_STEAM_RATE_LIMIT_MAX,
+    getWorkerEnv().WORKER_STEAM_RATE_LIMIT_WINDOW_MS,
+    getWorkerEnv().WORKER_STEAM_RATE_LIMIT_MIN_INTERVAL_MS,
+    getWorkerEnv().WORKER_STEAM_RATE_LIMIT_SCOPE,
 );

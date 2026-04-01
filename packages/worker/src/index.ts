@@ -1,12 +1,27 @@
-import { shutdownTracing } from "@/src/instrumentation.js";
+import { z } from "zod";
 
-import {initializeLogsExporter} from "@/src/lib/logs-exporter.js";
+import { validateWorkerEnv } from "@/src/lib/env.js";
+
+const envValidateResult = validateWorkerEnv();
+
+if (!envValidateResult.success) {
+    process.stderr.write("Worker environment variable validation failed\n");
+    process.stderr.write(`${z.prettifyError(envValidateResult.error)}\n`);
+    process.exit(1);
+}
+
+const [{ shutdownTracing }, { initializeLogsExporter }, { logger, flushLogs }, workerModule, { default: prisma }, { redis }] = await Promise.all([
+    import("@/src/instrumentation.js"),
+    import("@/src/lib/logs-exporter.js"),
+    import("@/src/lib/logger.js"),
+    import("@/src/worker.js"),
+    import("@/src/lib/prisma.js"),
+    import("@/src/lib/redis.js"),
+]);
+
 initializeLogsExporter();
 
-import {logger, flushLogs} from "@/src/lib/logger.js";
-import { jobsWorker, detailsWorker } from "@/src/worker.js";
-import prisma from "@/src/lib/prisma.js";
-import { redis } from "@/src/lib/redis.js";
+const { jobsWorker, detailsWorker } = workerModule;
 
 const log = logger.child("worker.index");
 

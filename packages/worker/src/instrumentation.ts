@@ -14,12 +14,15 @@ import {
 } from "@opentelemetry/semantic-conventions";
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
 
-const OTLP_BASE = (process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? "http://localhost:4318")
-    .replace(/\/$/, "");
+import { getWorkerEnv } from "@/src/lib/env.js";
+import { logger } from "@/src/lib/logger.js";
+
+const env = getWorkerEnv();
+const OTLP_BASE = env.OTEL_EXPORTER_OTLP_ENDPOINT.replace(/\/$/, "");
 
 const sdk = new NodeSDK({
     resource: resourceFromAttributes({
-        [ATTR_SERVICE_NAME]:    process.env.OTEL_SERVICE_NAME    ?? "gamepile-worker",
+        [ATTR_SERVICE_NAME]:    env.OTEL_SERVICE_NAME,
         [ATTR_SERVICE_VERSION]: process.env.npm_package_version  ?? "0.0.0",
     }),
     traceExporter: new OTLPTraceExporter({
@@ -35,7 +38,9 @@ const sdk = new NodeSDK({
 });
 
 sdk.start();
-console.log("[otel] NodeSDK started →", OTLP_BASE);
+logger.child("worker.instrumentation:start").info("NodeSDK started", {
+    otlpBase: OTLP_BASE,
+});
 
 export async function shutdownTracing(): Promise<void> {
     await sdk.shutdown();

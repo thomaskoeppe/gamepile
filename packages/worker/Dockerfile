@@ -6,12 +6,16 @@ FROM base AS deps
 COPY package.json package-lock.json ./
 COPY packages/web/package.json ./packages/web/
 COPY packages/worker/package.json ./packages/worker/
+# shared is a local workspace package; its package.json must be present so
+# npm creates the node_modules/@gamepile/shared symlink during `npm ci`.
+COPY packages/shared/package.json ./packages/shared/
 RUN npm ci
 
 FROM base AS prod-deps
 COPY package.json package-lock.json ./
 COPY packages/web/package.json ./packages/web/
 COPY packages/worker/package.json ./packages/worker/
+COPY packages/shared/package.json ./packages/shared/
 RUN npm ci --omit=dev --workspace=packages/worker
 
 FROM base AS builder

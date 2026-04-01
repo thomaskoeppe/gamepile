@@ -35,6 +35,7 @@ export default async function job(job: Job<GameDetailsQueuePayload>) {
     const {parentJobId, appId, gameId} = job.data;
     const log = logger.child("worker.jobs:fetchGameDetails", { parentJobId, appId, gameId });
     const start = Date.now();
+    let shouldTryCompleteParent = true;
 
     if ((await redis.get(`cancel:parent:${parentJobId}`)) === "1") {
         log.info("Skipped — parent cancelled");
@@ -57,6 +58,7 @@ export default async function job(job: Job<GameDetailsQueuePayload>) {
 
         if ((await redis.get(`cancel:parent:${parentJobId}`)) === "1") {
             log.info("Cancelled after fetch");
+            shouldTryCompleteParent = false;
             return;
         }
 
@@ -139,21 +141,55 @@ export default async function job(job: Job<GameDetailsQueuePayload>) {
             detailsFetchedAt: new Date()
         };
 
-        await prisma.game.upsert({
-            where: {id: gameId},
-            create: {
-                ...sharedFields,
-                appId: details.steam_appid,
-                tags: [],
-                categories: {connect: categories},
-                genres: {connect: genres},
-            },
-            update: {
-                ...sharedFields,
-                categories: {set: categories},
-                genres: {set: genres},
-            },
-        });
+        if (gameId) {
+            const existingGame = await prisma.game.findUnique({
+                where: { id: gameId },
+                select: { id: true },
+            });
+
+            if (existingGame) {
+                await prisma.game.update({
+                    where: { id: gameId },
+                    data: {
+                        ...sharedFields,
+                        categories: { set: categories },
+                        genres: { set: genres },
+                    },
+                });
+            } else {
+                await prisma.game.upsert({
+                    where: { appId: details.steam_appid },
+                    create: {
+                        ...sharedFields,
+                        appId: details.steam_appid,
+                        tags: [],
+                        categories: { connect: categories },
+                        genres: { connect: genres },
+                    },
+                    update: {
+                        ...sharedFields,
+                        categories: { set: categories },
+                        genres: { set: genres },
+                    },
+                });
+            }
+        } else {
+            await prisma.game.upsert({
+                where: { appId: details.steam_appid },
+                create: {
+                    ...sharedFields,
+                    appId: details.steam_appid,
+                    tags: [],
+                    categories: { connect: categories },
+                    genres: { connect: genres },
+                },
+                update: {
+                    ...sharedFields,
+                    categories: { set: categories },
+                    genres: { set: genres },
+                },
+            });
+        }
 
         await prisma.job.update({
             where: {id: parentJobId},
@@ -175,7 +211,9 @@ export default async function job(job: Job<GameDetailsQueuePayload>) {
             throw error;
         }
     } finally {
-        await tryCompleteParentJob(parentJobId);
+        if (shouldTryCompleteParent) {
+            await tryCompleteParentJob(parentJobId);
+        }
     }
 
 }
