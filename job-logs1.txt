@@ -1,0 +1,835 @@
+﻿2026-04-01T19:13:00.2081059Z Current runner version: '2.333.1'
+2026-04-01T19:13:00.2106709Z ##[group]Runner Image Provisioner
+2026-04-01T19:13:00.2107591Z Hosted Compute Agent
+2026-04-01T19:13:00.2108150Z Version: 20260213.493
+2026-04-01T19:13:00.2108740Z Commit: 5c115507f6dd24b8de37d8bbe0bb4509d0cc0fa3
+2026-04-01T19:13:00.2109379Z Build Date: 2026-02-13T00:28:41Z
+2026-04-01T19:13:00.2110094Z Worker ID: {6205fe9b-fbc0-4ddc-9531-db1cbba562ed}
+2026-04-01T19:13:00.2110787Z Azure Region: westcentralus
+2026-04-01T19:13:00.2111296Z ##[endgroup]
+2026-04-01T19:13:00.2113031Z ##[group]Operating System
+2026-04-01T19:13:00.2113609Z Ubuntu
+2026-04-01T19:13:00.2114056Z 24.04.4
+2026-04-01T19:13:00.2114564Z LTS
+2026-04-01T19:13:00.2115023Z ##[endgroup]
+2026-04-01T19:13:00.2115475Z ##[group]Runner Image
+2026-04-01T19:13:00.2116098Z Image: ubuntu-24.04
+2026-04-01T19:13:00.2116598Z Version: 20260323.65.1
+2026-04-01T19:13:00.2117802Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260323.65/images/ubuntu/Ubuntu2404-Readme.md
+2026-04-01T19:13:00.2119242Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260323.65
+2026-04-01T19:13:00.2120123Z ##[endgroup]
+2026-04-01T19:13:00.2121263Z ##[group]GITHUB_TOKEN Permissions
+2026-04-01T19:13:00.2123544Z Contents: read
+2026-04-01T19:13:00.2124154Z Metadata: read
+2026-04-01T19:13:00.2124735Z Packages: write
+2026-04-01T19:13:00.2125212Z ##[endgroup]
+2026-04-01T19:13:00.2127917Z Secret source: Actions
+2026-04-01T19:13:00.2128623Z Prepare workflow directory
+2026-04-01T19:13:00.2542331Z Prepare all required actions
+2026-04-01T19:13:00.2581151Z Getting action download info
+2026-04-01T19:13:00.7500252Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-04-01T19:13:00.8982721Z Download action repository 'docker/setup-buildx-action@v3' (SHA:8d2750c68a42422c14e847fe6c8ac0403b4cbd6f)
+2026-04-01T19:13:01.9153799Z Download action repository 'docker/login-action@v3' (SHA:c94ce9fb468520275223c153574b00df6fe4bcc9)
+2026-04-01T19:13:02.9811651Z Download action repository 'docker/metadata-action@v5' (SHA:c299e40c65443455700f0fdfc63efafe5b349051)
+2026-04-01T19:13:04.0860812Z Download action repository 'docker/build-push-action@v6' (SHA:10e90e3645eae34f1e60eeb005ba3a3d33f178e8)
+2026-04-01T19:13:05.2012557Z Complete job name: build-migrate
+2026-04-01T19:13:05.2720913Z ##[group]Run actions/checkout@v4
+2026-04-01T19:13:05.2721583Z with:
+2026-04-01T19:13:05.2721964Z   ref: v1.4.0
+2026-04-01T19:13:05.2722248Z   repository: thomaskoeppe/gamepile
+2026-04-01T19:13:05.2723024Z   token: ***
+2026-04-01T19:13:05.2723447Z   ssh-strict: true
+2026-04-01T19:13:05.2723706Z   ssh-user: git
+2026-04-01T19:13:05.2723987Z   persist-credentials: true
+2026-04-01T19:13:05.2724247Z   clean: true
+2026-04-01T19:13:05.2724609Z   sparse-checkout-cone-mode: true
+2026-04-01T19:13:05.2724909Z   fetch-depth: 1
+2026-04-01T19:13:05.2725217Z   fetch-tags: false
+2026-04-01T19:13:05.2725564Z   show-progress: true
+2026-04-01T19:13:05.2725804Z   lfs: false
+2026-04-01T19:13:05.2726072Z   submodules: false
+2026-04-01T19:13:05.2726368Z   set-safe-directory: true
+2026-04-01T19:13:05.2727035Z env:
+2026-04-01T19:13:05.2727330Z   REGISTRY: ghcr.io
+2026-04-01T19:13:05.2727677Z ##[endgroup]
+2026-04-01T19:13:05.3831732Z Syncing repository: thomaskoeppe/gamepile
+2026-04-01T19:13:05.3833782Z ##[group]Getting Git version info
+2026-04-01T19:13:05.3834308Z Working directory is '/home/runner/work/gamepile/gamepile'
+2026-04-01T19:13:05.3835098Z [command]/usr/bin/git version
+2026-04-01T19:13:05.3865426Z git version 2.53.0
+2026-04-01T19:13:05.3894424Z ##[endgroup]
+2026-04-01T19:13:05.3911739Z Temporarily overriding HOME='/home/runner/work/_temp/b5b20638-0180-4724-92ef-dd02c5f9aa7a' before making global git config changes
+2026-04-01T19:13:05.3913528Z Adding repository directory to the temporary git global config as a safe directory
+2026-04-01T19:13:05.3925258Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/gamepile/gamepile
+2026-04-01T19:13:05.3959502Z Deleting the contents of '/home/runner/work/gamepile/gamepile'
+2026-04-01T19:13:05.3963563Z ##[group]Initializing the repository
+2026-04-01T19:13:05.3967770Z [command]/usr/bin/git init /home/runner/work/gamepile/gamepile
+2026-04-01T19:13:05.4053447Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-04-01T19:13:05.4054180Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-04-01T19:13:05.4055107Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-04-01T19:13:05.4055682Z hint: call:
+2026-04-01T19:13:05.4055959Z hint:
+2026-04-01T19:13:05.4056514Z hint: 	git config --global init.defaultBranch <name>
+2026-04-01T19:13:05.4057184Z hint:
+2026-04-01T19:13:05.4057732Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-04-01T19:13:05.4058287Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-04-01T19:13:05.4058796Z hint:
+2026-04-01T19:13:05.4059132Z hint: 	git branch -m <name>
+2026-04-01T19:13:05.4059423Z hint:
+2026-04-01T19:13:05.4059847Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-04-01T19:13:05.4060868Z Initialized empty Git repository in /home/runner/work/gamepile/gamepile/.git/
+2026-04-01T19:13:05.4068055Z [command]/usr/bin/git remote add origin https://github.com/thomaskoeppe/gamepile
+2026-04-01T19:13:05.4100179Z ##[endgroup]
+2026-04-01T19:13:05.4100806Z ##[group]Disabling automatic garbage collection
+2026-04-01T19:13:05.4104948Z [command]/usr/bin/git config --local gc.auto 0
+2026-04-01T19:13:05.4134765Z ##[endgroup]
+2026-04-01T19:13:05.4135486Z ##[group]Setting up auth
+2026-04-01T19:13:05.4142220Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-04-01T19:13:05.4172487Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-04-01T19:13:05.4461056Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-04-01T19:13:05.4492090Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-04-01T19:13:05.4715110Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-04-01T19:13:05.4748769Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-04-01T19:13:05.4982998Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-04-01T19:13:05.5019539Z ##[endgroup]
+2026-04-01T19:13:05.5020210Z ##[group]Fetching the repository
+2026-04-01T19:13:05.5028272Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/v1.4.0*:refs/remotes/origin/v1.4.0* +refs/tags/v1.4.0*:refs/tags/v1.4.0*
+2026-04-01T19:13:06.6988456Z From https://github.com/thomaskoeppe/gamepile
+2026-04-01T19:13:06.6989027Z  * [new tag]         v1.4.0     -> v1.4.0
+2026-04-01T19:13:06.7013874Z ##[endgroup]
+2026-04-01T19:13:06.7014505Z ##[group]Determining the checkout info
+2026-04-01T19:13:06.7020550Z [command]/usr/bin/git branch --list --remote origin/v1.4.0
+2026-04-01T19:13:06.7055151Z [command]/usr/bin/git tag --list v1.4.0
+2026-04-01T19:13:06.7077493Z v1.4.0
+2026-04-01T19:13:06.7082114Z ##[endgroup]
+2026-04-01T19:13:06.7086626Z [command]/usr/bin/git sparse-checkout disable
+2026-04-01T19:13:06.7126209Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-04-01T19:13:06.7154345Z ##[group]Checking out the ref
+2026-04-01T19:13:06.7159642Z [command]/usr/bin/git checkout --progress --force refs/tags/v1.4.0
+2026-04-01T19:13:06.7540716Z Note: switching to 'refs/tags/v1.4.0'.
+2026-04-01T19:13:06.7541507Z 
+2026-04-01T19:13:06.7542197Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-04-01T19:13:06.7543912Z changes and commit them, and you can discard any commits you make in this
+2026-04-01T19:13:06.7544852Z state without impacting any branches by switching back to a branch.
+2026-04-01T19:13:06.7545226Z 
+2026-04-01T19:13:06.7545500Z If you want to create a new branch to retain commits you create, you may
+2026-04-01T19:13:06.7546146Z do so (now or later) by using -c with the switch command. Example:
+2026-04-01T19:13:06.7546694Z 
+2026-04-01T19:13:06.7547039Z   git switch -c <new-branch-name>
+2026-04-01T19:13:06.7547436Z 
+2026-04-01T19:13:06.7547653Z Or undo this operation with:
+2026-04-01T19:13:06.7548038Z 
+2026-04-01T19:13:06.7548252Z   git switch -
+2026-04-01T19:13:06.7548570Z 
+2026-04-01T19:13:06.7549032Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-04-01T19:13:06.7549845Z 
+2026-04-01T19:13:06.7550214Z HEAD is now at 077dfc0 chore(release): v1.4.0 [skip ci]
+2026-04-01T19:13:06.7552732Z ##[endgroup]
+2026-04-01T19:13:06.7593316Z [command]/usr/bin/git log -1 --format=%H
+2026-04-01T19:13:06.7618517Z 077dfc0d67ec7d72d16c67444aaf60576487058a
+2026-04-01T19:13:06.7835377Z ##[group]Run docker/setup-buildx-action@v3
+2026-04-01T19:13:06.7835682Z with:
+2026-04-01T19:13:06.7835859Z   driver: docker-container
+2026-04-01T19:13:06.7836072Z   use: true
+2026-04-01T19:13:06.7836273Z   keep-state: false
+2026-04-01T19:13:06.7836462Z   cache-binary: true
+2026-04-01T19:13:06.7836642Z   cleanup: true
+2026-04-01T19:13:06.7836814Z   install: false
+2026-04-01T19:13:06.7836979Z env:
+2026-04-01T19:13:06.7837129Z   REGISTRY: ghcr.io
+2026-04-01T19:13:06.7837309Z ##[endgroup]
+2026-04-01T19:13:07.0448755Z ##[group]Docker info
+2026-04-01T19:13:07.0480826Z [command]/usr/bin/docker version
+2026-04-01T19:13:07.0908651Z Client: Docker Engine - Community
+2026-04-01T19:13:07.0915154Z  Version:           28.0.4
+2026-04-01T19:13:07.0915522Z  API version:       1.48
+2026-04-01T19:13:07.0915789Z  Go version:        go1.23.7
+2026-04-01T19:13:07.0916037Z  Git commit:        b8034c0
+2026-04-01T19:13:07.0916312Z  Built:             Tue Mar 25 15:07:16 2025
+2026-04-01T19:13:07.0916635Z  OS/Arch:           linux/amd64
+2026-04-01T19:13:07.0916848Z  Context:           default
+2026-04-01T19:13:07.0916990Z 
+2026-04-01T19:13:07.0917092Z Server: Docker Engine - Community
+2026-04-01T19:13:07.0917335Z  Engine:
+2026-04-01T19:13:07.0917527Z   Version:          28.0.4
+2026-04-01T19:13:07.0917763Z   API version:      1.48 (minimum version 1.24)
+2026-04-01T19:13:07.0918036Z   Go version:       go1.23.7
+2026-04-01T19:13:07.0918591Z   Git commit:       6430e49
+2026-04-01T19:13:07.0920567Z   Built:            Tue Mar 25 15:07:16 2025
+2026-04-01T19:13:07.0921097Z   OS/Arch:          linux/amd64
+2026-04-01T19:13:07.0921511Z   Experimental:     false
+2026-04-01T19:13:07.0921903Z  containerd:
+2026-04-01T19:13:07.0922241Z   Version:          v2.2.2
+2026-04-01T19:13:07.0923192Z   GitCommit:        301b2dac98f15c27117da5c8af12118a041a31d9
+2026-04-01T19:13:07.0923753Z  runc:
+2026-04-01T19:13:07.0924140Z   Version:          1.3.4
+2026-04-01T19:13:07.0924533Z   GitCommit:        v1.3.4-0-gd6d73eb8
+2026-04-01T19:13:07.0924959Z  docker-init:
+2026-04-01T19:13:07.0925274Z   Version:          0.19.0
+2026-04-01T19:13:07.0925663Z   GitCommit:        de40ad0
+2026-04-01T19:13:07.0967722Z [command]/usr/bin/docker info
+2026-04-01T19:13:08.6471293Z Client: Docker Engine - Community
+2026-04-01T19:13:08.6471790Z  Version:    28.0.4
+2026-04-01T19:13:08.6472104Z  Context:    default
+2026-04-01T19:13:08.6472417Z  Debug Mode: false
+2026-04-01T19:13:08.6472695Z  Plugins:
+2026-04-01T19:13:08.6473427Z   buildx: Docker Buildx (Docker Inc.)
+2026-04-01T19:13:08.6473834Z     Version:  v0.32.1
+2026-04-01T19:13:08.6474280Z     Path:     /usr/libexec/docker/cli-plugins/docker-buildx
+2026-04-01T19:13:08.6474808Z   compose: Docker Compose (Docker Inc.)
+2026-04-01T19:13:08.6475212Z     Version:  v2.38.2
+2026-04-01T19:13:08.6475607Z     Path:     /usr/libexec/docker/cli-plugins/docker-compose
+2026-04-01T19:13:08.6475991Z 
+2026-04-01T19:13:08.6476471Z Server:
+2026-04-01T19:13:08.6476736Z  Containers: 0
+2026-04-01T19:13:08.6477009Z   Running: 0
+2026-04-01T19:13:08.6477299Z   Paused: 0
+2026-04-01T19:13:08.6477555Z   Stopped: 0
+2026-04-01T19:13:08.6477813Z  Images: 6
+2026-04-01T19:13:08.6478077Z  Server Version: 28.0.4
+2026-04-01T19:13:08.6478423Z  Storage Driver: overlay2
+2026-04-01T19:13:08.6478779Z   Backing Filesystem: extfs
+2026-04-01T19:13:08.6479117Z   Supports d_type: true
+2026-04-01T19:13:08.6479495Z   Using metacopy: false
+2026-04-01T19:13:08.6479827Z   Native Overlay Diff: false
+2026-04-01T19:13:08.6480184Z   userxattr: false
+2026-04-01T19:13:08.6480487Z  Logging Driver: json-file
+2026-04-01T19:13:08.6480832Z  Cgroup Driver: systemd
+2026-04-01T19:13:08.6481142Z  Cgroup Version: 2
+2026-04-01T19:13:08.6481447Z  Plugins:
+2026-04-01T19:13:08.6481733Z   Volume: local
+2026-04-01T19:13:08.6482104Z   Network: bridge host ipvlan macvlan null overlay
+2026-04-01T19:13:08.6482971Z   Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog
+2026-04-01T19:13:08.6483617Z  Swarm: inactive
+2026-04-01T19:13:08.6484292Z  Runtimes: io.containerd.runc.v2 runc
+2026-04-01T19:13:08.6484765Z  Default Runtime: runc
+2026-04-01T19:13:08.6485120Z  Init Binary: docker-init
+2026-04-01T19:13:08.6485541Z  containerd version: 301b2dac98f15c27117da5c8af12118a041a31d9
+2026-04-01T19:13:08.6485879Z  runc version: v1.3.4-0-gd6d73eb8
+2026-04-01T19:13:08.6486107Z  init version: de40ad0
+2026-04-01T19:13:08.6486299Z  Security Options:
+2026-04-01T19:13:08.6486471Z   apparmor
+2026-04-01T19:13:08.6486673Z   seccomp
+2026-04-01T19:13:08.6486827Z    Profile: builtin
+2026-04-01T19:13:08.6487002Z   cgroupns
+2026-04-01T19:13:08.6487166Z  Kernel Version: 6.17.0-1008-azure
+2026-04-01T19:13:08.6487400Z  Operating System: Ubuntu 24.04.4 LTS
+2026-04-01T19:13:08.6487632Z  OSType: linux
+2026-04-01T19:13:08.6487798Z  Architecture: x86_64
+2026-04-01T19:13:08.6487984Z  CPUs: 4
+2026-04-01T19:13:08.6488138Z  Total Memory: 15.61GiB
+2026-04-01T19:13:08.6488333Z  Name: runnervmrg6be
+2026-04-01T19:13:08.6488537Z  ID: 26c853c4-ebf5-403c-a446-44e39e017c08
+2026-04-01T19:13:08.6488793Z  Docker Root Dir: /var/lib/docker
+2026-04-01T19:13:08.6489003Z  Debug Mode: false
+2026-04-01T19:13:08.6489180Z  Username: githubactions
+2026-04-01T19:13:08.6489367Z  Experimental: false
+2026-04-01T19:13:08.6489549Z  Insecure Registries:
+2026-04-01T19:13:08.6494231Z   ::1/128
+2026-04-01T19:13:08.6494413Z   127.0.0.0/8
+2026-04-01T19:13:08.6494610Z  Live Restore Enabled: false
+2026-04-01T19:13:08.6494771Z 
+2026-04-01T19:13:08.6495197Z ##[endgroup]
+2026-04-01T19:13:08.7152455Z ##[group]Buildx version
+2026-04-01T19:13:08.7182522Z [command]/usr/bin/docker buildx version
+2026-04-01T19:13:08.7793653Z github.com/docker/buildx v0.32.1 d3bfb3f4e48a67dda56e957a6636f4fab6c5fcb2
+2026-04-01T19:13:08.7837570Z ##[endgroup]
+2026-04-01T19:13:08.7997639Z ##[group]Inspecting default docker context
+2026-04-01T19:13:08.8144164Z [
+2026-04-01T19:13:08.8144439Z   {
+2026-04-01T19:13:08.8144598Z     "Name": "default",
+2026-04-01T19:13:08.8144862Z     "Metadata": {},
+2026-04-01T19:13:08.8145046Z     "Endpoints": {
+2026-04-01T19:13:08.8145221Z       "docker": {
+2026-04-01T19:13:08.8145441Z         "Host": "unix:///var/run/docker.sock",
+2026-04-01T19:13:08.8145717Z         "SkipTLSVerify": false
+2026-04-01T19:13:08.8145925Z       }
+2026-04-01T19:13:08.8146067Z     },
+2026-04-01T19:13:08.8146224Z     "TLSMaterial": {},
+2026-04-01T19:13:08.8146402Z     "Storage": {
+2026-04-01T19:13:08.8146587Z       "MetadataPath": "<IN MEMORY>",
+2026-04-01T19:13:08.8146830Z       "TLSPath": "<IN MEMORY>"
+2026-04-01T19:13:08.8147028Z     }
+2026-04-01T19:13:08.8147171Z   }
+2026-04-01T19:13:08.8147311Z ]
+2026-04-01T19:13:08.8147765Z ##[endgroup]
+2026-04-01T19:13:08.8148208Z ##[group]Creating a new builder instance
+2026-04-01T19:13:08.9478840Z [command]/usr/bin/docker buildx create --name builder-4fd9c9e5-e4aa-4d14-9bfb-97ba533b52d0 --driver docker-container --buildkitd-flags --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host --use
+2026-04-01T19:13:09.0100897Z builder-4fd9c9e5-e4aa-4d14-9bfb-97ba533b52d0
+2026-04-01T19:13:09.0136525Z ##[endgroup]
+2026-04-01T19:13:09.0137185Z ##[group]Booting builder
+2026-04-01T19:13:09.0175088Z [command]/usr/bin/docker buildx inspect --bootstrap --builder builder-4fd9c9e5-e4aa-4d14-9bfb-97ba533b52d0
+2026-04-01T19:13:09.0777370Z #1 [internal] booting buildkit
+2026-04-01T19:13:09.2285353Z #1 pulling image moby/buildkit:buildx-stable-1
+2026-04-01T19:13:12.5646577Z #1 pulling image moby/buildkit:buildx-stable-1 3.5s done
+2026-04-01T19:13:12.7224845Z #1 creating container buildx_buildkit_builder-4fd9c9e5-e4aa-4d14-9bfb-97ba533b52d00
+2026-04-01T19:13:12.9336955Z #1 creating container buildx_buildkit_builder-4fd9c9e5-e4aa-4d14-9bfb-97ba533b52d00 0.4s done
+2026-04-01T19:13:12.9354200Z #1 DONE 3.9s
+2026-04-01T19:13:12.9708293Z Name:          builder-4fd9c9e5-e4aa-4d14-9bfb-97ba533b52d0
+2026-04-01T19:13:12.9709057Z Driver:        docker-container
+2026-04-01T19:13:12.9709422Z Last Activity: 2026-04-01 19:13:09 +0000 UTC
+2026-04-01T19:13:12.9709683Z 
+2026-04-01T19:13:12.9710005Z Nodes:
+2026-04-01T19:13:12.9710820Z Name:                  builder-4fd9c9e5-e4aa-4d14-9bfb-97ba533b52d00
+2026-04-01T19:13:12.9711458Z Endpoint:              unix:///var/run/docker.sock
+2026-04-01T19:13:12.9711882Z Status:                running
+2026-04-01T19:13:12.9712951Z BuildKit daemon flags: --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host
+2026-04-01T19:13:12.9713883Z BuildKit version:      v0.28.1
+2026-04-01T19:13:12.9714406Z Platforms:             linux/amd64, linux/amd64/v2, linux/amd64/v3, linux/386
+2026-04-01T19:13:12.9714947Z Labels:
+2026-04-01T19:13:12.9715314Z  org.mobyproject.buildkit.worker.executor:         oci
+2026-04-01T19:13:12.9715933Z  org.mobyproject.buildkit.worker.hostname:         0f06b5a15685
+2026-04-01T19:13:12.9716652Z  org.mobyproject.buildkit.worker.network:          host
+2026-04-01T19:13:12.9717422Z  org.mobyproject.buildkit.worker.oci.process-mode: sandbox
+2026-04-01T19:13:12.9718275Z  org.mobyproject.buildkit.worker.selinux.enabled:  false
+2026-04-01T19:13:12.9719358Z  org.mobyproject.buildkit.worker.snapshotter:      overlayfs
+2026-04-01T19:13:12.9720033Z GC Policy rule#0:
+2026-04-01T19:13:12.9720575Z  All:            false
+2026-04-01T19:13:12.9721214Z  Filters:        type==source.local,type==exec.cachemount,type==source.git.checkout
+2026-04-01T19:13:12.9722024Z  Keep Duration:  48h0m0s
+2026-04-01T19:13:12.9722447Z  Max Used Space: 488.3MiB
+2026-04-01T19:13:12.9723333Z GC Policy rule#1:
+2026-04-01T19:13:12.9723744Z  All:            false
+2026-04-01T19:13:12.9724262Z  Keep Duration:  1440h0m0s
+2026-04-01T19:13:12.9724855Z  Reserved Space: 9.313GiB
+2026-04-01T19:13:12.9725353Z  Max Used Space: 93.13GiB
+2026-04-01T19:13:12.9725810Z  Min Free Space: 27.01GiB
+2026-04-01T19:13:12.9726359Z GC Policy rule#2:
+2026-04-01T19:13:12.9726798Z  All:            false
+2026-04-01T19:13:12.9727257Z  Reserved Space: 9.313GiB
+2026-04-01T19:13:12.9727837Z  Max Used Space: 93.13GiB
+2026-04-01T19:13:12.9728286Z  Min Free Space: 27.01GiB
+2026-04-01T19:13:12.9728771Z GC Policy rule#3:
+2026-04-01T19:13:12.9729253Z  All:            true
+2026-04-01T19:13:12.9729765Z  Reserved Space: 9.313GiB
+2026-04-01T19:13:12.9730222Z  Max Used Space: 93.13GiB
+2026-04-01T19:13:12.9730869Z  Min Free Space: 27.01GiB
+2026-04-01T19:13:12.9806854Z ##[endgroup]
+2026-04-01T19:13:13.0743532Z ##[group]Inspect builder
+2026-04-01T19:13:13.0744732Z {
+2026-04-01T19:13:13.0746594Z   "nodes": [
+2026-04-01T19:13:13.0748493Z     {
+2026-04-01T19:13:13.0749581Z       "name": "builder-4fd9c9e5-e4aa-4d14-9bfb-97ba533b52d00",
+2026-04-01T19:13:13.0750205Z       "endpoint": "unix:///var/run/docker.sock",
+2026-04-01T19:13:13.0750510Z       "status": "running",
+2026-04-01T19:13:13.0751241Z       "buildkitd-flags": "--allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host",
+2026-04-01T19:13:13.0751775Z       "buildkit": "v0.28.1",
+2026-04-01T19:13:13.0752086Z       "platforms": "linux/amd64,linux/amd64/v2,linux/amd64/v3,linux/386",
+2026-04-01T19:13:13.0752704Z       "features": {
+2026-04-01T19:13:13.0753282Z         "Automatically load images to the Docker Engine image store": true,
+2026-04-01T19:13:13.0753640Z         "Cache export": true,
+2026-04-01T19:13:13.0753853Z         "Direct push": true,
+2026-04-01T19:13:13.0754069Z         "Docker exporter": true,
+2026-04-01T19:13:13.0754299Z         "Multi-platform build": true,
+2026-04-01T19:13:13.0754536Z         "OCI exporter": true
+2026-04-01T19:13:13.0754720Z       },
+2026-04-01T19:13:13.0754871Z       "labels": {
+2026-04-01T19:13:13.0755110Z         "org.mobyproject.buildkit.worker.executor": "oci",
+2026-04-01T19:13:13.0755480Z         "org.mobyproject.buildkit.worker.hostname": "0f06b5a15685",
+2026-04-01T19:13:13.0755852Z         "org.mobyproject.buildkit.worker.network": "host",
+2026-04-01T19:13:13.0756265Z         "org.mobyproject.buildkit.worker.oci.process-mode": "sandbox",
+2026-04-01T19:13:13.0756708Z         "org.mobyproject.buildkit.worker.selinux.enabled": "false",
+2026-04-01T19:13:13.0757111Z         "org.mobyproject.buildkit.worker.snapshotter": "overlayfs"
+2026-04-01T19:13:13.0757578Z       },
+2026-04-01T19:13:13.0757728Z       "gcPolicy": [
+2026-04-01T19:13:13.0757895Z         {
+2026-04-01T19:13:13.0758043Z           "all": false,
+2026-04-01T19:13:13.0758219Z           "filter": [
+2026-04-01T19:13:13.0758405Z             "type==source.local",
+2026-04-01T19:13:13.0758624Z             "type==exec.cachemount",
+2026-04-01T19:13:13.0758886Z             "type==source.git.checkout"
+2026-04-01T19:13:13.0759104Z           ],
+2026-04-01T19:13:13.0759272Z           "keepDuration": "48h0m0s",
+2026-04-01T19:13:13.0759489Z           "maxUsedSpace": "488.3MiB"
+2026-04-01T19:13:13.0759685Z         },
+2026-04-01T19:13:13.0759836Z         {
+2026-04-01T19:13:13.0759979Z           "all": false,
+2026-04-01T19:13:13.0760173Z           "keepDuration": "1440h0m0s",
+2026-04-01T19:13:13.0760398Z           "reservedSpace": "9.313GiB",
+2026-04-01T19:13:13.0760649Z           "maxUsedSpace": "93.13GiB",
+2026-04-01T19:13:13.0760876Z           "minFreeSpace": "27.01GiB"
+2026-04-01T19:13:13.0761083Z         },
+2026-04-01T19:13:13.0761222Z         {
+2026-04-01T19:13:13.0761376Z           "all": false,
+2026-04-01T19:13:13.0761557Z           "reservedSpace": "9.313GiB",
+2026-04-01T19:13:13.0761783Z           "maxUsedSpace": "93.13GiB",
+2026-04-01T19:13:13.0762002Z           "minFreeSpace": "27.01GiB"
+2026-04-01T19:13:13.0762200Z         },
+2026-04-01T19:13:13.0762341Z         {
+2026-04-01T19:13:13.0762483Z           "all": true,
+2026-04-01T19:13:13.0762670Z           "reservedSpace": "9.313GiB",
+2026-04-01T19:13:13.0763583Z           "maxUsedSpace": "93.13GiB",
+2026-04-01T19:13:13.0763959Z           "minFreeSpace": "27.01GiB"
+2026-04-01T19:13:13.0764166Z         }
+2026-04-01T19:13:13.0764313Z       ]
+2026-04-01T19:13:13.0764449Z     }
+2026-04-01T19:13:13.0764589Z   ],
+2026-04-01T19:13:13.0764800Z   "name": "builder-4fd9c9e5-e4aa-4d14-9bfb-97ba533b52d0",
+2026-04-01T19:13:13.0765103Z   "driver": "docker-container",
+2026-04-01T19:13:13.0765357Z   "lastActivity": "2026-04-01T19:13:09.000Z"
+2026-04-01T19:13:13.0765587Z }
+2026-04-01T19:13:13.0766304Z ##[endgroup]
+2026-04-01T19:13:13.0766812Z ##[group]BuildKit version
+2026-04-01T19:13:13.0767294Z builder-4fd9c9e5-e4aa-4d14-9bfb-97ba533b52d00: v0.28.1
+2026-04-01T19:13:13.0768000Z ##[endgroup]
+2026-04-01T19:13:13.0894630Z ##[group]Run docker/login-action@v3
+2026-04-01T19:13:13.0894909Z with:
+2026-04-01T19:13:13.0895076Z   registry: ghcr.io
+2026-04-01T19:13:13.0895276Z   username: thomaskoeppe
+2026-04-01T19:13:13.0895690Z   password: ***
+2026-04-01T19:13:13.0895876Z   logout: true
+2026-04-01T19:13:13.0896045Z env:
+2026-04-01T19:13:13.0896198Z   REGISTRY: ghcr.io
+2026-04-01T19:13:13.0896378Z ##[endgroup]
+2026-04-01T19:13:13.3967288Z Logging into ghcr.io...
+2026-04-01T19:13:13.9885960Z Login Succeeded!
+2026-04-01T19:13:14.0052510Z ##[group]Run docker/metadata-action@v5
+2026-04-01T19:13:14.0053157Z with:
+2026-04-01T19:13:14.0053396Z   images: ghcr.io/thomaskoeppe/gamepile/migrate
+2026-04-01T19:13:14.0054297Z   tags: type=semver,pattern={{version}},value=v1.4.0
+type=semver,pattern={{major}}.{{minor}},value=v1.4.0
+type=sha,prefix=
+type=raw,value=latest,enable={{is_default_branch}}
+
+2026-04-01T19:13:14.0054972Z   context: workflow
+2026-04-01T19:13:14.0055292Z   github-token: ***
+2026-04-01T19:13:14.0055473Z env:
+2026-04-01T19:13:14.0055636Z   REGISTRY: ghcr.io
+2026-04-01T19:13:14.0055811Z ##[endgroup]
+2026-04-01T19:13:15.0399823Z ##[group]Context info
+2026-04-01T19:13:15.0400214Z eventName: release
+2026-04-01T19:13:15.0400558Z sha: 077dfc0d67ec7d72d16c67444aaf60576487058a
+2026-04-01T19:13:15.0400970Z ref: refs/tags/v1.4.0
+2026-04-01T19:13:15.0401312Z workflow: Build & Publish Docker Images
+2026-04-01T19:13:15.0401702Z action: meta
+2026-04-01T19:13:15.0401977Z actor: thomaskoeppe
+2026-04-01T19:13:15.0402535Z runNumber: 33
+2026-04-01T19:13:15.0403094Z runId: 23866195020
+2026-04-01T19:13:15.0403530Z commitDate: Wed Apr 01 2026 19:12:46 GMT+0000 (Coordinated Universal Time)
+2026-04-01T19:13:15.0407863Z ##[endgroup]
+2026-04-01T19:13:15.0414007Z ##[group]Processing images input
+2026-04-01T19:13:15.0414790Z name=ghcr.io/thomaskoeppe/gamepile/migrate,enable=true
+2026-04-01T19:13:15.0415368Z ##[endgroup]
+2026-04-01T19:13:15.0429343Z ##[group]Processing tags input
+2026-04-01T19:13:15.0429996Z type=semver,pattern={{version}},value=v1.4.0,match=,enable=true,priority=900
+2026-04-01T19:13:15.0430895Z type=semver,pattern={{major}}.{{minor}},value=v1.4.0,match=,enable=true,priority=900
+2026-04-01T19:13:15.0431762Z type=raw,value=latest,enable={{is_default_branch}},priority=200
+2026-04-01T19:13:15.0432438Z type=sha,prefix=,format=short,enable=true,priority=100
+2026-04-01T19:13:15.0433463Z ##[endgroup]
+2026-04-01T19:13:15.0434230Z ##[group]Processing flavor input
+2026-04-01T19:13:15.0434653Z latest=auto
+2026-04-01T19:13:15.0434938Z prefix=
+2026-04-01T19:13:15.0435224Z prefixLatest=false
+2026-04-01T19:13:15.0435529Z suffix=
+2026-04-01T19:13:15.0435811Z suffixLatest=false
+2026-04-01T19:13:15.0436362Z ##[endgroup]
+2026-04-01T19:13:15.0522350Z ##[group]Docker image version
+2026-04-01T19:13:15.0523044Z 1.4.0
+2026-04-01T19:13:15.0523552Z ##[endgroup]
+2026-04-01T19:13:15.0528326Z ##[group]Docker tags
+2026-04-01T19:13:15.0528764Z ghcr.io/thomaskoeppe/gamepile/migrate:1.4.0
+2026-04-01T19:13:15.0529302Z ghcr.io/thomaskoeppe/gamepile/migrate:1.4
+2026-04-01T19:13:15.0529841Z ghcr.io/thomaskoeppe/gamepile/migrate:077dfc0
+2026-04-01T19:13:15.0530382Z ghcr.io/thomaskoeppe/gamepile/migrate:latest
+2026-04-01T19:13:15.0531101Z ##[endgroup]
+2026-04-01T19:13:15.0607034Z ##[group]Docker labels
+2026-04-01T19:13:15.0607549Z org.opencontainers.image.created=2026-04-01T19:13:15.043Z
+2026-04-01T19:13:15.0609793Z org.opencontainers.image.description=Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.
+2026-04-01T19:13:15.0611958Z org.opencontainers.image.licenses=GPL-3.0
+2026-04-01T19:13:15.0612702Z org.opencontainers.image.revision=077dfc0d67ec7d72d16c67444aaf60576487058a
+2026-04-01T19:13:15.0613923Z org.opencontainers.image.source=https://github.com/thomaskoeppe/gamepile
+2026-04-01T19:13:15.0614678Z org.opencontainers.image.title=gamepile
+2026-04-01T19:13:15.0615365Z org.opencontainers.image.url=https://github.com/thomaskoeppe/gamepile
+2026-04-01T19:13:15.0616088Z org.opencontainers.image.version=1.4.0
+2026-04-01T19:13:15.0616810Z ##[endgroup]
+2026-04-01T19:13:15.0617341Z ##[group]Annotations
+2026-04-01T19:13:15.0617858Z manifest:org.opencontainers.image.created=2026-04-01T19:13:15.043Z
+2026-04-01T19:13:15.0620501Z manifest:org.opencontainers.image.description=Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.
+2026-04-01T19:13:15.0623283Z manifest:org.opencontainers.image.licenses=GPL-3.0
+2026-04-01T19:13:15.0624129Z manifest:org.opencontainers.image.revision=077dfc0d67ec7d72d16c67444aaf60576487058a
+2026-04-01T19:13:15.0625187Z manifest:org.opencontainers.image.source=https://github.com/thomaskoeppe/gamepile
+2026-04-01T19:13:15.0625992Z manifest:org.opencontainers.image.title=gamepile
+2026-04-01T19:13:15.0626803Z manifest:org.opencontainers.image.url=https://github.com/thomaskoeppe/gamepile
+2026-04-01T19:13:15.0627635Z manifest:org.opencontainers.image.version=1.4.0
+2026-04-01T19:13:15.0628526Z ##[endgroup]
+2026-04-01T19:13:15.0629099Z ##[group]JSON output
+2026-04-01T19:13:15.0629425Z {
+2026-04-01T19:13:15.0629702Z   "tags": [
+2026-04-01T19:13:15.0630068Z     "ghcr.io/thomaskoeppe/gamepile/migrate:1.4.0",
+2026-04-01T19:13:15.0630677Z     "ghcr.io/thomaskoeppe/gamepile/migrate:1.4",
+2026-04-01T19:13:15.0631243Z     "ghcr.io/thomaskoeppe/gamepile/migrate:077dfc0",
+2026-04-01T19:13:15.0631824Z     "ghcr.io/thomaskoeppe/gamepile/migrate:latest"
+2026-04-01T19:13:15.0632306Z   ],
+2026-04-01T19:13:15.0632581Z   "tag-names": [
+2026-04-01T19:13:15.0633107Z     "1.4.0",
+2026-04-01T19:13:15.0633415Z     "1.4",
+2026-04-01T19:13:15.0633702Z     "077dfc0",
+2026-04-01T19:13:15.0633991Z     "latest"
+2026-04-01T19:13:15.0634277Z   ],
+2026-04-01T19:13:15.0634540Z   "labels": {
+2026-04-01T19:13:15.0635505Z     "org.opencontainers.image.created": "2026-04-01T19:13:15.043Z",
+2026-04-01T19:13:15.0638027Z     "org.opencontainers.image.description": "Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.",
+2026-04-01T19:13:15.0640500Z     "org.opencontainers.image.licenses": "GPL-3.0",
+2026-04-01T19:13:15.0641522Z     "org.opencontainers.image.revision": "077dfc0d67ec7d72d16c67444aaf60576487058a",
+2026-04-01T19:13:15.0642994Z     "org.opencontainers.image.source": "https://github.com/thomaskoeppe/gamepile",
+2026-04-01T19:13:15.0643972Z     "org.opencontainers.image.title": "gamepile",
+2026-04-01T19:13:15.0645058Z     "org.opencontainers.image.url": "https://github.com/thomaskoeppe/gamepile",
+2026-04-01T19:13:15.0645904Z     "org.opencontainers.image.version": "1.4.0"
+2026-04-01T19:13:15.0646389Z   },
+2026-04-01T19:13:15.0646813Z   "annotations": [
+2026-04-01T19:13:15.0647445Z     "manifest:org.opencontainers.image.created=2026-04-01T19:13:15.043Z",
+2026-04-01T19:13:15.0649659Z     "manifest:org.opencontainers.image.description=Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.",
+2026-04-01T19:13:15.0651838Z     "manifest:org.opencontainers.image.licenses=GPL-3.0",
+2026-04-01T19:13:15.0652637Z     "manifest:org.opencontainers.image.revision=077dfc0d67ec7d72d16c67444aaf60576487058a",
+2026-04-01T19:13:15.0654051Z     "manifest:org.opencontainers.image.source=https://github.com/thomaskoeppe/gamepile",
+2026-04-01T19:13:15.0654887Z     "manifest:org.opencontainers.image.title=gamepile",
+2026-04-01T19:13:15.0655874Z     "manifest:org.opencontainers.image.url=https://github.com/thomaskoeppe/gamepile",
+2026-04-01T19:13:15.0656787Z     "manifest:org.opencontainers.image.version=1.4.0"
+2026-04-01T19:13:15.0657281Z   ]
+2026-04-01T19:13:15.0657709Z }
+2026-04-01T19:13:15.0658289Z ##[endgroup]
+2026-04-01T19:13:15.0658987Z ##[group]Bake file definition (tags)
+2026-04-01T19:13:15.0659460Z {
+2026-04-01T19:13:15.0659805Z   "target": {
+2026-04-01T19:13:15.0660286Z     "docker-metadata-action": {
+2026-04-01T19:13:15.0660707Z       "tags": [
+2026-04-01T19:13:15.0661424Z         "ghcr.io/thomaskoeppe/gamepile/migrate:1.4.0",
+2026-04-01T19:13:15.0662147Z         "ghcr.io/thomaskoeppe/gamepile/migrate:1.4",
+2026-04-01T19:13:15.0663044Z         "ghcr.io/thomaskoeppe/gamepile/migrate:077dfc0",
+2026-04-01T19:13:15.0663879Z         "ghcr.io/thomaskoeppe/gamepile/migrate:latest"
+2026-04-01T19:13:15.0664445Z       ],
+2026-04-01T19:13:15.0664832Z       "args": {
+2026-04-01T19:13:15.0665326Z         "DOCKER_META_IMAGES": "ghcr.io/thomaskoeppe/gamepile/migrate",
+2026-04-01T19:13:15.0691748Z         "DOCKER_META_VERSION": "1.4.0"
+2026-04-01T19:13:15.0692251Z       }
+2026-04-01T19:13:15.0692506Z     }
+2026-04-01T19:13:15.0692983Z   }
+2026-04-01T19:13:15.0693250Z }
+2026-04-01T19:13:15.0693816Z ##[endgroup]
+2026-04-01T19:13:15.0694401Z ##[group]Bake file definition (labels)
+2026-04-01T19:13:15.0694805Z {
+2026-04-01T19:13:15.0695078Z   "target": {
+2026-04-01T19:13:15.0695404Z     "docker-metadata-action": {
+2026-04-01T19:13:15.0695796Z       "labels": {
+2026-04-01T19:13:15.0696325Z         "org.opencontainers.image.created": "2026-04-01T19:13:15.043Z",
+2026-04-01T19:13:15.0698715Z         "org.opencontainers.image.description": "Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.",
+2026-04-01T19:13:15.0701011Z         "org.opencontainers.image.licenses": "GPL-3.0",
+2026-04-01T19:13:15.0701816Z         "org.opencontainers.image.revision": "077dfc0d67ec7d72d16c67444aaf60576487058a",
+2026-04-01T19:13:15.0703079Z         "org.opencontainers.image.source": "https://github.com/thomaskoeppe/gamepile",
+2026-04-01T19:13:15.0703995Z         "org.opencontainers.image.title": "gamepile",
+2026-04-01T19:13:15.0704801Z         "org.opencontainers.image.url": "https://github.com/thomaskoeppe/gamepile",
+2026-04-01T19:13:15.0705601Z         "org.opencontainers.image.version": "1.4.0"
+2026-04-01T19:13:15.0706137Z       }
+2026-04-01T19:13:15.0706427Z     }
+2026-04-01T19:13:15.0706665Z   }
+2026-04-01T19:13:15.0706900Z }
+2026-04-01T19:13:15.0707393Z ##[endgroup]
+2026-04-01T19:13:15.0707931Z ##[group]Bake file definition (annotations)
+2026-04-01T19:13:15.0708477Z {
+2026-04-01T19:13:15.0708723Z   "target": {
+2026-04-01T19:13:15.0709028Z     "docker-metadata-action": {
+2026-04-01T19:13:15.0709489Z       "annotations": [
+2026-04-01T19:13:15.0710288Z         "manifest:org.opencontainers.image.created=2026-04-01T19:13:15.043Z",
+2026-04-01T19:13:15.0713232Z         "manifest:org.opencontainers.image.description=Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.",
+2026-04-01T19:13:15.0715797Z         "manifest:org.opencontainers.image.licenses=GPL-3.0",
+2026-04-01T19:13:15.0716745Z         "manifest:org.opencontainers.image.revision=077dfc0d67ec7d72d16c67444aaf60576487058a",
+2026-04-01T19:13:15.0717922Z         "manifest:org.opencontainers.image.source=https://github.com/thomaskoeppe/gamepile",
+2026-04-01T19:13:15.0718946Z         "manifest:org.opencontainers.image.title=gamepile",
+2026-04-01T19:13:15.0719866Z         "manifest:org.opencontainers.image.url=https://github.com/thomaskoeppe/gamepile",
+2026-04-01T19:13:15.0720799Z         "manifest:org.opencontainers.image.version=1.4.0"
+2026-04-01T19:13:15.0721466Z       ]
+2026-04-01T19:13:15.0721838Z     }
+2026-04-01T19:13:15.0722205Z   }
+2026-04-01T19:13:15.0722548Z }
+2026-04-01T19:13:15.0723437Z ##[endgroup]
+2026-04-01T19:13:15.0876170Z ##[group]Run docker/build-push-action@v6
+2026-04-01T19:13:15.0876449Z with:
+2026-04-01T19:13:15.0876615Z   context: .
+2026-04-01T19:13:15.0876803Z   file: packages/web/Dockerfile.migrate
+2026-04-01T19:13:15.0877052Z   push: true
+2026-04-01T19:13:15.0877735Z   tags: ghcr.io/thomaskoeppe/gamepile/migrate:1.4.0
+ghcr.io/thomaskoeppe/gamepile/migrate:1.4
+ghcr.io/thomaskoeppe/gamepile/migrate:077dfc0
+ghcr.io/thomaskoeppe/gamepile/migrate:latest
+2026-04-01T19:13:15.0880880Z   labels: org.opencontainers.image.created=2026-04-01T19:13:15.043Z
+org.opencontainers.image.description=Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.
+org.opencontainers.image.licenses=GPL-3.0
+org.opencontainers.image.revision=077dfc0d67ec7d72d16c67444aaf60576487058a
+org.opencontainers.image.source=https://github.com/thomaskoeppe/gamepile
+org.opencontainers.image.title=gamepile
+org.opencontainers.image.url=https://github.com/thomaskoeppe/gamepile
+org.opencontainers.image.version=1.4.0
+2026-04-01T19:13:15.0883935Z   cache-from: type=gha
+2026-04-01T19:13:15.0884143Z   cache-to: type=gha,mode=max
+2026-04-01T19:13:15.0884355Z   load: false
+2026-04-01T19:13:15.0884513Z   no-cache: false
+2026-04-01T19:13:15.0884682Z   pull: false
+2026-04-01T19:13:15.0885008Z   github-token: ***
+2026-04-01T19:13:15.0885180Z env:
+2026-04-01T19:13:15.0885335Z   REGISTRY: ghcr.io
+2026-04-01T19:13:15.0885531Z   DOCKER_METADATA_OUTPUT_VERSION: 1.4.0
+2026-04-01T19:13:15.0886357Z   DOCKER_METADATA_OUTPUT_TAGS: ghcr.io/thomaskoeppe/gamepile/migrate:1.4.0
+ghcr.io/thomaskoeppe/gamepile/migrate:1.4
+ghcr.io/thomaskoeppe/gamepile/migrate:077dfc0
+ghcr.io/thomaskoeppe/gamepile/migrate:latest
+2026-04-01T19:13:15.0887243Z   DOCKER_METADATA_OUTPUT_TAG_NAMES: 1.4.0
+1.4
+077dfc0
+latest
+2026-04-01T19:13:15.0890005Z   DOCKER_METADATA_OUTPUT_LABELS: org.opencontainers.image.created=2026-04-01T19:13:15.043Z
+org.opencontainers.image.description=Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.
+org.opencontainers.image.licenses=GPL-3.0
+org.opencontainers.image.revision=077dfc0d67ec7d72d16c67444aaf60576487058a
+org.opencontainers.image.source=https://github.com/thomaskoeppe/gamepile
+org.opencontainers.image.title=gamepile
+org.opencontainers.image.url=https://github.com/thomaskoeppe/gamepile
+org.opencontainers.image.version=1.4.0
+2026-04-01T19:13:15.0895591Z   DOCKER_METADATA_OUTPUT_ANNOTATIONS: manifest:org.opencontainers.image.created=2026-04-01T19:13:15.043Z
+manifest:org.opencontainers.image.description=Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.
+manifest:org.opencontainers.image.licenses=GPL-3.0
+manifest:org.opencontainers.image.revision=077dfc0d67ec7d72d16c67444aaf60576487058a
+manifest:org.opencontainers.image.source=https://github.com/thomaskoeppe/gamepile
+manifest:org.opencontainers.image.title=gamepile
+manifest:org.opencontainers.image.url=https://github.com/thomaskoeppe/gamepile
+manifest:org.opencontainers.image.version=1.4.0
+2026-04-01T19:13:15.0905067Z   DOCKER_METADATA_OUTPUT_JSON: {"tags":["ghcr.io/thomaskoeppe/gamepile/migrate:1.4.0","ghcr.io/thomaskoeppe/gamepile/migrate:1.4","ghcr.io/thomaskoeppe/gamepile/migrate:077dfc0","ghcr.io/thomaskoeppe/gamepile/migrate:latest"],"tag-names":["1.4.0","1.4","077dfc0","latest"],"labels":{"org.opencontainers.image.created":"2026-04-01T19:13:15.043Z","org.opencontainers.image.description":"Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.","org.opencontainers.image.licenses":"GPL-3.0","org.opencontainers.image.revision":"077dfc0d67ec7d72d16c67444aaf60576487058a","org.opencontainers.image.source":"https://github.com/thomaskoeppe/gamepile","org.opencontainers.image.title":"gamepile","org.opencontainers.image.url":"https://github.com/thomaskoeppe/gamepile","org.opencontainers.image.version":"1.4.0"},"annotations":["manifest:org.opencontainers.image.created=2026-04-01T19:13:15.043Z","manifest:org.opencontainers.image.description=Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.","manifest:org.opencontainers.image.licenses=GPL-3.0","manifest:org.opencontainers.image.revision=077dfc0d67ec7d72d16c67444aaf60576487058a","manifest:org.opencontainers.image.source=https://github.com/thomaskoeppe/gamepile","manifest:org.opencontainers.image.title=gamepile","manifest:org.opencontainers.image.url=https://github.com/thomaskoeppe/gamepile","manifest:org.opencontainers.image.version=1.4.0"]}
+2026-04-01T19:13:15.0911974Z   DOCKER_METADATA_OUTPUT_BAKE_FILE_TAGS: /home/runner/work/_temp/docker-actions-toolkit-5diJoi/docker-metadata-action-bake-tags.json
+2026-04-01T19:13:15.0913044Z   DOCKER_METADATA_OUTPUT_BAKE_FILE_LABELS: /home/runner/work/_temp/docker-actions-toolkit-5diJoi/docker-metadata-action-bake-labels.json
+2026-04-01T19:13:15.0914006Z   DOCKER_METADATA_OUTPUT_BAKE_FILE_ANNOTATIONS: /home/runner/work/_temp/docker-actions-toolkit-5diJoi/docker-metadata-action-bake-annotations.json
+2026-04-01T19:13:15.0914895Z   DOCKER_METADATA_OUTPUT_BAKE_FILE: /home/runner/work/_temp/docker-actions-toolkit-5diJoi/docker-metadata-action-bake.json
+2026-04-01T19:13:15.0915416Z ##[endgroup]
+2026-04-01T19:13:15.3355964Z ##[group]GitHub Actions runtime token ACs
+2026-04-01T19:13:15.3367794Z refs/heads/refs/tags/v1.4.0: read/write
+2026-04-01T19:13:15.3368250Z refs/heads/main: read
+2026-04-01T19:13:15.3369197Z ##[endgroup]
+2026-04-01T19:13:15.3369683Z ##[group]Docker info
+2026-04-01T19:13:15.3444496Z [command]/usr/bin/docker version
+2026-04-01T19:13:15.3635001Z Client: Docker Engine - Community
+2026-04-01T19:13:15.3637924Z  Version:           28.0.4
+2026-04-01T19:13:15.3638280Z  API version:       1.48
+2026-04-01T19:13:15.3638612Z  Go version:        go1.23.7
+2026-04-01T19:13:15.3638923Z  Git commit:        b8034c0
+2026-04-01T19:13:15.3639158Z  Built:             Tue Mar 25 15:07:16 2025
+2026-04-01T19:13:15.3639411Z  OS/Arch:           linux/amd64
+2026-04-01T19:13:15.3639620Z  Context:           default
+2026-04-01T19:13:15.3639748Z 
+2026-04-01T19:13:15.3639834Z Server: Docker Engine - Community
+2026-04-01T19:13:15.3640056Z  Engine:
+2026-04-01T19:13:15.3640223Z   Version:          28.0.4
+2026-04-01T19:13:15.3640463Z   API version:      1.48 (minimum version 1.24)
+2026-04-01T19:13:15.3640724Z   Go version:       go1.23.7
+2026-04-01T19:13:15.3640933Z   Git commit:       6430e49
+2026-04-01T19:13:15.3641144Z   Built:            Tue Mar 25 15:07:16 2025
+2026-04-01T19:13:15.3641386Z   OS/Arch:          linux/amd64
+2026-04-01T19:13:15.3641599Z   Experimental:     false
+2026-04-01T19:13:15.3641790Z  containerd:
+2026-04-01T19:13:15.3641954Z   Version:          v2.2.2
+2026-04-01T19:13:15.3642206Z   GitCommit:        301b2dac98f15c27117da5c8af12118a041a31d9
+2026-04-01T19:13:15.3642493Z  runc:
+2026-04-01T19:13:15.3642644Z   Version:          1.3.4
+2026-04-01T19:13:15.3643147Z   GitCommit:        v1.3.4-0-gd6d73eb8
+2026-04-01T19:13:15.3643383Z  docker-init:
+2026-04-01T19:13:15.3643562Z   Version:          0.19.0
+2026-04-01T19:13:15.3643757Z   GitCommit:        de40ad0
+2026-04-01T19:13:15.3689743Z [command]/usr/bin/docker info
+2026-04-01T19:13:15.4149224Z Client: Docker Engine - Community
+2026-04-01T19:13:15.4149691Z  Version:    28.0.4
+2026-04-01T19:13:15.4150500Z  Context:    default
+2026-04-01T19:13:15.4150896Z  Debug Mode: false
+2026-04-01T19:13:15.4151205Z  Plugins:
+2026-04-01T19:13:15.4151538Z   buildx: Docker Buildx (Docker Inc.)
+2026-04-01T19:13:15.4151974Z     Version:  v0.32.1
+2026-04-01T19:13:15.4152476Z     Path:     /usr/libexec/docker/cli-plugins/docker-buildx
+2026-04-01T19:13:15.4153574Z   compose: Docker Compose (Docker Inc.)
+2026-04-01T19:13:15.4154003Z     Version:  v2.38.2
+2026-04-01T19:13:15.4154425Z     Path:     /usr/libexec/docker/cli-plugins/docker-compose
+2026-04-01T19:13:15.4155070Z 
+2026-04-01T19:13:15.4155175Z Server:
+2026-04-01T19:13:15.4155431Z  Containers: 1
+2026-04-01T19:13:15.4155714Z   Running: 1
+2026-04-01T19:13:15.4155986Z   Paused: 0
+2026-04-01T19:13:15.4156245Z   Stopped: 0
+2026-04-01T19:13:15.4156518Z  Images: 7
+2026-04-01T19:13:15.4156789Z  Server Version: 28.0.4
+2026-04-01T19:13:15.4157137Z  Storage Driver: overlay2
+2026-04-01T19:13:15.4157474Z   Backing Filesystem: extfs
+2026-04-01T19:13:15.4157831Z   Supports d_type: true
+2026-04-01T19:13:15.4158154Z   Using metacopy: false
+2026-04-01T19:13:15.4158486Z   Native Overlay Diff: false
+2026-04-01T19:13:15.4158836Z   userxattr: false
+2026-04-01T19:13:15.4159149Z  Logging Driver: json-file
+2026-04-01T19:13:15.4159488Z  Cgroup Driver: systemd
+2026-04-01T19:13:15.4159804Z  Cgroup Version: 2
+2026-04-01T19:13:15.4160083Z  Plugins:
+2026-04-01T19:13:15.4160335Z   Volume: local
+2026-04-01T19:13:15.4160716Z   Network: bridge host ipvlan macvlan null overlay
+2026-04-01T19:13:15.4161403Z   Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog
+2026-04-01T19:13:15.4162013Z  Swarm: inactive
+2026-04-01T19:13:15.4162338Z  Runtimes: io.containerd.runc.v2 runc
+2026-04-01T19:13:15.4163071Z  Default Runtime: runc
+2026-04-01T19:13:15.4163419Z  Init Binary: docker-init
+2026-04-01T19:13:15.4163883Z  containerd version: 301b2dac98f15c27117da5c8af12118a041a31d9
+2026-04-01T19:13:15.4164425Z  runc version: v1.3.4-0-gd6d73eb8
+2026-04-01T19:13:15.4164812Z  init version: de40ad0
+2026-04-01T19:13:15.4165139Z  Security Options:
+2026-04-01T19:13:15.4165434Z   apparmor
+2026-04-01T19:13:15.4165652Z   seccomp
+2026-04-01T19:13:15.4165812Z    Profile: builtin
+2026-04-01T19:13:15.4165996Z   cgroupns
+2026-04-01T19:13:15.4166165Z  Kernel Version: 6.17.0-1008-azure
+2026-04-01T19:13:15.4166415Z  Operating System: Ubuntu 24.04.4 LTS
+2026-04-01T19:13:15.4166650Z  OSType: linux
+2026-04-01T19:13:15.4166827Z  Architecture: x86_64
+2026-04-01T19:13:15.4167005Z  CPUs: 4
+2026-04-01T19:13:15.4167162Z  Total Memory: 15.61GiB
+2026-04-01T19:13:15.4167360Z  Name: runnervmrg6be
+2026-04-01T19:13:15.4167569Z  ID: 26c853c4-ebf5-403c-a446-44e39e017c08
+2026-04-01T19:13:15.4167820Z  Docker Root Dir: /var/lib/docker
+2026-04-01T19:13:15.4168031Z  Debug Mode: false
+2026-04-01T19:13:15.4168213Z  Username: githubactions
+2026-04-01T19:13:15.4168403Z  Experimental: false
+2026-04-01T19:13:15.4168587Z  Insecure Registries:
+2026-04-01T19:13:15.4168784Z   ::1/128
+2026-04-01T19:13:15.4168934Z   127.0.0.0/8
+2026-04-01T19:13:15.4169101Z  Live Restore Enabled: false
+2026-04-01T19:13:15.4169249Z 
+2026-04-01T19:13:15.4170138Z ##[endgroup]
+2026-04-01T19:13:15.4170470Z ##[group]Proxy configuration
+2026-04-01T19:13:15.4174449Z No proxy configuration found
+2026-04-01T19:13:15.4175463Z ##[endgroup]
+2026-04-01T19:13:15.4834991Z ##[group]Buildx version
+2026-04-01T19:13:15.4866727Z [command]/usr/bin/docker buildx version
+2026-04-01T19:13:15.5557238Z github.com/docker/buildx v0.32.1 d3bfb3f4e48a67dda56e957a6636f4fab6c5fcb2
+2026-04-01T19:13:15.5604247Z ##[endgroup]
+2026-04-01T19:13:15.5604774Z ##[group]Builder info
+2026-04-01T19:13:15.6705830Z {
+2026-04-01T19:13:15.6706190Z   "nodes": [
+2026-04-01T19:13:15.6706485Z     {
+2026-04-01T19:13:15.6706925Z       "name": "builder-4fd9c9e5-e4aa-4d14-9bfb-97ba533b52d00",
+2026-04-01T19:13:15.6707504Z       "endpoint": "unix:///var/run/docker.sock",
+2026-04-01T19:13:15.6707942Z       "status": "running",
+2026-04-01T19:13:15.6709378Z       "buildkitd-flags": "--allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host",
+2026-04-01T19:13:15.6710180Z       "buildkit": "v0.28.1",
+2026-04-01T19:13:15.6710530Z       "platforms": "linux/amd64,linux/amd64/v2,linux/amd64/v3,linux/386",
+2026-04-01T19:13:15.6710873Z       "features": {
+2026-04-01T19:13:15.6711170Z         "Automatically load images to the Docker Engine image store": true,
+2026-04-01T19:13:15.6711519Z         "Cache export": true,
+2026-04-01T19:13:15.6711743Z         "Direct push": true,
+2026-04-01T19:13:15.6711956Z         "Docker exporter": true,
+2026-04-01T19:13:15.6712368Z         "Multi-platform build": true,
+2026-04-01T19:13:15.6712601Z         "OCI exporter": true
+2026-04-01T19:13:15.6713484Z       },
+2026-04-01T19:13:15.6713648Z       "labels": {
+2026-04-01T19:13:15.6714064Z         "org.mobyproject.buildkit.worker.executor": "oci",
+2026-04-01T19:13:15.6714728Z         "org.mobyproject.buildkit.worker.hostname": "0f06b5a15685",
+2026-04-01T19:13:15.6715251Z         "org.mobyproject.buildkit.worker.network": "host",
+2026-04-01T19:13:15.6715663Z         "org.mobyproject.buildkit.worker.oci.process-mode": "sandbox",
+2026-04-01T19:13:15.6716691Z         "org.mobyproject.buildkit.worker.selinux.enabled": "false",
+2026-04-01T19:13:15.6717712Z         "org.mobyproject.buildkit.worker.snapshotter": "overlayfs"
+2026-04-01T19:13:15.6721455Z       },
+2026-04-01T19:13:15.6721793Z       "gcPolicy": [
+2026-04-01T19:13:15.6722092Z         {
+2026-04-01T19:13:15.6722524Z           "all": false,
+2026-04-01T19:13:15.6722858Z           "filter": [
+2026-04-01T19:13:15.6723219Z             "type==source.local",
+2026-04-01T19:13:15.6724005Z             "type==exec.cachemount",
+2026-04-01T19:13:15.6724445Z             "type==source.git.checkout"
+2026-04-01T19:13:15.6724828Z           ],
+2026-04-01T19:13:15.6725143Z           "keepDuration": "48h0m0s",
+2026-04-01T19:13:15.6725565Z           "maxUsedSpace": "488.3MiB"
+2026-04-01T19:13:15.6725951Z         },
+2026-04-01T19:13:15.6726240Z         {
+2026-04-01T19:13:15.6726539Z           "all": false,
+2026-04-01T19:13:15.6726906Z           "keepDuration": "1440h0m0s",
+2026-04-01T19:13:15.6727336Z           "reservedSpace": "9.313GiB",
+2026-04-01T19:13:15.6727814Z           "maxUsedSpace": "93.13GiB",
+2026-04-01T19:13:15.6728267Z           "minFreeSpace": "27.01GiB"
+2026-04-01T19:13:15.6728536Z         },
+2026-04-01T19:13:15.6728691Z         {
+2026-04-01T19:13:15.6728839Z           "all": false,
+2026-04-01T19:13:15.6729041Z           "reservedSpace": "9.313GiB",
+2026-04-01T19:13:15.6729494Z           "maxUsedSpace": "93.13GiB",
+2026-04-01T19:13:15.6729926Z           "minFreeSpace": "27.01GiB"
+2026-04-01T19:13:15.6730351Z         },
+2026-04-01T19:13:15.6730643Z         {
+2026-04-01T19:13:15.6730916Z           "all": true,
+2026-04-01T19:13:15.6731269Z           "reservedSpace": "9.313GiB",
+2026-04-01T19:13:15.6731686Z           "maxUsedSpace": "93.13GiB",
+2026-04-01T19:13:15.6732121Z           "minFreeSpace": "27.01GiB"
+2026-04-01T19:13:15.6732523Z         }
+2026-04-01T19:13:15.6733200Z       ]
+2026-04-01T19:13:15.6733493Z     }
+2026-04-01T19:13:15.6733750Z   ],
+2026-04-01T19:13:15.6734154Z   "name": "builder-4fd9c9e5-e4aa-4d14-9bfb-97ba533b52d0",
+2026-04-01T19:13:15.6734721Z   "driver": "docker-container",
+2026-04-01T19:13:15.6735124Z   "lastActivity": "2026-04-01T19:13:09.000Z"
+2026-04-01T19:13:15.6735539Z }
+2026-04-01T19:13:15.6736192Z ##[endgroup]
+2026-04-01T19:13:15.8480834Z [command]/usr/bin/docker buildx build --cache-from type=gha --cache-to type=gha,mode=max --file packages/web/Dockerfile.migrate --iidfile /home/runner/work/_temp/docker-actions-toolkit-popLQR/build-iidfile-e798dd8878.txt --label org.opencontainers.image.created=2026-04-01T19:13:15.043Z --label org.opencontainers.image.description=Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs. --label org.opencontainers.image.licenses=GPL-3.0 --label org.opencontainers.image.revision=077dfc0d67ec7d72d16c67444aaf60576487058a --label org.opencontainers.image.source=https://github.com/thomaskoeppe/gamepile --label org.opencontainers.image.title=gamepile --label org.opencontainers.image.url=https://github.com/thomaskoeppe/gamepile --label org.opencontainers.image.version=1.4.0 --attest type=provenance,mode=max,builder-id=https://github.com/thomaskoeppe/gamepile/actions/runs/23866195020/attempts/1 --tag ghcr.io/thomaskoeppe/gamepile/migrate:1.4.0 --tag ghcr.io/thomaskoeppe/gamepile/migrate:1.4 --tag ghcr.io/thomaskoeppe/gamepile/migrate:077dfc0 --tag ghcr.io/thomaskoeppe/gamepile/migrate:latest --metadata-file /home/runner/work/_temp/docker-actions-toolkit-popLQR/build-metadata-989ef69494.json --push .
+2026-04-01T19:13:15.9913412Z #0 building with "builder-4fd9c9e5-e4aa-4d14-9bfb-97ba533b52d0" instance using docker-container driver
+2026-04-01T19:13:15.9916135Z 
+2026-04-01T19:13:15.9917856Z #1 [internal] load build definition from Dockerfile.migrate
+2026-04-01T19:13:15.9919514Z #1 transferring dockerfile: 2B done
+2026-04-01T19:13:15.9919919Z #1 DONE 0.0s
+2026-04-01T19:13:15.9927625Z ERROR: failed to build: failed to solve: failed to read dockerfile: open Dockerfile.migrate: no such file or directory
+2026-04-01T19:13:15.9982647Z ##[group]Reference
+2026-04-01T19:13:16.0946955Z builder-4fd9c9e5-e4aa-4d14-9bfb-97ba533b52d0/builder-4fd9c9e5-e4aa-4d14-9bfb-97ba533b52d00/a7udxt6td7fptybl2je0c7qkq
+2026-04-01T19:13:16.0949757Z ##[endgroup]
+2026-04-01T19:13:16.0951223Z ##[group]Check build summary support
+2026-04-01T19:13:16.0956561Z Build summary supported!
+2026-04-01T19:13:16.0957260Z ##[endgroup]
+2026-04-01T19:13:16.0979451Z ##[error]buildx failed with: ERROR: failed to build: failed to solve: failed to read dockerfile: open Dockerfile.migrate: no such file or directory
+2026-04-01T19:13:16.1115214Z Post job cleanup.
+2026-04-01T19:13:16.3554130Z ##[group]Generating build summary
+2026-04-01T19:13:16.3559252Z exporting build record to /home/runner/work/_temp/docker-actions-toolkit-EgEMPe/export
+2026-04-01T19:13:16.5613916Z [command]/usr/bin/docker buildx history export --builder builder-4fd9c9e5-e4aa-4d14-9bfb-97ba533b52d0 --output /home/runner/work/_temp/docker-actions-toolkit-EgEMPe/export/thomaskoeppe~gamepile~A7UDXT.dockerbuild a7udxt6td7fptybl2je0c7qkq --finalize
+2026-04-01T19:13:16.7036772Z Build record written to /home/runner/work/_temp/docker-actions-toolkit-EgEMPe/export/thomaskoeppe~gamepile~A7UDXT.dockerbuild (7.02 KB)
+2026-04-01T19:13:16.7064128Z Uploading thomaskoeppe~gamepile~A7UDXT.dockerbuild to blob storage
+2026-04-01T19:13:16.9457204Z Beginning upload of artifact content to blob storage
+2026-04-01T19:13:16.9565769Z Uploaded bytes 7193
+2026-04-01T19:13:17.1608883Z Finished uploading artifact content to blob storage!
+2026-04-01T19:13:17.1615626Z SHA256 hash of uploaded artifact is f2fe7e71d2727601ff676cf5d3488a45b0094f3633e8698d4ee937dabb55fa84
+2026-04-01T19:13:17.1616975Z Finalizing artifact upload
+2026-04-01T19:13:17.4072550Z Artifact successfully finalized (6228095915)
+2026-04-01T19:13:17.4075020Z Artifact download URL: https://github.com/thomaskoeppe/gamepile/actions/runs/23866195020/artifacts/6228095915
+2026-04-01T19:13:17.4105811Z Writing summary
+2026-04-01T19:13:17.4120824Z ##[endgroup]
+2026-04-01T19:13:17.4121830Z ##[group]Removing temp folder /home/runner/work/_temp/docker-actions-toolkit-popLQR
+2026-04-01T19:13:17.4128983Z ##[endgroup]
+2026-04-01T19:13:17.4129567Z ##[group]Post cache
+2026-04-01T19:13:17.4130624Z State not set
+2026-04-01T19:13:17.4131338Z ##[endgroup]
+2026-04-01T19:13:17.4285215Z Post job cleanup.
+2026-04-01T19:13:17.7398326Z ##[group]Logout from ghcr.io
+2026-04-01T19:13:17.7448729Z [command]/usr/bin/docker logout ghcr.io
+2026-04-01T19:13:17.7583132Z Removing login credentials for ghcr.io
+2026-04-01T19:13:17.7618850Z ##[endgroup]
+2026-04-01T19:13:17.7619472Z ##[group]Post cache
+2026-04-01T19:13:17.7621790Z State not set
+2026-04-01T19:13:17.7622401Z ##[endgroup]
+2026-04-01T19:13:17.7755595Z Post job cleanup.
+2026-04-01T19:13:18.0393117Z ##[group]Removing builder
+2026-04-01T19:13:18.1460887Z [command]/usr/bin/docker buildx rm builder-4fd9c9e5-e4aa-4d14-9bfb-97ba533b52d0
+2026-04-01T19:13:18.2990547Z builder-4fd9c9e5-e4aa-4d14-9bfb-97ba533b52d0 removed
+2026-04-01T19:13:18.3029273Z ##[endgroup]
+2026-04-01T19:13:18.3030960Z ##[group]Cleaning up certificates
+2026-04-01T19:13:18.3037910Z ##[endgroup]
+2026-04-01T19:13:18.3038594Z ##[group]Post cache
+2026-04-01T19:13:18.3040715Z State not set
+2026-04-01T19:13:18.3041505Z ##[endgroup]
+2026-04-01T19:13:18.3174859Z Post job cleanup.
+2026-04-01T19:13:18.4181565Z [command]/usr/bin/git version
+2026-04-01T19:13:18.4223108Z git version 2.53.0
+2026-04-01T19:13:18.4268793Z Temporarily overriding HOME='/home/runner/work/_temp/50126658-40e2-4294-be17-4e0d14d7a28b' before making global git config changes
+2026-04-01T19:13:18.4269846Z Adding repository directory to the temporary git global config as a safe directory
+2026-04-01T19:13:18.4275826Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/gamepile/gamepile
+2026-04-01T19:13:18.4316717Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-04-01T19:13:18.4353620Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-04-01T19:13:18.4592171Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-04-01T19:13:18.4616929Z http.https://github.com/.extraheader
+2026-04-01T19:13:18.4631524Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-04-01T19:13:18.4668163Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-04-01T19:13:18.4911056Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-04-01T19:13:18.4946249Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-04-01T19:13:18.5294053Z Cleaning up orphan processes
+2026-04-01T19:13:18.5612006Z ##[warning]Node.js 20 actions are deprecated. The following actions are running on Node.js 20 and may not work as expected: actions/checkout@v4, docker/build-push-action@v6, docker/login-action@v3, docker/metadata-action@v5, docker/setup-buildx-action@v3. Actions will be forced to run with Node.js 24 by default starting June 2nd, 2026. Node.js 20 will be removed from the runner on September 16th, 2026. Please check if updated versions of these actions are available that support Node.js 24. To opt into Node.js 24 now, set the FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true environment variable on the runner or in your workflow file. Once Node.js 24 becomes the default, you can temporarily opt out by setting ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

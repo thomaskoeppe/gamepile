@@ -1,0 +1,1207 @@
+﻿2026-04-01T19:12:59.8850603Z Current runner version: '2.333.1'
+2026-04-01T19:12:59.8883208Z ##[group]Runner Image Provisioner
+2026-04-01T19:12:59.8884299Z Hosted Compute Agent
+2026-04-01T19:12:59.8885196Z Version: 20260213.493
+2026-04-01T19:12:59.8886079Z Commit: 5c115507f6dd24b8de37d8bbe0bb4509d0cc0fa3
+2026-04-01T19:12:59.8887206Z Build Date: 2026-02-13T00:28:41Z
+2026-04-01T19:12:59.8888573Z Worker ID: {6f6943b3-dfcd-42a6-bb4e-8b63bdaa3983}
+2026-04-01T19:12:59.8889665Z Azure Region: eastus
+2026-04-01T19:12:59.8890528Z ##[endgroup]
+2026-04-01T19:12:59.8892523Z ##[group]Operating System
+2026-04-01T19:12:59.8893474Z Ubuntu
+2026-04-01T19:12:59.8894158Z 24.04.4
+2026-04-01T19:12:59.8894986Z LTS
+2026-04-01T19:12:59.8895656Z ##[endgroup]
+2026-04-01T19:12:59.8896429Z ##[group]Runner Image
+2026-04-01T19:12:59.8897376Z Image: ubuntu-24.04
+2026-04-01T19:12:59.8898148Z Version: 20260323.65.1
+2026-04-01T19:12:59.8900455Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260323.65/images/ubuntu/Ubuntu2404-Readme.md
+2026-04-01T19:12:59.8902979Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260323.65
+2026-04-01T19:12:59.8904484Z ##[endgroup]
+2026-04-01T19:12:59.8906364Z ##[group]GITHUB_TOKEN Permissions
+2026-04-01T19:12:59.8909028Z Contents: read
+2026-04-01T19:12:59.8909971Z Metadata: read
+2026-04-01T19:12:59.8910758Z Packages: write
+2026-04-01T19:12:59.8911522Z ##[endgroup]
+2026-04-01T19:12:59.8914325Z Secret source: Actions
+2026-04-01T19:12:59.8915354Z Prepare workflow directory
+2026-04-01T19:12:59.9449554Z Prepare all required actions
+2026-04-01T19:12:59.9504086Z Getting action download info
+2026-04-01T19:13:00.4141281Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-04-01T19:13:00.5263232Z Download action repository 'docker/setup-buildx-action@v3' (SHA:8d2750c68a42422c14e847fe6c8ac0403b4cbd6f)
+2026-04-01T19:13:00.7855085Z Download action repository 'docker/login-action@v3' (SHA:c94ce9fb468520275223c153574b00df6fe4bcc9)
+2026-04-01T19:13:01.0882358Z Download action repository 'docker/metadata-action@v5' (SHA:c299e40c65443455700f0fdfc63efafe5b349051)
+2026-04-01T19:13:01.4124644Z Download action repository 'docker/build-push-action@v6' (SHA:10e90e3645eae34f1e60eeb005ba3a3d33f178e8)
+2026-04-01T19:13:01.8159160Z Complete job name: build-web
+2026-04-01T19:13:01.9010035Z ##[group]Run actions/checkout@v4
+2026-04-01T19:13:01.9011450Z with:
+2026-04-01T19:13:01.9012304Z   ref: v1.4.0
+2026-04-01T19:13:01.9013190Z   repository: thomaskoeppe/gamepile
+2026-04-01T19:13:01.9014586Z   token: ***
+2026-04-01T19:13:01.9015423Z   ssh-strict: true
+2026-04-01T19:13:01.9016249Z   ssh-user: git
+2026-04-01T19:13:01.9017197Z   persist-credentials: true
+2026-04-01T19:13:01.9018142Z   clean: true
+2026-04-01T19:13:01.9019297Z   sparse-checkout-cone-mode: true
+2026-04-01T19:13:01.9020402Z   fetch-depth: 1
+2026-04-01T19:13:01.9021221Z   fetch-tags: false
+2026-04-01T19:13:01.9022071Z   show-progress: true
+2026-04-01T19:13:01.9022884Z   lfs: false
+2026-04-01T19:13:01.9023760Z   submodules: false
+2026-04-01T19:13:01.9024629Z   set-safe-directory: true
+2026-04-01T19:13:01.9025881Z env:
+2026-04-01T19:13:01.9026700Z   REGISTRY: ghcr.io
+2026-04-01T19:13:01.9027541Z ##[endgroup]
+2026-04-01T19:13:02.0130069Z Syncing repository: thomaskoeppe/gamepile
+2026-04-01T19:13:02.0133005Z ##[group]Getting Git version info
+2026-04-01T19:13:02.0134348Z Working directory is '/home/runner/work/gamepile/gamepile'
+2026-04-01T19:13:02.0136470Z [command]/usr/bin/git version
+2026-04-01T19:13:02.0171356Z git version 2.53.0
+2026-04-01T19:13:02.0199454Z ##[endgroup]
+2026-04-01T19:13:02.0216466Z Temporarily overriding HOME='/home/runner/work/_temp/f6cf620e-19ca-4747-829a-e014fd1a584e' before making global git config changes
+2026-04-01T19:13:02.0221388Z Adding repository directory to the temporary git global config as a safe directory
+2026-04-01T19:13:02.0230695Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/gamepile/gamepile
+2026-04-01T19:13:02.0263409Z Deleting the contents of '/home/runner/work/gamepile/gamepile'
+2026-04-01T19:13:02.0267486Z ##[group]Initializing the repository
+2026-04-01T19:13:02.0272496Z [command]/usr/bin/git init /home/runner/work/gamepile/gamepile
+2026-04-01T19:13:02.0361207Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-04-01T19:13:02.0363888Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-04-01T19:13:02.0365938Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-04-01T19:13:02.0367394Z hint: call:
+2026-04-01T19:13:02.0368253Z hint:
+2026-04-01T19:13:02.0369488Z hint: 	git config --global init.defaultBranch <name>
+2026-04-01T19:13:02.0370821Z hint:
+2026-04-01T19:13:02.0372136Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-04-01T19:13:02.0374121Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-04-01T19:13:02.0375574Z hint:
+2026-04-01T19:13:02.0376396Z hint: 	git branch -m <name>
+2026-04-01T19:13:02.0377585Z hint:
+2026-04-01T19:13:02.0379371Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-04-01T19:13:02.0381956Z Initialized empty Git repository in /home/runner/work/gamepile/gamepile/.git/
+2026-04-01T19:13:02.0385142Z [command]/usr/bin/git remote add origin https://github.com/thomaskoeppe/gamepile
+2026-04-01T19:13:02.0406046Z ##[endgroup]
+2026-04-01T19:13:02.0408994Z ##[group]Disabling automatic garbage collection
+2026-04-01T19:13:02.0410942Z [command]/usr/bin/git config --local gc.auto 0
+2026-04-01T19:13:02.0439975Z ##[endgroup]
+2026-04-01T19:13:02.0442305Z ##[group]Setting up auth
+2026-04-01T19:13:02.0447198Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-04-01T19:13:02.0479108Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-04-01T19:13:02.0750742Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-04-01T19:13:02.0781783Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-04-01T19:13:02.0989858Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-04-01T19:13:02.1021038Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-04-01T19:13:02.1240323Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-04-01T19:13:02.1273567Z ##[endgroup]
+2026-04-01T19:13:02.1275049Z ##[group]Fetching the repository
+2026-04-01T19:13:02.1282137Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/v1.4.0*:refs/remotes/origin/v1.4.0* +refs/tags/v1.4.0*:refs/tags/v1.4.0*
+2026-04-01T19:13:02.5626803Z From https://github.com/thomaskoeppe/gamepile
+2026-04-01T19:13:02.5629811Z  * [new tag]         v1.4.0     -> v1.4.0
+2026-04-01T19:13:02.5659116Z ##[endgroup]
+2026-04-01T19:13:02.5661566Z ##[group]Determining the checkout info
+2026-04-01T19:13:02.5664792Z [command]/usr/bin/git branch --list --remote origin/v1.4.0
+2026-04-01T19:13:02.5697122Z [command]/usr/bin/git tag --list v1.4.0
+2026-04-01T19:13:02.5717753Z v1.4.0
+2026-04-01T19:13:02.5724634Z ##[endgroup]
+2026-04-01T19:13:02.5726887Z [command]/usr/bin/git sparse-checkout disable
+2026-04-01T19:13:02.5763731Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-04-01T19:13:02.5792159Z ##[group]Checking out the ref
+2026-04-01T19:13:02.5795565Z [command]/usr/bin/git checkout --progress --force refs/tags/v1.4.0
+2026-04-01T19:13:02.6166810Z Note: switching to 'refs/tags/v1.4.0'.
+2026-04-01T19:13:02.6167822Z 
+2026-04-01T19:13:02.6169066Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-04-01T19:13:02.6171805Z changes and commit them, and you can discard any commits you make in this
+2026-04-01T19:13:02.6173716Z state without impacting any branches by switching back to a branch.
+2026-04-01T19:13:02.6174724Z 
+2026-04-01T19:13:02.6175426Z If you want to create a new branch to retain commits you create, you may
+2026-04-01T19:13:02.6177615Z do so (now or later) by using -c with the switch command. Example:
+2026-04-01T19:13:02.6178841Z 
+2026-04-01T19:13:02.6179323Z   git switch -c <new-branch-name>
+2026-04-01T19:13:02.6179974Z 
+2026-04-01T19:13:02.6180354Z Or undo this operation with:
+2026-04-01T19:13:02.6181252Z 
+2026-04-01T19:13:02.6181636Z   git switch -
+2026-04-01T19:13:02.6182097Z 
+2026-04-01T19:13:02.6182900Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-04-01T19:13:02.6184029Z 
+2026-04-01T19:13:02.6184531Z HEAD is now at 077dfc0 chore(release): v1.4.0 [skip ci]
+2026-04-01T19:13:02.6187687Z ##[endgroup]
+2026-04-01T19:13:02.6215038Z [command]/usr/bin/git log -1 --format=%H
+2026-04-01T19:13:02.6238049Z 077dfc0d67ec7d72d16c67444aaf60576487058a
+2026-04-01T19:13:02.6554967Z ##[group]Run docker/setup-buildx-action@v3
+2026-04-01T19:13:02.6555975Z with:
+2026-04-01T19:13:02.6556654Z   driver: docker-container
+2026-04-01T19:13:02.6557464Z   use: true
+2026-04-01T19:13:02.6558129Z   keep-state: false
+2026-04-01T19:13:02.6559131Z   cache-binary: true
+2026-04-01T19:13:02.6559857Z   cleanup: true
+2026-04-01T19:13:02.6560553Z   install: false
+2026-04-01T19:13:02.6561231Z env:
+2026-04-01T19:13:02.6561871Z   REGISTRY: ghcr.io
+2026-04-01T19:13:02.6562584Z ##[endgroup]
+2026-04-01T19:13:02.9094949Z ##[group]Docker info
+2026-04-01T19:13:02.9132191Z [command]/usr/bin/docker version
+2026-04-01T19:13:02.9552592Z Client: Docker Engine - Community
+2026-04-01T19:13:02.9556665Z  Version:           28.0.4
+2026-04-01T19:13:02.9557421Z  API version:       1.48
+2026-04-01T19:13:02.9558066Z  Go version:        go1.23.7
+2026-04-01T19:13:02.9559067Z  Git commit:        b8034c0
+2026-04-01T19:13:02.9559813Z  Built:             Tue Mar 25 15:07:16 2025
+2026-04-01T19:13:02.9560661Z  OS/Arch:           linux/amd64
+2026-04-01T19:13:02.9561349Z  Context:           default
+2026-04-01T19:13:02.9561777Z 
+2026-04-01T19:13:02.9562327Z Server: Docker Engine - Community
+2026-04-01T19:13:02.9562904Z  Engine:
+2026-04-01T19:13:02.9563382Z   Version:          28.0.4
+2026-04-01T19:13:02.9564028Z   API version:      1.48 (minimum version 1.24)
+2026-04-01T19:13:02.9564743Z   Go version:       go1.23.7
+2026-04-01T19:13:02.9565372Z   Git commit:       6430e49
+2026-04-01T19:13:02.9566010Z   Built:            Tue Mar 25 15:07:16 2025
+2026-04-01T19:13:02.9566682Z   OS/Arch:          linux/amd64
+2026-04-01T19:13:02.9567318Z   Experimental:     false
+2026-04-01T19:13:02.9567878Z  containerd:
+2026-04-01T19:13:02.9568780Z   Version:          v2.2.2
+2026-04-01T19:13:02.9569532Z   GitCommit:        301b2dac98f15c27117da5c8af12118a041a31d9
+2026-04-01T19:13:02.9570266Z  runc:
+2026-04-01T19:13:02.9570794Z   Version:          1.3.4
+2026-04-01T19:13:02.9571424Z   GitCommit:        v1.3.4-0-gd6d73eb8
+2026-04-01T19:13:02.9572093Z  docker-init:
+2026-04-01T19:13:02.9572667Z   Version:          0.19.0
+2026-04-01T19:13:02.9573280Z   GitCommit:        de40ad0
+2026-04-01T19:13:02.9607611Z [command]/usr/bin/docker info
+2026-04-01T19:13:03.1196573Z Client: Docker Engine - Community
+2026-04-01T19:13:03.1197233Z  Version:    28.0.4
+2026-04-01T19:13:03.1197576Z  Context:    default
+2026-04-01T19:13:03.1197900Z  Debug Mode: false
+2026-04-01T19:13:03.1198223Z  Plugins:
+2026-04-01T19:13:03.1198826Z   buildx: Docker Buildx (Docker Inc.)
+2026-04-01T19:13:03.1199217Z     Version:  v0.32.1
+2026-04-01T19:13:03.1199659Z     Path:     /usr/libexec/docker/cli-plugins/docker-buildx
+2026-04-01T19:13:03.1200168Z   compose: Docker Compose (Docker Inc.)
+2026-04-01T19:13:03.1200551Z     Version:  v2.38.2
+2026-04-01T19:13:03.1200946Z     Path:     /usr/libexec/docker/cli-plugins/docker-compose
+2026-04-01T19:13:03.1201252Z 
+2026-04-01T19:13:03.1201687Z Server:
+2026-04-01T19:13:03.1201968Z  Containers: 0
+2026-04-01T19:13:03.1202274Z   Running: 0
+2026-04-01T19:13:03.1202624Z   Paused: 0
+2026-04-01T19:13:03.1202921Z   Stopped: 0
+2026-04-01T19:13:03.1203223Z  Images: 6
+2026-04-01T19:13:03.1203517Z  Server Version: 28.0.4
+2026-04-01T19:13:03.1203868Z  Storage Driver: overlay2
+2026-04-01T19:13:03.1204215Z   Backing Filesystem: extfs
+2026-04-01T19:13:03.1204566Z   Supports d_type: true
+2026-04-01T19:13:03.1204902Z   Using metacopy: false
+2026-04-01T19:13:03.1205373Z   Native Overlay Diff: false
+2026-04-01T19:13:03.1205717Z   userxattr: false
+2026-04-01T19:13:03.1206039Z  Logging Driver: json-file
+2026-04-01T19:13:03.1206530Z  Cgroup Driver: systemd
+2026-04-01T19:13:03.1207089Z  Cgroup Version: 2
+2026-04-01T19:13:03.1207619Z  Plugins:
+2026-04-01T19:13:03.1208143Z   Volume: local
+2026-04-01T19:13:03.1209045Z   Network: bridge host ipvlan macvlan null overlay
+2026-04-01T19:13:03.1209913Z   Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog
+2026-04-01T19:13:03.1210677Z  Swarm: inactive
+2026-04-01T19:13:03.1211552Z  Runtimes: runc io.containerd.runc.v2
+2026-04-01T19:13:03.1212224Z  Default Runtime: runc
+2026-04-01T19:13:03.1212783Z  Init Binary: docker-init
+2026-04-01T19:13:03.1213494Z  containerd version: 301b2dac98f15c27117da5c8af12118a041a31d9
+2026-04-01T19:13:03.1214217Z  runc version: v1.3.4-0-gd6d73eb8
+2026-04-01T19:13:03.1214835Z  init version: de40ad0
+2026-04-01T19:13:03.1215402Z  Security Options:
+2026-04-01T19:13:03.1215947Z   apparmor
+2026-04-01T19:13:03.1216432Z   seccomp
+2026-04-01T19:13:03.1216886Z    Profile: builtin
+2026-04-01T19:13:03.1217410Z   cgroupns
+2026-04-01T19:13:03.1217925Z  Kernel Version: 6.17.0-1008-azure
+2026-04-01T19:13:03.1218845Z  Operating System: Ubuntu 24.04.4 LTS
+2026-04-01T19:13:03.1219466Z  OSType: linux
+2026-04-01T19:13:03.1220038Z  Architecture: x86_64
+2026-04-01T19:13:03.1220610Z  CPUs: 4
+2026-04-01T19:13:03.1221140Z  Total Memory: 15.62GiB
+2026-04-01T19:13:03.1221724Z  Name: runnervmrg6be
+2026-04-01T19:13:03.1222377Z  ID: 26c853c4-ebf5-403c-a446-44e39e017c08
+2026-04-01T19:13:03.1223110Z  Docker Root Dir: /var/lib/docker
+2026-04-01T19:13:03.1223774Z  Debug Mode: false
+2026-04-01T19:13:03.1224366Z  Username: githubactions
+2026-04-01T19:13:03.1224980Z  Experimental: false
+2026-04-01T19:13:03.1225562Z  Insecure Registries:
+2026-04-01T19:13:03.1232704Z   ::1/128
+2026-04-01T19:13:03.1233226Z   127.0.0.0/8
+2026-04-01T19:13:03.1233775Z  Live Restore Enabled: false
+2026-04-01T19:13:03.1234197Z 
+2026-04-01T19:13:03.1235065Z ##[endgroup]
+2026-04-01T19:13:03.1814240Z ##[group]Buildx version
+2026-04-01T19:13:03.1835260Z [command]/usr/bin/docker buildx version
+2026-04-01T19:13:03.2370774Z github.com/docker/buildx v0.32.1 d3bfb3f4e48a67dda56e957a6636f4fab6c5fcb2
+2026-04-01T19:13:03.2405413Z ##[endgroup]
+2026-04-01T19:13:03.2571949Z ##[group]Inspecting default docker context
+2026-04-01T19:13:03.2711810Z [
+2026-04-01T19:13:03.2712372Z   {
+2026-04-01T19:13:03.2712864Z     "Name": "default",
+2026-04-01T19:13:03.2713439Z     "Metadata": {},
+2026-04-01T19:13:03.2714053Z     "Endpoints": {
+2026-04-01T19:13:03.2714594Z       "docker": {
+2026-04-01T19:13:03.2715223Z         "Host": "unix:///var/run/docker.sock",
+2026-04-01T19:13:03.2715963Z         "SkipTLSVerify": false
+2026-04-01T19:13:03.2716582Z       }
+2026-04-01T19:13:03.2717073Z     },
+2026-04-01T19:13:03.2717591Z     "TLSMaterial": {},
+2026-04-01T19:13:03.2718176Z     "Storage": {
+2026-04-01T19:13:03.2718972Z       "MetadataPath": "<IN MEMORY>",
+2026-04-01T19:13:03.2719673Z       "TLSPath": "<IN MEMORY>"
+2026-04-01T19:13:03.2720273Z     }
+2026-04-01T19:13:03.2720769Z   }
+2026-04-01T19:13:03.2721239Z ]
+2026-04-01T19:13:03.2722158Z ##[endgroup]
+2026-04-01T19:13:03.2723131Z ##[group]Creating a new builder instance
+2026-04-01T19:13:03.4069580Z [command]/usr/bin/docker buildx create --name builder-2ea52125-bd96-41ca-a16a-8f855bb5777e --driver docker-container --buildkitd-flags --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host --use
+2026-04-01T19:13:03.4743252Z builder-2ea52125-bd96-41ca-a16a-8f855bb5777e
+2026-04-01T19:13:03.4778642Z ##[endgroup]
+2026-04-01T19:13:03.4779506Z ##[group]Booting builder
+2026-04-01T19:13:03.4815177Z [command]/usr/bin/docker buildx inspect --bootstrap --builder builder-2ea52125-bd96-41ca-a16a-8f855bb5777e
+2026-04-01T19:13:03.5426435Z #1 [internal] booting buildkit
+2026-04-01T19:13:03.6933851Z #1 pulling image moby/buildkit:buildx-stable-1
+2026-04-01T19:13:05.9748976Z #1 pulling image moby/buildkit:buildx-stable-1 2.4s done
+2026-04-01T19:13:06.1261019Z #1 creating container buildx_buildkit_builder-2ea52125-bd96-41ca-a16a-8f855bb5777e0
+2026-04-01T19:13:06.1972729Z #1 creating container buildx_buildkit_builder-2ea52125-bd96-41ca-a16a-8f855bb5777e0 0.2s done
+2026-04-01T19:13:06.1983451Z #1 DONE 2.7s
+2026-04-01T19:13:06.2284777Z Name:          builder-2ea52125-bd96-41ca-a16a-8f855bb5777e
+2026-04-01T19:13:06.2294219Z Driver:        docker-container
+2026-04-01T19:13:06.2295062Z Last Activity: 2026-04-01 19:13:03 +0000 UTC
+2026-04-01T19:13:06.2295429Z 
+2026-04-01T19:13:06.2295534Z Nodes:
+2026-04-01T19:13:06.2296297Z Name:                  builder-2ea52125-bd96-41ca-a16a-8f855bb5777e0
+2026-04-01T19:13:06.2296858Z Endpoint:              unix:///var/run/docker.sock
+2026-04-01T19:13:06.2297337Z Status:                running
+2026-04-01T19:13:06.2299459Z BuildKit daemon flags: --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host
+2026-04-01T19:13:06.2300408Z BuildKit version:      v0.28.1
+2026-04-01T19:13:06.2301024Z Platforms:             linux/amd64, linux/amd64/v2, linux/amd64/v3, linux/386
+2026-04-01T19:13:06.2301593Z Labels:
+2026-04-01T19:13:06.2301986Z  org.mobyproject.buildkit.worker.executor:         oci
+2026-04-01T19:13:06.2302649Z  org.mobyproject.buildkit.worker.hostname:         b29e8ea7c2f2
+2026-04-01T19:13:06.2303317Z  org.mobyproject.buildkit.worker.network:          host
+2026-04-01T19:13:06.2303974Z  org.mobyproject.buildkit.worker.oci.process-mode: sandbox
+2026-04-01T19:13:06.2304683Z  org.mobyproject.buildkit.worker.selinux.enabled:  false
+2026-04-01T19:13:06.2305349Z  org.mobyproject.buildkit.worker.snapshotter:      overlayfs
+2026-04-01T19:13:06.2305856Z GC Policy rule#0:
+2026-04-01T19:13:06.2306204Z  All:            false
+2026-04-01T19:13:06.2306741Z  Filters:        type==source.local,type==exec.cachemount,type==source.git.checkout
+2026-04-01T19:13:06.2307462Z  Keep Duration:  48h0m0s
+2026-04-01T19:13:06.2307806Z  Max Used Space: 488.3MiB
+2026-04-01T19:13:06.2308389Z GC Policy rule#1:
+2026-04-01T19:13:06.2308718Z  All:            false
+2026-04-01T19:13:06.2309527Z  Keep Duration:  1440h0m0s
+2026-04-01T19:13:06.2309949Z  Reserved Space: 9.313GiB
+2026-04-01T19:13:06.2310368Z  Max Used Space: 93.13GiB
+2026-04-01T19:13:06.2310714Z  Min Free Space: 27.01GiB
+2026-04-01T19:13:06.2311057Z GC Policy rule#2:
+2026-04-01T19:13:06.2311368Z  All:            false
+2026-04-01T19:13:06.2311704Z  Reserved Space: 9.313GiB
+2026-04-01T19:13:06.2312054Z  Max Used Space: 93.13GiB
+2026-04-01T19:13:06.2312417Z  Min Free Space: 27.01GiB
+2026-04-01T19:13:06.2312757Z GC Policy rule#3:
+2026-04-01T19:13:06.2313066Z  All:            true
+2026-04-01T19:13:06.2313394Z  Reserved Space: 9.313GiB
+2026-04-01T19:13:06.2313782Z  Max Used Space: 93.13GiB
+2026-04-01T19:13:06.2314133Z  Min Free Space: 27.01GiB
+2026-04-01T19:13:06.2340701Z ##[endgroup]
+2026-04-01T19:13:06.3339622Z ##[group]Inspect builder
+2026-04-01T19:13:06.3349230Z {
+2026-04-01T19:13:06.3349507Z   "nodes": [
+2026-04-01T19:13:06.3349772Z     {
+2026-04-01T19:13:06.3350177Z       "name": "builder-2ea52125-bd96-41ca-a16a-8f855bb5777e0",
+2026-04-01T19:13:06.3350735Z       "endpoint": "unix:///var/run/docker.sock",
+2026-04-01T19:13:06.3351179Z       "status": "running",
+2026-04-01T19:13:06.3352038Z       "buildkitd-flags": "--allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host",
+2026-04-01T19:13:06.3352876Z       "buildkit": "v0.28.1",
+2026-04-01T19:13:06.3353189Z       "platforms": "linux/amd64,linux/amd64/v2,linux/amd64/v3,linux/386",
+2026-04-01T19:13:06.3353797Z       "features": {
+2026-04-01T19:13:06.3354097Z         "Automatically load images to the Docker Engine image store": true,
+2026-04-01T19:13:06.3354433Z         "Cache export": true,
+2026-04-01T19:13:06.3354645Z         "Direct push": true,
+2026-04-01T19:13:06.3354851Z         "Docker exporter": true,
+2026-04-01T19:13:06.3355096Z         "Multi-platform build": true,
+2026-04-01T19:13:06.3355336Z         "OCI exporter": true
+2026-04-01T19:13:06.3355694Z       },
+2026-04-01T19:13:06.3355848Z       "labels": {
+2026-04-01T19:13:06.3356085Z         "org.mobyproject.buildkit.worker.executor": "oci",
+2026-04-01T19:13:06.3356492Z         "org.mobyproject.buildkit.worker.hostname": "b29e8ea7c2f2",
+2026-04-01T19:13:06.3356860Z         "org.mobyproject.buildkit.worker.network": "host",
+2026-04-01T19:13:06.3357238Z         "org.mobyproject.buildkit.worker.oci.process-mode": "sandbox",
+2026-04-01T19:13:06.3357648Z         "org.mobyproject.buildkit.worker.selinux.enabled": "false",
+2026-04-01T19:13:06.3358043Z         "org.mobyproject.buildkit.worker.snapshotter": "overlayfs"
+2026-04-01T19:13:06.3359263Z       },
+2026-04-01T19:13:06.3359433Z       "gcPolicy": [
+2026-04-01T19:13:06.3359612Z         {
+2026-04-01T19:13:06.3359763Z           "all": false,
+2026-04-01T19:13:06.3359947Z           "filter": [
+2026-04-01T19:13:06.3360131Z             "type==source.local",
+2026-04-01T19:13:06.3360349Z             "type==exec.cachemount",
+2026-04-01T19:13:06.3360584Z             "type==source.git.checkout"
+2026-04-01T19:13:06.3360800Z           ],
+2026-04-01T19:13:06.3360971Z           "keepDuration": "48h0m0s",
+2026-04-01T19:13:06.3361185Z           "maxUsedSpace": "488.3MiB"
+2026-04-01T19:13:06.3361387Z         },
+2026-04-01T19:13:06.3361525Z         {
+2026-04-01T19:13:06.3361675Z           "all": false,
+2026-04-01T19:13:06.3361860Z           "keepDuration": "1440h0m0s",
+2026-04-01T19:13:06.3362116Z           "reservedSpace": "9.313GiB",
+2026-04-01T19:13:06.3362342Z           "maxUsedSpace": "93.13GiB",
+2026-04-01T19:13:06.3362562Z           "minFreeSpace": "27.01GiB"
+2026-04-01T19:13:06.3362761Z         },
+2026-04-01T19:13:06.3362904Z         {
+2026-04-01T19:13:06.3363052Z           "all": false,
+2026-04-01T19:13:06.3363260Z           "reservedSpace": "9.313GiB",
+2026-04-01T19:13:06.3363503Z           "maxUsedSpace": "93.13GiB",
+2026-04-01T19:13:06.3363735Z           "minFreeSpace": "27.01GiB"
+2026-04-01T19:13:06.3363958Z         },
+2026-04-01T19:13:06.3364108Z         {
+2026-04-01T19:13:06.3364279Z           "all": true,
+2026-04-01T19:13:06.3364486Z           "reservedSpace": "9.313GiB",
+2026-04-01T19:13:06.3364741Z           "maxUsedSpace": "93.13GiB",
+2026-04-01T19:13:06.3364987Z           "minFreeSpace": "27.01GiB"
+2026-04-01T19:13:06.3365213Z         }
+2026-04-01T19:13:06.3365379Z       ]
+2026-04-01T19:13:06.3365523Z     }
+2026-04-01T19:13:06.3365684Z   ],
+2026-04-01T19:13:06.3365909Z   "name": "builder-2ea52125-bd96-41ca-a16a-8f855bb5777e",
+2026-04-01T19:13:06.3366224Z   "driver": "docker-container",
+2026-04-01T19:13:06.3366479Z   "lastActivity": "2026-04-01T19:13:03.000Z"
+2026-04-01T19:13:06.3366724Z }
+2026-04-01T19:13:06.3367098Z ##[endgroup]
+2026-04-01T19:13:06.3367447Z ##[group]BuildKit version
+2026-04-01T19:13:06.3367729Z builder-2ea52125-bd96-41ca-a16a-8f855bb5777e0: v0.28.1
+2026-04-01T19:13:06.3368176Z ##[endgroup]
+2026-04-01T19:13:06.3485158Z ##[group]Run docker/login-action@v3
+2026-04-01T19:13:06.3485414Z with:
+2026-04-01T19:13:06.3485576Z   registry: ghcr.io
+2026-04-01T19:13:06.3485761Z   username: thomaskoeppe
+2026-04-01T19:13:06.3486249Z   password: ***
+2026-04-01T19:13:06.3486431Z   logout: true
+2026-04-01T19:13:06.3486590Z env:
+2026-04-01T19:13:06.3486743Z   REGISTRY: ghcr.io
+2026-04-01T19:13:06.3486912Z ##[endgroup]
+2026-04-01T19:13:06.6421122Z Logging into ghcr.io...
+2026-04-01T19:13:06.7733509Z Login Succeeded!
+2026-04-01T19:13:06.7900102Z ##[group]Run docker/metadata-action@v5
+2026-04-01T19:13:06.7900363Z with:
+2026-04-01T19:13:06.7900553Z   images: ghcr.io/thomaskoeppe/gamepile/web
+2026-04-01T19:13:06.7901396Z   tags: type=semver,pattern={{version}},value=v1.4.0
+type=semver,pattern={{major}}.{{minor}},value=v1.4.0
+type=sha,prefix=
+type=raw,value=latest,enable={{is_default_branch}}
+
+2026-04-01T19:13:06.7902035Z   context: workflow
+2026-04-01T19:13:06.7902360Z   github-token: ***
+2026-04-01T19:13:06.7902527Z env:
+2026-04-01T19:13:06.7902679Z   REGISTRY: ghcr.io
+2026-04-01T19:13:06.7902845Z ##[endgroup]
+2026-04-01T19:13:07.6185422Z ##[group]Context info
+2026-04-01T19:13:07.6185841Z eventName: release
+2026-04-01T19:13:07.6186211Z sha: 077dfc0d67ec7d72d16c67444aaf60576487058a
+2026-04-01T19:13:07.6186571Z ref: refs/tags/v1.4.0
+2026-04-01T19:13:07.6186793Z workflow: Build & Publish Docker Images
+2026-04-01T19:13:07.6187052Z action: meta
+2026-04-01T19:13:07.6187225Z actor: thomaskoeppe
+2026-04-01T19:13:07.6187583Z runNumber: 33
+2026-04-01T19:13:07.6187877Z runId: 23866195020
+2026-04-01T19:13:07.6189019Z commitDate: Wed Apr 01 2026 19:12:46 GMT+0000 (Coordinated Universal Time)
+2026-04-01T19:13:07.6192019Z ##[endgroup]
+2026-04-01T19:13:07.6197749Z ##[group]Processing images input
+2026-04-01T19:13:07.6198523Z name=ghcr.io/thomaskoeppe/gamepile/web,enable=true
+2026-04-01T19:13:07.6200559Z ##[endgroup]
+2026-04-01T19:13:07.6211624Z ##[group]Processing tags input
+2026-04-01T19:13:07.6212295Z type=semver,pattern={{version}},value=v1.4.0,match=,enable=true,priority=900
+2026-04-01T19:13:07.6213203Z type=semver,pattern={{major}}.{{minor}},value=v1.4.0,match=,enable=true,priority=900
+2026-04-01T19:13:07.6214010Z type=raw,value=latest,enable={{is_default_branch}},priority=200
+2026-04-01T19:13:07.6217284Z type=sha,prefix=,format=short,enable=true,priority=100
+2026-04-01T19:13:07.6218113Z ##[endgroup]
+2026-04-01T19:13:07.6218921Z ##[group]Processing flavor input
+2026-04-01T19:13:07.6219317Z latest=auto
+2026-04-01T19:13:07.6219581Z prefix=
+2026-04-01T19:13:07.6219871Z prefixLatest=false
+2026-04-01T19:13:07.6220182Z suffix=
+2026-04-01T19:13:07.6220464Z suffixLatest=false
+2026-04-01T19:13:07.6221031Z ##[endgroup]
+2026-04-01T19:13:07.6299161Z ##[group]Docker image version
+2026-04-01T19:13:07.6299554Z 1.4.0
+2026-04-01T19:13:07.6300901Z ##[endgroup]
+2026-04-01T19:13:07.6305785Z ##[group]Docker tags
+2026-04-01T19:13:07.6306206Z ghcr.io/thomaskoeppe/gamepile/web:1.4.0
+2026-04-01T19:13:07.6306702Z ghcr.io/thomaskoeppe/gamepile/web:1.4
+2026-04-01T19:13:07.6307178Z ghcr.io/thomaskoeppe/gamepile/web:077dfc0
+2026-04-01T19:13:07.6307667Z ghcr.io/thomaskoeppe/gamepile/web:latest
+2026-04-01T19:13:07.6308629Z ##[endgroup]
+2026-04-01T19:13:07.6382680Z ##[group]Docker labels
+2026-04-01T19:13:07.6384529Z org.opencontainers.image.created=2026-04-01T19:13:07.621Z
+2026-04-01T19:13:07.6386633Z org.opencontainers.image.description=Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.
+2026-04-01T19:13:07.6389085Z org.opencontainers.image.licenses=GPL-3.0
+2026-04-01T19:13:07.6389761Z org.opencontainers.image.revision=077dfc0d67ec7d72d16c67444aaf60576487058a
+2026-04-01T19:13:07.6390721Z org.opencontainers.image.source=https://github.com/thomaskoeppe/gamepile
+2026-04-01T19:13:07.6391507Z org.opencontainers.image.title=gamepile
+2026-04-01T19:13:07.6392450Z org.opencontainers.image.url=https://github.com/thomaskoeppe/gamepile
+2026-04-01T19:13:07.6393251Z org.opencontainers.image.version=1.4.0
+2026-04-01T19:13:07.6394168Z ##[endgroup]
+2026-04-01T19:13:07.6394822Z ##[group]Annotations
+2026-04-01T19:13:07.6395438Z manifest:org.opencontainers.image.created=2026-04-01T19:13:07.621Z
+2026-04-01T19:13:07.6398080Z manifest:org.opencontainers.image.description=Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.
+2026-04-01T19:13:07.6400382Z manifest:org.opencontainers.image.licenses=GPL-3.0
+2026-04-01T19:13:07.6401453Z manifest:org.opencontainers.image.revision=077dfc0d67ec7d72d16c67444aaf60576487058a
+2026-04-01T19:13:07.6402705Z manifest:org.opencontainers.image.source=https://github.com/thomaskoeppe/gamepile
+2026-04-01T19:13:07.6403563Z manifest:org.opencontainers.image.title=gamepile
+2026-04-01T19:13:07.6404498Z manifest:org.opencontainers.image.url=https://github.com/thomaskoeppe/gamepile
+2026-04-01T19:13:07.6405425Z manifest:org.opencontainers.image.version=1.4.0
+2026-04-01T19:13:07.6406317Z ##[endgroup]
+2026-04-01T19:13:07.6407038Z ##[group]JSON output
+2026-04-01T19:13:07.6407497Z {
+2026-04-01T19:13:07.6407838Z   "tags": [
+2026-04-01T19:13:07.6408622Z     "ghcr.io/thomaskoeppe/gamepile/web:1.4.0",
+2026-04-01T19:13:07.6409194Z     "ghcr.io/thomaskoeppe/gamepile/web:1.4",
+2026-04-01T19:13:07.6409802Z     "ghcr.io/thomaskoeppe/gamepile/web:077dfc0",
+2026-04-01T19:13:07.6410470Z     "ghcr.io/thomaskoeppe/gamepile/web:latest"
+2026-04-01T19:13:07.6410960Z   ],
+2026-04-01T19:13:07.6411368Z   "tag-names": [
+2026-04-01T19:13:07.6411823Z     "1.4.0",
+2026-04-01T19:13:07.6412223Z     "1.4",
+2026-04-01T19:13:07.6412561Z     "077dfc0",
+2026-04-01T19:13:07.6413023Z     "latest"
+2026-04-01T19:13:07.6413367Z   ],
+2026-04-01T19:13:07.6413784Z   "labels": {
+2026-04-01T19:13:07.6414387Z     "org.opencontainers.image.created": "2026-04-01T19:13:07.621Z",
+2026-04-01T19:13:07.6417210Z     "org.opencontainers.image.description": "Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.",
+2026-04-01T19:13:07.6419702Z     "org.opencontainers.image.licenses": "GPL-3.0",
+2026-04-01T19:13:07.6420943Z     "org.opencontainers.image.revision": "077dfc0d67ec7d72d16c67444aaf60576487058a",
+2026-04-01T19:13:07.6422169Z     "org.opencontainers.image.source": "https://github.com/thomaskoeppe/gamepile",
+2026-04-01T19:13:07.6423169Z     "org.opencontainers.image.title": "gamepile",
+2026-04-01T19:13:07.6424135Z     "org.opencontainers.image.url": "https://github.com/thomaskoeppe/gamepile",
+2026-04-01T19:13:07.6425151Z     "org.opencontainers.image.version": "1.4.0"
+2026-04-01T19:13:07.6425751Z   },
+2026-04-01T19:13:07.6426266Z   "annotations": [
+2026-04-01T19:13:07.6426989Z     "manifest:org.opencontainers.image.created=2026-04-01T19:13:07.621Z",
+2026-04-01T19:13:07.6429909Z     "manifest:org.opencontainers.image.description=Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.",
+2026-04-01T19:13:07.6432479Z     "manifest:org.opencontainers.image.licenses=GPL-3.0",
+2026-04-01T19:13:07.6433455Z     "manifest:org.opencontainers.image.revision=077dfc0d67ec7d72d16c67444aaf60576487058a",
+2026-04-01T19:13:07.6434143Z     "manifest:org.opencontainers.image.source=https://github.com/thomaskoeppe/gamepile",
+2026-04-01T19:13:07.6434800Z     "manifest:org.opencontainers.image.title=gamepile",
+2026-04-01T19:13:07.6435360Z     "manifest:org.opencontainers.image.url=https://github.com/thomaskoeppe/gamepile",
+2026-04-01T19:13:07.6436006Z     "manifest:org.opencontainers.image.version=1.4.0"
+2026-04-01T19:13:07.6436352Z   ]
+2026-04-01T19:13:07.6436669Z }
+2026-04-01T19:13:07.6437160Z ##[endgroup]
+2026-04-01T19:13:07.6437679Z ##[group]Bake file definition (tags)
+2026-04-01T19:13:07.6438031Z {
+2026-04-01T19:13:07.6438482Z   "target": {
+2026-04-01T19:13:07.6438906Z     "docker-metadata-action": {
+2026-04-01T19:13:07.6439235Z       "tags": [
+2026-04-01T19:13:07.6439518Z         "ghcr.io/thomaskoeppe/gamepile/web:1.4.0",
+2026-04-01T19:13:07.6440163Z         "ghcr.io/thomaskoeppe/gamepile/web:1.4",
+2026-04-01T19:13:07.6440592Z         "ghcr.io/thomaskoeppe/gamepile/web:077dfc0",
+2026-04-01T19:13:07.6461463Z         "ghcr.io/thomaskoeppe/gamepile/web:latest"
+2026-04-01T19:13:07.6462051Z       ],
+2026-04-01T19:13:07.6462251Z       "args": {
+2026-04-01T19:13:07.6462600Z         "DOCKER_META_IMAGES": "ghcr.io/thomaskoeppe/gamepile/web",
+2026-04-01T19:13:07.6463003Z         "DOCKER_META_VERSION": "1.4.0"
+2026-04-01T19:13:07.6463288Z       }
+2026-04-01T19:13:07.6463450Z     }
+2026-04-01T19:13:07.6463647Z   }
+2026-04-01T19:13:07.6463819Z }
+2026-04-01T19:13:07.6464241Z ##[endgroup]
+2026-04-01T19:13:07.6464722Z ##[group]Bake file definition (labels)
+2026-04-01T19:13:07.6464997Z {
+2026-04-01T19:13:07.6465182Z   "target": {
+2026-04-01T19:13:07.6465394Z     "docker-metadata-action": {
+2026-04-01T19:13:07.6465648Z       "labels": {
+2026-04-01T19:13:07.6465973Z         "org.opencontainers.image.created": "2026-04-01T19:13:07.621Z",
+2026-04-01T19:13:07.6467221Z         "org.opencontainers.image.description": "Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.",
+2026-04-01T19:13:07.6469824Z         "org.opencontainers.image.licenses": "GPL-3.0",
+2026-04-01T19:13:07.6470520Z         "org.opencontainers.image.revision": "077dfc0d67ec7d72d16c67444aaf60576487058a",
+2026-04-01T19:13:07.6471350Z         "org.opencontainers.image.source": "https://github.com/thomaskoeppe/gamepile",
+2026-04-01T19:13:07.6472051Z         "org.opencontainers.image.title": "gamepile",
+2026-04-01T19:13:07.6472679Z         "org.opencontainers.image.url": "https://github.com/thomaskoeppe/gamepile",
+2026-04-01T19:13:07.6473346Z         "org.opencontainers.image.version": "1.4.0"
+2026-04-01T19:13:07.6473759Z       }
+2026-04-01T19:13:07.6473960Z     }
+2026-04-01T19:13:07.6474181Z   }
+2026-04-01T19:13:07.6474437Z }
+2026-04-01T19:13:07.6474913Z ##[endgroup]
+2026-04-01T19:13:07.6475395Z ##[group]Bake file definition (annotations)
+2026-04-01T19:13:07.6475813Z {
+2026-04-01T19:13:07.6476058Z   "target": {
+2026-04-01T19:13:07.6476348Z     "docker-metadata-action": {
+2026-04-01T19:13:07.6476732Z       "annotations": [
+2026-04-01T19:13:07.6477220Z         "manifest:org.opencontainers.image.created=2026-04-01T19:13:07.621Z",
+2026-04-01T19:13:07.6479249Z         "manifest:org.opencontainers.image.description=Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.",
+2026-04-01T19:13:07.6481387Z         "manifest:org.opencontainers.image.licenses=GPL-3.0",
+2026-04-01T19:13:07.6482182Z         "manifest:org.opencontainers.image.revision=077dfc0d67ec7d72d16c67444aaf60576487058a",
+2026-04-01T19:13:07.6483182Z         "manifest:org.opencontainers.image.source=https://github.com/thomaskoeppe/gamepile",
+2026-04-01T19:13:07.6483985Z         "manifest:org.opencontainers.image.title=gamepile",
+2026-04-01T19:13:07.6484747Z         "manifest:org.opencontainers.image.url=https://github.com/thomaskoeppe/gamepile",
+2026-04-01T19:13:07.6485524Z         "manifest:org.opencontainers.image.version=1.4.0"
+2026-04-01T19:13:07.6485984Z       ]
+2026-04-01T19:13:07.6486222Z     }
+2026-04-01T19:13:07.6486459Z   }
+2026-04-01T19:13:07.6486705Z }
+2026-04-01T19:13:07.6487190Z ##[endgroup]
+2026-04-01T19:13:07.6612672Z ##[group]Run docker/build-push-action@v6
+2026-04-01T19:13:07.6612945Z with:
+2026-04-01T19:13:07.6613107Z   context: .
+2026-04-01T19:13:07.6613282Z   file: packages/web/Dockerfile
+2026-04-01T19:13:07.6613495Z   push: true
+2026-04-01T19:13:07.6614093Z   tags: ghcr.io/thomaskoeppe/gamepile/web:1.4.0
+ghcr.io/thomaskoeppe/gamepile/web:1.4
+ghcr.io/thomaskoeppe/gamepile/web:077dfc0
+ghcr.io/thomaskoeppe/gamepile/web:latest
+2026-04-01T19:13:07.6617078Z   labels: org.opencontainers.image.created=2026-04-01T19:13:07.621Z
+org.opencontainers.image.description=Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.
+org.opencontainers.image.licenses=GPL-3.0
+org.opencontainers.image.revision=077dfc0d67ec7d72d16c67444aaf60576487058a
+org.opencontainers.image.source=https://github.com/thomaskoeppe/gamepile
+org.opencontainers.image.title=gamepile
+org.opencontainers.image.url=https://github.com/thomaskoeppe/gamepile
+org.opencontainers.image.version=1.4.0
+2026-04-01T19:13:07.6620019Z   cache-from: type=gha
+2026-04-01T19:13:07.6620227Z   cache-to: type=gha,mode=max
+2026-04-01T19:13:07.6620440Z   load: false
+2026-04-01T19:13:07.6620604Z   no-cache: false
+2026-04-01T19:13:07.6620776Z   pull: false
+2026-04-01T19:13:07.6621080Z   github-token: ***
+2026-04-01T19:13:07.6621258Z env:
+2026-04-01T19:13:07.6621416Z   REGISTRY: ghcr.io
+2026-04-01T19:13:07.6621603Z   DOCKER_METADATA_OUTPUT_VERSION: 1.4.0
+2026-04-01T19:13:07.6622360Z   DOCKER_METADATA_OUTPUT_TAGS: ghcr.io/thomaskoeppe/gamepile/web:1.4.0
+ghcr.io/thomaskoeppe/gamepile/web:1.4
+ghcr.io/thomaskoeppe/gamepile/web:077dfc0
+ghcr.io/thomaskoeppe/gamepile/web:latest
+2026-04-01T19:13:07.6623152Z   DOCKER_METADATA_OUTPUT_TAG_NAMES: 1.4.0
+1.4
+077dfc0
+latest
+2026-04-01T19:13:07.6625800Z   DOCKER_METADATA_OUTPUT_LABELS: org.opencontainers.image.created=2026-04-01T19:13:07.621Z
+org.opencontainers.image.description=Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.
+org.opencontainers.image.licenses=GPL-3.0
+org.opencontainers.image.revision=077dfc0d67ec7d72d16c67444aaf60576487058a
+org.opencontainers.image.source=https://github.com/thomaskoeppe/gamepile
+org.opencontainers.image.title=gamepile
+org.opencontainers.image.url=https://github.com/thomaskoeppe/gamepile
+org.opencontainers.image.version=1.4.0
+2026-04-01T19:13:07.6631158Z   DOCKER_METADATA_OUTPUT_ANNOTATIONS: manifest:org.opencontainers.image.created=2026-04-01T19:13:07.621Z
+manifest:org.opencontainers.image.description=Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.
+manifest:org.opencontainers.image.licenses=GPL-3.0
+manifest:org.opencontainers.image.revision=077dfc0d67ec7d72d16c67444aaf60576487058a
+manifest:org.opencontainers.image.source=https://github.com/thomaskoeppe/gamepile
+manifest:org.opencontainers.image.title=gamepile
+manifest:org.opencontainers.image.url=https://github.com/thomaskoeppe/gamepile
+manifest:org.opencontainers.image.version=1.4.0
+2026-04-01T19:13:07.6640162Z   DOCKER_METADATA_OUTPUT_JSON: {"tags":["ghcr.io/thomaskoeppe/gamepile/web:1.4.0","ghcr.io/thomaskoeppe/gamepile/web:1.4","ghcr.io/thomaskoeppe/gamepile/web:077dfc0","ghcr.io/thomaskoeppe/gamepile/web:latest"],"tag-names":["1.4.0","1.4","077dfc0","latest"],"labels":{"org.opencontainers.image.created":"2026-04-01T19:13:07.621Z","org.opencontainers.image.description":"Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.","org.opencontainers.image.licenses":"GPL-3.0","org.opencontainers.image.revision":"077dfc0d67ec7d72d16c67444aaf60576487058a","org.opencontainers.image.source":"https://github.com/thomaskoeppe/gamepile","org.opencontainers.image.title":"gamepile","org.opencontainers.image.url":"https://github.com/thomaskoeppe/gamepile","org.opencontainers.image.version":"1.4.0"},"annotations":["manifest:org.opencontainers.image.created=2026-04-01T19:13:07.621Z","manifest:org.opencontainers.image.description=Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs.","manifest:org.opencontainers.image.licenses=GPL-3.0","manifest:org.opencontainers.image.revision=077dfc0d67ec7d72d16c67444aaf60576487058a","manifest:org.opencontainers.image.source=https://github.com/thomaskoeppe/gamepile","manifest:org.opencontainers.image.title=gamepile","manifest:org.opencontainers.image.url=https://github.com/thomaskoeppe/gamepile","manifest:org.opencontainers.image.version=1.4.0"]}
+2026-04-01T19:13:07.6646808Z   DOCKER_METADATA_OUTPUT_BAKE_FILE_TAGS: /home/runner/work/_temp/docker-actions-toolkit-jdx7eV/docker-metadata-action-bake-tags.json
+2026-04-01T19:13:07.6647691Z   DOCKER_METADATA_OUTPUT_BAKE_FILE_LABELS: /home/runner/work/_temp/docker-actions-toolkit-jdx7eV/docker-metadata-action-bake-labels.json
+2026-04-01T19:13:07.6648914Z   DOCKER_METADATA_OUTPUT_BAKE_FILE_ANNOTATIONS: /home/runner/work/_temp/docker-actions-toolkit-jdx7eV/docker-metadata-action-bake-annotations.json
+2026-04-01T19:13:07.6649805Z   DOCKER_METADATA_OUTPUT_BAKE_FILE: /home/runner/work/_temp/docker-actions-toolkit-jdx7eV/docker-metadata-action-bake.json
+2026-04-01T19:13:07.6650318Z ##[endgroup]
+2026-04-01T19:13:07.8980815Z ##[group]GitHub Actions runtime token ACs
+2026-04-01T19:13:07.8991536Z refs/heads/refs/tags/v1.4.0: read/write
+2026-04-01T19:13:07.8993233Z refs/heads/main: read
+2026-04-01T19:13:07.8994495Z ##[endgroup]
+2026-04-01T19:13:07.8995722Z ##[group]Docker info
+2026-04-01T19:13:07.9070460Z [command]/usr/bin/docker version
+2026-04-01T19:13:07.9262187Z Client: Docker Engine - Community
+2026-04-01T19:13:07.9265148Z  Version:           28.0.4
+2026-04-01T19:13:07.9278183Z  API version:       1.48
+2026-04-01T19:13:07.9279023Z  Go version:        go1.23.7
+2026-04-01T19:13:07.9279417Z  Git commit:        b8034c0
+2026-04-01T19:13:07.9279809Z  Built:             Tue Mar 25 15:07:16 2025
+2026-04-01T19:13:07.9280274Z  OS/Arch:           linux/amd64
+2026-04-01T19:13:07.9280650Z  Context:           default
+2026-04-01T19:13:07.9280888Z 
+2026-04-01T19:13:07.9281042Z Server: Docker Engine - Community
+2026-04-01T19:13:07.9281426Z  Engine:
+2026-04-01T19:13:07.9281693Z   Version:          28.0.4
+2026-04-01T19:13:07.9282114Z   API version:      1.48 (minimum version 1.24)
+2026-04-01T19:13:07.9282604Z   Go version:       go1.23.7
+2026-04-01T19:13:07.9282965Z   Git commit:       6430e49
+2026-04-01T19:13:07.9283334Z   Built:            Tue Mar 25 15:07:16 2025
+2026-04-01T19:13:07.9283748Z   OS/Arch:          linux/amd64
+2026-04-01T19:13:07.9284131Z   Experimental:     false
+2026-04-01T19:13:07.9284477Z  containerd:
+2026-04-01T19:13:07.9284765Z   Version:          v2.2.2
+2026-04-01T19:13:07.9285208Z   GitCommit:        301b2dac98f15c27117da5c8af12118a041a31d9
+2026-04-01T19:13:07.9285704Z  runc:
+2026-04-01T19:13:07.9285963Z   Version:          1.3.4
+2026-04-01T19:13:07.9286321Z   GitCommit:        v1.3.4-0-gd6d73eb8
+2026-04-01T19:13:07.9286732Z  docker-init:
+2026-04-01T19:13:07.9287030Z   Version:          0.19.0
+2026-04-01T19:13:07.9287380Z   GitCommit:        de40ad0
+2026-04-01T19:13:07.9321541Z [command]/usr/bin/docker info
+2026-04-01T19:13:07.9821433Z Client: Docker Engine - Community
+2026-04-01T19:13:07.9821884Z  Version:    28.0.4
+2026-04-01T19:13:07.9822106Z  Context:    default
+2026-04-01T19:13:07.9822812Z  Debug Mode: false
+2026-04-01T19:13:07.9823111Z  Plugins:
+2026-04-01T19:13:07.9823396Z   buildx: Docker Buildx (Docker Inc.)
+2026-04-01T19:13:07.9823750Z     Version:  v0.32.1
+2026-04-01T19:13:07.9824139Z     Path:     /usr/libexec/docker/cli-plugins/docker-buildx
+2026-04-01T19:13:07.9824626Z   compose: Docker Compose (Docker Inc.)
+2026-04-01T19:13:07.9824981Z     Version:  v2.38.2
+2026-04-01T19:13:07.9825379Z     Path:     /usr/libexec/docker/cli-plugins/docker-compose
+2026-04-01T19:13:07.9825612Z 
+2026-04-01T19:13:07.9825674Z Server:
+2026-04-01T19:13:07.9825828Z  Containers: 1
+2026-04-01T19:13:07.9826464Z   Running: 1
+2026-04-01T19:13:07.9826624Z   Paused: 0
+2026-04-01T19:13:07.9826777Z   Stopped: 0
+2026-04-01T19:13:07.9826932Z  Images: 7
+2026-04-01T19:13:07.9827120Z  Server Version: 28.0.4
+2026-04-01T19:13:07.9827318Z  Storage Driver: overlay2
+2026-04-01T19:13:07.9827514Z   Backing Filesystem: extfs
+2026-04-01T19:13:07.9827715Z   Supports d_type: true
+2026-04-01T19:13:07.9827902Z   Using metacopy: false
+2026-04-01T19:13:07.9828092Z   Native Overlay Diff: false
+2026-04-01T19:13:07.9828578Z   userxattr: false
+2026-04-01T19:13:07.9828786Z  Logging Driver: json-file
+2026-04-01T19:13:07.9828985Z  Cgroup Driver: systemd
+2026-04-01T19:13:07.9829159Z  Cgroup Version: 2
+2026-04-01T19:13:07.9829329Z  Plugins:
+2026-04-01T19:13:07.9829474Z   Volume: local
+2026-04-01T19:13:07.9829678Z   Network: bridge host ipvlan macvlan null overlay
+2026-04-01T19:13:07.9830166Z   Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog
+2026-04-01T19:13:07.9830500Z  Swarm: inactive
+2026-04-01T19:13:07.9830684Z  Runtimes: io.containerd.runc.v2 runc
+2026-04-01T19:13:07.9830925Z  Default Runtime: runc
+2026-04-01T19:13:07.9831231Z  Init Binary: docker-init
+2026-04-01T19:13:07.9831504Z  containerd version: 301b2dac98f15c27117da5c8af12118a041a31d9
+2026-04-01T19:13:07.9831829Z  runc version: v1.3.4-0-gd6d73eb8
+2026-04-01T19:13:07.9832039Z  init version: de40ad0
+2026-04-01T19:13:07.9832221Z  Security Options:
+2026-04-01T19:13:07.9832389Z   apparmor
+2026-04-01T19:13:07.9832542Z   seccomp
+2026-04-01T19:13:07.9832686Z    Profile: builtin
+2026-04-01T19:13:07.9832852Z   cgroupns
+2026-04-01T19:13:07.9833011Z  Kernel Version: 6.17.0-1008-azure
+2026-04-01T19:13:07.9833241Z  Operating System: Ubuntu 24.04.4 LTS
+2026-04-01T19:13:07.9833462Z  OSType: linux
+2026-04-01T19:13:07.9833623Z  Architecture: x86_64
+2026-04-01T19:13:07.9833798Z  CPUs: 4
+2026-04-01T19:13:07.9833945Z  Total Memory: 15.62GiB
+2026-04-01T19:13:07.9834190Z  Name: runnervmrg6be
+2026-04-01T19:13:07.9834512Z  ID: 26c853c4-ebf5-403c-a446-44e39e017c08
+2026-04-01T19:13:07.9834927Z  Docker Root Dir: /var/lib/docker
+2026-04-01T19:13:07.9835238Z  Debug Mode: false
+2026-04-01T19:13:07.9835415Z  Username: githubactions
+2026-04-01T19:13:07.9835603Z  Experimental: false
+2026-04-01T19:13:07.9835789Z  Insecure Registries:
+2026-04-01T19:13:07.9836000Z   ::1/128
+2026-04-01T19:13:07.9836144Z   127.0.0.0/8
+2026-04-01T19:13:07.9836315Z  Live Restore Enabled: false
+2026-04-01T19:13:07.9836457Z 
+2026-04-01T19:13:07.9836724Z ##[endgroup]
+2026-04-01T19:13:07.9837049Z ##[group]Proxy configuration
+2026-04-01T19:13:07.9837978Z No proxy configuration found
+2026-04-01T19:13:07.9839932Z ##[endgroup]
+2026-04-01T19:13:08.0427539Z ##[group]Buildx version
+2026-04-01T19:13:08.0454291Z [command]/usr/bin/docker buildx version
+2026-04-01T19:13:08.0994024Z github.com/docker/buildx v0.32.1 d3bfb3f4e48a67dda56e957a6636f4fab6c5fcb2
+2026-04-01T19:13:08.1026085Z ##[endgroup]
+2026-04-01T19:13:08.1026612Z ##[group]Builder info
+2026-04-01T19:13:08.1900761Z {
+2026-04-01T19:13:08.1901076Z   "nodes": [
+2026-04-01T19:13:08.1901392Z     {
+2026-04-01T19:13:08.1901680Z       "name": "builder-2ea52125-bd96-41ca-a16a-8f855bb5777e0",
+2026-04-01T19:13:08.1902035Z       "endpoint": "unix:///var/run/docker.sock",
+2026-04-01T19:13:08.1902310Z       "status": "running",
+2026-04-01T19:13:08.1902787Z       "buildkitd-flags": "--allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host",
+2026-04-01T19:13:08.1903561Z       "buildkit": "v0.28.1",
+2026-04-01T19:13:08.1903884Z       "platforms": "linux/amd64,linux/amd64/v2,linux/amd64/v3,linux/386",
+2026-04-01T19:13:08.1904203Z       "features": {
+2026-04-01T19:13:08.1904490Z         "Automatically load images to the Docker Engine image store": true,
+2026-04-01T19:13:08.1904823Z         "Cache export": true,
+2026-04-01T19:13:08.1905036Z         "Direct push": true,
+2026-04-01T19:13:08.1905236Z         "Docker exporter": true,
+2026-04-01T19:13:08.1905462Z         "Multi-platform build": true,
+2026-04-01T19:13:08.1905685Z         "OCI exporter": true
+2026-04-01T19:13:08.1905996Z       },
+2026-04-01T19:13:08.1906140Z       "labels": {
+2026-04-01T19:13:08.1906377Z         "org.mobyproject.buildkit.worker.executor": "oci",
+2026-04-01T19:13:08.1906761Z         "org.mobyproject.buildkit.worker.hostname": "b29e8ea7c2f2",
+2026-04-01T19:13:08.1907137Z         "org.mobyproject.buildkit.worker.network": "host",
+2026-04-01T19:13:08.1907526Z         "org.mobyproject.buildkit.worker.oci.process-mode": "sandbox",
+2026-04-01T19:13:08.1907947Z         "org.mobyproject.buildkit.worker.selinux.enabled": "false",
+2026-04-01T19:13:08.1908958Z         "org.mobyproject.buildkit.worker.snapshotter": "overlayfs"
+2026-04-01T19:13:08.1909294Z       },
+2026-04-01T19:13:08.1909443Z       "gcPolicy": [
+2026-04-01T19:13:08.1909611Z         {
+2026-04-01T19:13:08.1909756Z           "all": false,
+2026-04-01T19:13:08.1909938Z           "filter": [
+2026-04-01T19:13:08.1910147Z             "type==source.local",
+2026-04-01T19:13:08.1910372Z             "type==exec.cachemount",
+2026-04-01T19:13:08.1910625Z             "type==source.git.checkout"
+2026-04-01T19:13:08.1910848Z           ],
+2026-04-01T19:13:08.1911019Z           "keepDuration": "48h0m0s",
+2026-04-01T19:13:08.1911235Z           "maxUsedSpace": "488.3MiB"
+2026-04-01T19:13:08.1911437Z         },
+2026-04-01T19:13:08.1911577Z         {
+2026-04-01T19:13:08.1911725Z           "all": false,
+2026-04-01T19:13:08.1911917Z           "keepDuration": "1440h0m0s",
+2026-04-01T19:13:08.1912143Z           "reservedSpace": "9.313GiB",
+2026-04-01T19:13:08.1912359Z           "maxUsedSpace": "93.13GiB",
+2026-04-01T19:13:08.1912579Z           "minFreeSpace": "27.01GiB"
+2026-04-01T19:13:08.1912783Z         },
+2026-04-01T19:13:08.1912922Z         {
+2026-04-01T19:13:08.1913067Z           "all": false,
+2026-04-01T19:13:08.1913244Z           "reservedSpace": "9.313GiB",
+2026-04-01T19:13:08.1913462Z           "maxUsedSpace": "93.13GiB",
+2026-04-01T19:13:08.1913673Z           "minFreeSpace": "27.01GiB"
+2026-04-01T19:13:08.1913875Z         },
+2026-04-01T19:13:08.1914008Z         {
+2026-04-01T19:13:08.1914163Z           "all": true,
+2026-04-01T19:13:08.1914342Z           "reservedSpace": "9.313GiB",
+2026-04-01T19:13:08.1914564Z           "maxUsedSpace": "93.13GiB",
+2026-04-01T19:13:08.1914779Z           "minFreeSpace": "27.01GiB"
+2026-04-01T19:13:08.1914973Z         }
+2026-04-01T19:13:08.1915114Z       ]
+2026-04-01T19:13:08.1915249Z     }
+2026-04-01T19:13:08.1915395Z   ],
+2026-04-01T19:13:08.1915597Z   "name": "builder-2ea52125-bd96-41ca-a16a-8f855bb5777e",
+2026-04-01T19:13:08.1915892Z   "driver": "docker-container",
+2026-04-01T19:13:08.1916119Z   "lastActivity": "2026-04-01T19:13:03.000Z"
+2026-04-01T19:13:08.1916347Z }
+2026-04-01T19:13:08.1916708Z ##[endgroup]
+2026-04-01T19:13:08.3556242Z [command]/usr/bin/docker buildx build --cache-from type=gha --cache-to type=gha,mode=max --file packages/web/Dockerfile --iidfile /home/runner/work/_temp/docker-actions-toolkit-A3Dn9T/build-iidfile-05708e7338.txt --label org.opencontainers.image.created=2026-04-01T19:13:07.621Z --label org.opencontainers.image.description=Gamepile is a self-hosted game management platform that lets you collect, organize, and process game data. It uses a modular backend with workers, a database, and caching (Redis) alongside a web frontend to manage your game library, metadata, and background jobs. --label org.opencontainers.image.licenses=GPL-3.0 --label org.opencontainers.image.revision=077dfc0d67ec7d72d16c67444aaf60576487058a --label org.opencontainers.image.source=https://github.com/thomaskoeppe/gamepile --label org.opencontainers.image.title=gamepile --label org.opencontainers.image.url=https://github.com/thomaskoeppe/gamepile --label org.opencontainers.image.version=1.4.0 --attest type=provenance,mode=max,builder-id=https://github.com/thomaskoeppe/gamepile/actions/runs/23866195020/attempts/1 --tag ghcr.io/thomaskoeppe/gamepile/web:1.4.0 --tag ghcr.io/thomaskoeppe/gamepile/web:1.4 --tag ghcr.io/thomaskoeppe/gamepile/web:077dfc0 --tag ghcr.io/thomaskoeppe/gamepile/web:latest --metadata-file /home/runner/work/_temp/docker-actions-toolkit-A3Dn9T/build-metadata-c827cde6d6.json --push .
+2026-04-01T19:13:08.6822892Z #0 building with "builder-2ea52125-bd96-41ca-a16a-8f855bb5777e" instance using docker-container driver
+2026-04-01T19:13:08.6823605Z 
+2026-04-01T19:13:08.6823771Z #1 [internal] load build definition from Dockerfile
+2026-04-01T19:13:08.6824158Z #1 transferring dockerfile: 1.46kB done
+2026-04-01T19:13:08.6824473Z #1 DONE 0.0s
+2026-04-01T19:13:08.6824600Z 
+2026-04-01T19:13:08.6824772Z #2 [auth] library/node:pull token for registry-1.docker.io
+2026-04-01T19:13:08.6825140Z #2 DONE 0.0s
+2026-04-01T19:13:08.6825260Z 
+2026-04-01T19:13:08.6825455Z #3 [internal] load metadata for docker.io/library/node:22-alpine
+2026-04-01T19:13:09.2150926Z #3 DONE 0.7s
+2026-04-01T19:13:09.3584143Z 
+2026-04-01T19:13:09.3585639Z #4 [internal] load .dockerignore
+2026-04-01T19:13:09.3586549Z #4 transferring context: 210B done
+2026-04-01T19:13:09.3586797Z #4 DONE 0.0s
+2026-04-01T19:13:09.3586899Z 
+2026-04-01T19:13:09.3587351Z #5 [base 1/3] FROM docker.io/library/node:22-alpine@sha256:4d64b49e6c891c8fc821007cb1cdc6c0db7773110ac2c34bf2e6960adef62ed3
+2026-04-01T19:13:09.3588162Z #5 resolve docker.io/library/node:22-alpine@sha256:4d64b49e6c891c8fc821007cb1cdc6c0db7773110ac2c34bf2e6960adef62ed3 done
+2026-04-01T19:13:09.3591639Z #5 DONE 0.0s
+2026-04-01T19:13:09.3591850Z 
+2026-04-01T19:13:09.3592096Z #6 importing cache manifest from gha:9459148173747441306
+2026-04-01T19:13:09.3592449Z #6 DONE 0.1s
+2026-04-01T19:13:09.3592636Z 
+2026-04-01T19:13:09.3592929Z #7 [internal] load build context
+2026-04-01T19:13:09.3593185Z #7 transferring context: 2.06MB 0.1s done
+2026-04-01T19:13:09.4607348Z #7 DONE 0.1s
+2026-04-01T19:13:09.4607808Z 
+2026-04-01T19:13:09.4608135Z #8 [base 2/3] RUN apk add --no-cache libc6-compat openssl
+2026-04-01T19:13:09.4608830Z #8 CACHED
+2026-04-01T19:13:09.4608967Z 
+2026-04-01T19:13:09.4609058Z #9 [base 3/3] WORKDIR /app
+2026-04-01T19:13:09.4610080Z #9 sha256:41dd1e16a767560f2d634b839a2b59a61a6ef5a71164def33c32bc07e1931d39 93B / 93B 0.0s done
+2026-04-01T19:13:09.4610901Z #9 sha256:087b41e5c641ca5ca6e39de79290a61a4f50b3b3a5fbe7db44a0f05c103a6275 447B / 447B 0.0s done
+2026-04-01T19:13:09.5855708Z #9 sha256:fe39ae37eb23cff6798c1bd98c60a49757e1e31b18adc9a39616935c6c45bb42 400.15kB / 400.15kB 0.0s done
+2026-04-01T19:13:09.5856661Z #9 sha256:43fd9b73af2598c327c66de0de2e9ebe61c85bb1924fcfdf77b80055161a4b84 1.26MB / 1.26MB 0.1s done
+2026-04-01T19:13:09.5857369Z #9 sha256:7ac107224afb008bb83b20444cbc051b129c0ccd8b8db1f42662ab3c42eb0000 7.34MB / 51.96MB 0.2s
+2026-04-01T19:13:09.7144219Z #9 sha256:589002ba0eaed121a1dbf42f6648f29e5be55d5c8a6ee0f8eaa0285cc21ac153 3.86MB / 3.86MB 0.2s done
+2026-04-01T19:13:09.7145922Z #9 extracting sha256:589002ba0eaed121a1dbf42f6648f29e5be55d5c8a6ee0f8eaa0285cc21ac153 0.1s done
+2026-04-01T19:13:09.8855125Z #9 sha256:7ac107224afb008bb83b20444cbc051b129c0ccd8b8db1f42662ab3c42eb0000 30.41MB / 51.96MB 0.3s
+2026-04-01T19:13:09.8858343Z #9 sha256:7ac107224afb008bb83b20444cbc051b129c0ccd8b8db1f42662ab3c42eb0000 51.96MB / 51.96MB 0.5s
+2026-04-01T19:13:10.0614777Z #9 sha256:7ac107224afb008bb83b20444cbc051b129c0ccd8b8db1f42662ab3c42eb0000 51.96MB / 51.96MB 0.5s done
+2026-04-01T19:13:10.0617990Z #9 extracting sha256:7ac107224afb008bb83b20444cbc051b129c0ccd8b8db1f42662ab3c42eb0000
+2026-04-01T19:13:10.9054454Z #9 extracting sha256:7ac107224afb008bb83b20444cbc051b129c0ccd8b8db1f42662ab3c42eb0000 1.0s done
+2026-04-01T19:13:10.9055693Z #9 DONE 1.5s
+2026-04-01T19:13:11.0980669Z 
+2026-04-01T19:13:11.0981225Z #9 [base 3/3] WORKDIR /app
+2026-04-01T19:13:11.0981962Z #9 extracting sha256:43fd9b73af2598c327c66de0de2e9ebe61c85bb1924fcfdf77b80055161a4b84 0.0s done
+2026-04-01T19:13:11.0982636Z #9 extracting sha256:087b41e5c641ca5ca6e39de79290a61a4f50b3b3a5fbe7db44a0f05c103a6275 done
+2026-04-01T19:13:11.0983250Z #9 extracting sha256:fe39ae37eb23cff6798c1bd98c60a49757e1e31b18adc9a39616935c6c45bb42 0.0s done
+2026-04-01T19:13:11.0983847Z #9 extracting sha256:41dd1e16a767560f2d634b839a2b59a61a6ef5a71164def33c32bc07e1931d39 done
+2026-04-01T19:13:11.0984257Z #9 DONE 1.6s
+2026-04-01T19:13:11.0984680Z 
+2026-04-01T19:13:11.0984819Z #10 [deps 1/4] COPY package.json package-lock.json ./
+2026-04-01T19:13:11.1159617Z #10 DONE 0.2s
+2026-04-01T19:13:11.2850416Z 
+2026-04-01T19:13:11.2851158Z #11 [deps 2/4] COPY packages/web/package.json ./packages/web/package.json
+2026-04-01T19:13:11.2851835Z #11 DONE 0.0s
+2026-04-01T19:13:11.2852015Z 
+2026-04-01T19:13:11.2852394Z #12 [deps 3/4] COPY packages/worker/package.json ./packages/worker/package.json
+2026-04-01T19:13:11.2853044Z #12 DONE 0.0s
+2026-04-01T19:13:11.2853230Z 
+2026-04-01T19:13:11.2853453Z #13 [deps 4/4] RUN npm i --no-audit --no-fund
+2026-04-01T19:13:17.4841441Z #13 6.347 npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+2026-04-01T19:13:41.5922633Z #13 30.46 
+2026-04-01T19:13:41.5923022Z #13 30.46 added 1228 packages in 30s
+2026-04-01T19:13:41.7447815Z #13 30.46 npm notice
+2026-04-01T19:13:41.7448536Z #13 30.46 npm notice New major version of npm available! 10.9.7 -> 11.12.1
+2026-04-01T19:13:41.7449313Z #13 30.46 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.1
+2026-04-01T19:13:41.7450014Z #13 30.46 npm notice To update run: npm install -g npm@11.12.1
+2026-04-01T19:13:41.7450468Z #13 30.46 npm notice
+2026-04-01T19:13:44.4074915Z #13 DONE 33.3s
+2026-04-01T19:13:50.2365643Z 
+2026-04-01T19:13:50.2366284Z #14 [builder 1/5] COPY --from=deps /app/node_modules ./node_modules
+2026-04-01T19:14:03.0746652Z #14 DONE 12.8s
+2026-04-01T19:14:03.2260338Z 
+2026-04-01T19:14:03.2261014Z #15 [builder 2/5] COPY prisma/schema.prisma ./prisma/schema.prisma
+2026-04-01T19:14:03.6914932Z #15 DONE 0.6s
+2026-04-01T19:14:03.9171373Z 
+2026-04-01T19:14:03.9171881Z #16 [builder 3/5] COPY . .
+2026-04-01T19:14:03.9172309Z #16 DONE 0.1s
+2026-04-01T19:14:03.9172496Z 
+2026-04-01T19:14:03.9172865Z #17 [builder 4/5] RUN npm run prisma:generate --workspace=packages/web
+2026-04-01T19:14:04.2241770Z #17 0.458 
+2026-04-01T19:14:04.2242231Z #17 0.458 > @gamepile/web@1.4.0 prisma:generate
+2026-04-01T19:14:04.2243009Z #17 0.458 > prisma generate --generator client_web
+2026-04-01T19:14:04.2243482Z #17 0.458 
+2026-04-01T19:14:05.2900935Z #17 1.523 Loaded Prisma config from prisma.config.ts.
+2026-04-01T19:14:05.2901960Z #17 1.523 
+2026-04-01T19:14:05.5026864Z #17 1.585 Prisma schema loaded from ../../prisma/schema.prisma.
+2026-04-01T19:14:05.8160179Z #17 2.049 
+2026-04-01T19:14:05.8161358Z #17 2.049 ✔ Generated Prisma Client (7.4.2) to ./prisma/generated in 311ms
+2026-04-01T19:14:05.8161809Z #17 2.049 
+2026-04-01T19:14:06.0498594Z #17 2.074 npm notice
+2026-04-01T19:14:06.0499301Z #17 2.074 npm notice New major version of npm available! 10.9.7 -> 11.12.1
+2026-04-01T19:14:06.0500109Z #17 2.074 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.1
+2026-04-01T19:14:06.0500916Z #17 2.074 npm notice To update run: npm install -g npm@11.12.1
+2026-04-01T19:14:06.0501483Z #17 2.074 npm notice
+2026-04-01T19:14:06.0501881Z #17 DONE 2.1s
+2026-04-01T19:14:06.0502067Z 
+2026-04-01T19:14:06.0502304Z #18 [builder 5/5] RUN npm run build --workspace=packages/web
+2026-04-01T19:14:06.1337014Z #18 0.231 
+2026-04-01T19:14:06.1340023Z #18 0.231 > @gamepile/web@1.4.0 build
+2026-04-01T19:14:06.1340428Z #18 0.231 > next build --webpack
+2026-04-01T19:14:06.1340761Z #18 0.231 
+2026-04-01T19:14:07.0704922Z #18 1.171 Attention: Next.js now collects completely anonymous telemetry regarding usage.
+2026-04-01T19:14:07.3087830Z #18 1.172 This information is used to shape Next.js' roadmap and prioritize features.
+2026-04-01T19:14:07.3091818Z #18 1.172 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+2026-04-01T19:14:07.3093189Z #18 1.172 https://nextjs.org/telemetry
+2026-04-01T19:14:07.3093660Z #18 1.172 
+2026-04-01T19:14:07.3094320Z #18 1.181 ▲ Next.js 16.1.7 (webpack)
+2026-04-01T19:14:07.3094765Z #18 1.181 - Experiments (use with caution):
+2026-04-01T19:14:07.3095372Z #18 1.181   · serverActions
+2026-04-01T19:14:07.3095756Z #18 1.182 
+2026-04-01T19:14:07.3096489Z #18 1.259   Creating an optimized production build ...
+2026-04-01T19:14:25.5316188Z #18 19.63 ⚠ Compiled with warnings in 17.3s
+2026-04-01T19:14:25.5316676Z #18 19.63 
+2026-04-01T19:14:25.6821856Z #18 19.63 ../../node_modules/bullmq/dist/esm/classes/child-processor.js
+2026-04-01T19:14:25.6822610Z #18 19.63 Critical dependency: the request of a dependency is an expression
+2026-04-01T19:14:25.6822997Z #18 19.63 
+2026-04-01T19:14:25.6823191Z #18 19.63 Import trace for requested module:
+2026-04-01T19:14:25.6823517Z #18 19.63 ../../node_modules/bullmq/dist/esm/classes/child-processor.js
+2026-04-01T19:14:25.6823886Z #18 19.63 ../../node_modules/bullmq/dist/esm/classes/index.js
+2026-04-01T19:14:25.6824214Z #18 19.63 ../../node_modules/bullmq/dist/esm/index.js
+2026-04-01T19:14:25.6824479Z #18 19.63 ./lib/queue.ts
+2026-04-01T19:14:25.6824673Z #18 19.63 ./lib/actions/jobs.ts
+2026-04-01T19:14:25.6824897Z #18 19.63 ./app/api/auth/callback/route.ts
+2026-04-01T19:14:25.6825123Z #18 19.63 
+2026-04-01T19:14:44.8418541Z #18 38.94 ✓ Compiled successfully in 34.5s
+2026-04-01T19:14:44.9973417Z #18 38.95   Running TypeScript ...
+2026-04-01T19:14:56.2325196Z #18 50.33   Collecting page data using 3 workers ...
+2026-04-01T19:14:57.0762685Z #18 51.18 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:14:57.0764971Z #18 51.18     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:14:57.0769879Z #18 51.18     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:14:57.0772097Z #18 51.18     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:14:57.2014169Z #18 51.18 AggregateError: 
+2026-04-01T19:14:57.2014684Z #18 51.18     at ignore-listed frames {
+2026-04-01T19:14:57.2015135Z #18 51.18   code: 'ECONNREFUSED'
+2026-04-01T19:14:57.2015514Z #18 51.18 }
+2026-04-01T19:14:57.2015906Z #18 51.24 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:14:57.2016539Z #18 51.24     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:14:57.2017124Z #18 51.24     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:14:57.2017928Z #18 51.24     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:14:57.2018988Z #18 51.24 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:14:57.2019596Z #18 51.24     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:14:57.2020209Z #18 51.24     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:14:57.2020934Z #18 51.24     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:14:57.2021722Z #18 51.30 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:14:57.2022321Z #18 51.30     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:14:57.2022897Z #18 51.30     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:14:57.2023621Z #18 51.30     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:14:57.3936972Z #18 51.34 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:14:57.3942606Z #18 51.34     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:14:57.3943219Z #18 51.34     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:14:57.3944019Z #18 51.34     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:14:58.8220195Z #18 52.92 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:14:58.8222953Z #18 52.92     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:14:58.8227883Z #18 52.92     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:14:58.8229266Z #18 52.92     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:14:58.8232152Z #18 52.92 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:14:58.8232722Z #18 52.92     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:14:58.8233245Z #18 52.92     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:14:58.8233911Z #18 52.92     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:14:58.8234860Z #18 52.92 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:14:58.8235398Z #18 52.92     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:14:58.8235904Z #18 52.92     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:14:58.8236540Z #18 52.92     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:14:58.8237254Z #18 52.92 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:14:58.8237781Z #18 52.92     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:14:58.8246593Z #18 52.92     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:14:58.8247340Z #18 52.92     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:14:58.8248089Z #18 52.92 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:14:58.8248840Z #18 52.92     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:14:58.8249398Z #18 52.92     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:14:58.8250089Z #18 52.92     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:14:58.8250772Z #18 52.92 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:14:58.8251301Z #18 52.92     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:14:58.8251804Z #18 52.92     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:14:58.8252453Z #18 52.92     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:14:58.9727020Z #18 52.92 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:14:58.9727715Z #18 52.92     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:14:58.9728544Z #18 52.92     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:14:58.9729284Z #18 52.92     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:14:58.9730063Z #18 52.92 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:14:58.9730657Z #18 52.92     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:14:58.9731253Z #18 52.92     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:14:58.9731959Z #18 52.92     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:14:58.9732708Z #18 52.92 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:14:58.9733304Z #18 52.92     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:14:58.9733922Z #18 52.92     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:14:58.9734621Z #18 52.92     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:14:58.9735285Z #18 52.92 AggregateError: 
+2026-04-01T19:14:58.9735644Z #18 52.92     at ignore-listed frames {
+2026-04-01T19:14:58.9736058Z #18 52.92   code: 'ECONNREFUSED'
+2026-04-01T19:14:58.9736446Z #18 52.92 }
+2026-04-01T19:14:58.9736816Z #18 52.92 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:14:58.9737400Z #18 52.92     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:14:58.9737975Z #18 52.92     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:14:58.9738977Z #18 52.92     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:14:58.9739746Z #18 52.92 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:14:58.9740329Z #18 52.92     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:14:58.9741299Z #18 52.92     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:14:58.9742034Z #18 52.92     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:00.0793571Z #18 54.18 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:15:00.0794256Z #18 54.18     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:15:00.0797244Z #18 54.18     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:15:00.0798022Z #18 54.18     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:00.0799000Z #18 54.18 AggregateError: 
+2026-04-01T19:15:00.0800044Z #18 54.18     at ignore-listed frames {
+2026-04-01T19:15:00.0800491Z #18 54.18   code: 'ECONNREFUSED'
+2026-04-01T19:15:00.0800836Z #18 54.18 }
+2026-04-01T19:15:00.0801250Z #18 54.18 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:15:00.0801872Z #18 54.18     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:15:00.0802451Z #18 54.18     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:15:00.0803199Z #18 54.18     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:00.0803962Z #18 54.18 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:15:00.0804568Z #18 54.18     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:15:00.0805135Z #18 54.18     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:15:00.0805841Z #18 54.18     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:00.2301765Z #18 54.18 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:15:00.2302455Z #18 54.18     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:15:00.2303064Z #18 54.18     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:15:00.2303793Z #18 54.18     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:00.2304537Z #18 54.18 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:15:00.2305137Z #18 54.18     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:15:00.2305683Z #18 54.18     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:15:00.2306379Z #18 54.18     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:00.2307122Z #18 54.18 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:15:00.2307682Z #18 54.18     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:15:00.2308232Z #18 54.18     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:15:00.2309172Z #18 54.18     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:00.9289268Z #18 55.03 AggregateError: 
+2026-04-01T19:15:00.9289630Z #18 55.03     at ignore-listed frames {
+2026-04-01T19:15:00.9289985Z #18 55.03   code: 'ECONNREFUSED'
+2026-04-01T19:15:00.9290199Z #18 55.03 }
+2026-04-01T19:15:00.9290431Z #18 55.03 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:15:00.9290827Z #18 55.03     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:15:00.9291286Z #18 55.03     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:15:00.9291678Z #18 55.03     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:01.0793633Z #18 55.03 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:15:01.0794331Z #18 55.03     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:15:01.0794915Z #18 55.03     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:15:01.0795623Z #18 55.03     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:01.2178663Z #18 55.32 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:15:01.2180723Z #18 55.32     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:15:01.2181353Z #18 55.32     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:15:01.2182102Z #18 55.32     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:01.2182778Z #18 55.32 AggregateError: 
+2026-04-01T19:15:01.2183582Z #18 55.32     at ignore-listed frames {
+2026-04-01T19:15:01.2184028Z #18 55.32   code: 'ECONNREFUSED'
+2026-04-01T19:15:01.2184392Z #18 55.32 }
+2026-04-01T19:15:01.3499524Z #18 55.32 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:15:01.3500249Z #18 55.32     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:15:01.3501252Z #18 55.32     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:15:01.3501994Z #18 55.32     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:01.3503158Z #18 55.33   Generating static pages using 3 workers (0/11) ...
+2026-04-01T19:15:01.3506352Z #18 55.45   Generating static pages using 3 workers (2/11) 
+2026-04-01T19:15:01.3506997Z #18 55.45   Generating static pages using 3 workers (5/11) 
+2026-04-01T19:15:01.5920849Z #18 55.69   Generating static pages using 3 workers (8/11) 
+2026-04-01T19:15:01.6990072Z #18 55.69 ✓ Generating static pages using 3 workers (11/11) in 367.8ms
+2026-04-01T19:15:01.6990998Z #18 55.69 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:15:01.6991635Z #18 55.69     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:15:01.6992203Z #18 55.69     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:15:01.6992929Z #18 55.69     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:01.6993600Z #18 55.69 AggregateError: 
+2026-04-01T19:15:01.6993945Z #18 55.69     at ignore-listed frames {
+2026-04-01T19:15:01.6994366Z #18 55.69   code: 'ECONNREFUSED'
+2026-04-01T19:15:01.6994728Z #18 55.69 }
+2026-04-01T19:15:01.6995118Z #18 55.69 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:15:01.6995709Z #18 55.69     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:15:01.6996254Z #18 55.69     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:15:01.6996950Z #18 55.69     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:01.6997722Z #18 55.77 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:15:01.6998533Z #18 55.77     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:15:01.6999091Z #18 55.77     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:15:01.6999797Z #18 55.77     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:01.7000550Z #18 55.80 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:15:01.7001120Z #18 55.80     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:15:01.7001747Z #18 55.80     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:15:01.7002471Z #18 55.80     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:01.8435574Z #18 55.86 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:15:01.8437368Z #18 55.86     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:15:01.8439491Z #18 55.86     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:15:01.8455296Z #18 55.86     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:01.8456218Z #18 55.94 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:15:01.8456882Z #18 55.94     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:15:01.8457433Z #18 55.94     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:15:01.8458159Z #18 55.94     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:01.9728381Z #18 56.07 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:15:01.9730999Z #18 56.07     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:15:01.9731740Z #18 56.07     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:15:01.9732344Z #18 56.07     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:02.1676708Z #18 56.27 AggregateError: 
+2026-04-01T19:15:02.1677150Z #18 56.27     at ignore-listed frames {
+2026-04-01T19:15:02.1677595Z #18 56.27   code: 'ECONNREFUSED'
+2026-04-01T19:15:02.1677939Z #18 56.27 }
+2026-04-01T19:15:02.2971133Z #18 56.40 [ioredis] Unhandled error event: AggregateError: 
+2026-04-01T19:15:02.2971703Z #18 56.40     at internalConnectMultiple (node:net:1134:18)
+2026-04-01T19:15:02.2972042Z #18 56.40     at afterConnectMultiple (node:net:1715:7)
+2026-04-01T19:15:02.2972614Z #18 56.40     at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+2026-04-01T19:15:02.4633448Z #18 56.41   Finalizing page optimization ...
+2026-04-01T19:15:02.4634007Z #18 56.41   Collecting build traces ...
+2026-04-01T19:15:22.2316058Z #18 76.33 
+2026-04-01T19:15:22.3430979Z #18 76.34 Route (app)
+2026-04-01T19:15:22.3432700Z #18 76.34 ┌ ƒ /
+2026-04-01T19:15:22.3433384Z #18 76.34 ├ ƒ /_not-found
+2026-04-01T19:15:22.3433831Z #18 76.34 ├ ƒ /admin/collections
+2026-04-01T19:15:22.3434598Z #18 76.34 ├ ƒ /admin/configuration
+2026-04-01T19:15:22.3435046Z #18 76.34 ├ ƒ /admin/invite-codes
+2026-04-01T19:15:22.3435743Z #18 76.34 ├ ƒ /admin/jobs
+2026-04-01T19:15:22.3436129Z #18 76.34 ├ ƒ /admin/jobs/[id]
+2026-04-01T19:15:22.3436808Z #18 76.34 ├ ƒ /admin/users
+2026-04-01T19:15:22.3437204Z #18 76.34 ├ ƒ /admin/vaults
+2026-04-01T19:15:22.3437608Z #18 76.34 ├ ƒ /api/admin/jobs
+2026-04-01T19:15:22.3438237Z #18 76.34 ├ ƒ /api/admin/jobs/[id]
+2026-04-01T19:15:22.3438746Z #18 76.34 ├ ƒ /api/admin/jobs/[id]/stream
+2026-04-01T19:15:22.3439508Z #18 76.34 ├ ƒ /api/auth/callback
+2026-04-01T19:15:22.3439908Z #18 76.34 ├ ƒ /api/auth/signin
+2026-04-01T19:15:22.3440145Z #18 76.34 ├ ƒ /api/auth/signout
+2026-04-01T19:15:22.3440399Z #18 76.34 ├ ƒ /api/jobs/[id]/status/stream
+2026-04-01T19:15:22.3440679Z #18 76.34 ├ ƒ /api/logs
+2026-04-01T19:15:22.3441030Z #18 76.34 ├ ƒ /api/search
+2026-04-01T19:15:22.3441272Z #18 76.34 ├ ƒ /api/session
+2026-04-01T19:15:22.3441489Z #18 76.34 ├ ƒ /api/v1/heartbeat
+2026-04-01T19:15:22.3441725Z #18 76.34 ├ ƒ /api/vaults/[id]/auth
+2026-04-01T19:15:22.3442045Z #18 76.34 ├ ƒ /api/vaults/[id]/auth/status
+2026-04-01T19:15:22.3442378Z #18 76.34 ├ ƒ /collections
+2026-04-01T19:15:22.3442622Z #18 76.34 ├ ƒ /collections/[id]
+2026-04-01T19:15:22.3442881Z #18 76.34 ├ ƒ /collections/p/[id]
+2026-04-01T19:15:22.3443165Z #18 76.34 ├ ƒ /explore
+2026-04-01T19:15:22.3443447Z #18 76.34 ├ ƒ /library
+2026-04-01T19:15:22.3443650Z #18 76.34 ├ ○ /robots.txt
+2026-04-01T19:15:22.3443855Z #18 76.34 ├ ƒ /settings
+2026-04-01T19:15:22.3444056Z #18 76.34 ├ ƒ /vaults
+2026-04-01T19:15:22.3444253Z #18 76.34 └ ƒ /vaults/[id]
+2026-04-01T19:15:22.3444554Z #18 76.34 
+2026-04-01T19:15:22.3444699Z #18 76.34 
+2026-04-01T19:15:22.3444899Z #18 76.34 ƒ Proxy (Middleware)
+2026-04-01T19:15:22.3445090Z #18 76.34 
+2026-04-01T19:15:22.3445319Z #18 76.34 ○  (Static)   prerendered as static content
+2026-04-01T19:15:22.3445804Z #18 76.34 ƒ  (Dynamic)  server-rendered on demand
+2026-04-01T19:15:22.3446042Z #18 76.34 
+2026-04-01T19:15:22.3446188Z #18 DONE 76.4s
+2026-04-01T19:15:22.5957131Z 
+2026-04-01T19:15:22.5957544Z #19 [runner 1/9] WORKDIR /app
+2026-04-01T19:15:22.5957898Z #19 CACHED
+2026-04-01T19:15:22.5958007Z 
+2026-04-01T19:15:22.5958186Z #20 [runner 2/9] RUN addgroup --system --gid 1001 nodejs
+2026-04-01T19:15:22.5958760Z #20 CACHED
+2026-04-01T19:15:22.5958868Z 
+2026-04-01T19:15:22.5958992Z #21 [runner 3/9] RUN adduser --system --uid 1001 nextjs
+2026-04-01T19:15:22.7105604Z #21 sha256:aa320e802acb293f23729d7d86f065d63cf2b68c941be494ef32fc7a5916e39c 460B / 460B 0.0s done
+2026-04-01T19:15:22.9235673Z #21 sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 32B / 32B 0.1s done
+2026-04-01T19:15:22.9238594Z #21 extracting sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 done
+2026-04-01T19:15:22.9240584Z #21 extracting sha256:aa320e802acb293f23729d7d86f065d63cf2b68c941be494ef32fc7a5916e39c done
+2026-04-01T19:15:22.9242340Z #21 sha256:a45d25192141455625cfa767fd914608cc72562224033cb86bfd4888e4b6607f 976B / 976B 0.1s done
+2026-04-01T19:15:22.9244020Z #21 extracting sha256:a45d25192141455625cfa767fd914608cc72562224033cb86bfd4888e4b6607f done
+2026-04-01T19:15:22.9245336Z #21 DONE 0.2s
+2026-04-01T19:15:22.9246083Z 
+2026-04-01T19:15:22.9247234Z #22 [runner 4/9] COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/standalone ./
+2026-04-01T19:15:23.1711364Z #22 DONE 0.4s
+2026-04-01T19:15:23.3793122Z 
+2026-04-01T19:15:23.3794136Z #23 [runner 5/9] COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/static ./packages/web/.next/static
+2026-04-01T19:15:23.3794762Z #23 DONE 0.1s
+2026-04-01T19:15:24.0367764Z 
+2026-04-01T19:15:24.0370725Z #24 [runner 6/9] COPY --from=builder --chown=nextjs:nodejs /app/packages/web/public ./packages/web/public
+2026-04-01T19:15:24.0372198Z #24 ERROR: failed to calculate checksum of ref halfi1o1g1pxx2kdvsitorf8a::x13l2qwepnxcj2f733sorwhbl: "/app/packages/web/public": not found
+2026-04-01T19:15:24.2386315Z ------
+2026-04-01T19:15:24.2388591Z  > [runner 6/9] COPY --from=builder --chown=nextjs:nodejs /app/packages/web/public ./packages/web/public:
+2026-04-01T19:15:24.2389455Z ------
+2026-04-01T19:15:24.2397507Z Dockerfile:35
+2026-04-01T19:15:24.2400922Z --------------------
+2026-04-01T19:15:24.2420279Z   33 |     COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/standalone ./
+2026-04-01T19:15:24.2422336Z   34 |     COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/static ./packages/web/.next/static
+2026-04-01T19:15:24.2423532Z   35 | >>> COPY --from=builder --chown=nextjs:nodejs /app/packages/web/public ./packages/web/public
+2026-04-01T19:15:24.2424695Z   36 |     COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+2026-04-01T19:15:24.2425564Z   37 |     COPY --from=builder --chown=nextjs:nodejs /app/packages/web/prisma ./packages/web/prisma
+2026-04-01T19:15:24.2426289Z --------------------
+2026-04-01T19:15:24.2427532Z ERROR: failed to build: failed to solve: failed to compute cache key: failed to calculate checksum of ref halfi1o1g1pxx2kdvsitorf8a::x13l2qwepnxcj2f733sorwhbl: "/app/packages/web/public": not found
+2026-04-01T19:15:24.2502267Z ##[group]Reference
+2026-04-01T19:15:24.3419949Z builder-2ea52125-bd96-41ca-a16a-8f855bb5777e/builder-2ea52125-bd96-41ca-a16a-8f855bb5777e0/upls5t0hlry7a0roisto2zbx8
+2026-04-01T19:15:24.3421920Z ##[endgroup]
+2026-04-01T19:15:24.3423028Z ##[group]Check build summary support
+2026-04-01T19:15:24.3429422Z Build summary supported!
+2026-04-01T19:15:24.3430597Z ##[endgroup]
+2026-04-01T19:15:24.3457233Z ##[error]buildx failed with: ERROR: failed to build: failed to solve: failed to compute cache key: failed to calculate checksum of ref halfi1o1g1pxx2kdvsitorf8a::x13l2qwepnxcj2f733sorwhbl: "/app/packages/web/public": not found
+2026-04-01T19:15:24.3566993Z Post job cleanup.
+2026-04-01T19:15:24.5851011Z ##[group]Generating build summary
+2026-04-01T19:15:24.5856240Z exporting build record to /home/runner/work/_temp/docker-actions-toolkit-cwtnVZ/export
+2026-04-01T19:15:24.7562200Z [command]/usr/bin/docker buildx history export --builder builder-2ea52125-bd96-41ca-a16a-8f855bb5777e --output /home/runner/work/_temp/docker-actions-toolkit-cwtnVZ/export/thomaskoeppe~gamepile~UPLS5T.dockerbuild upls5t0hlry7a0roisto2zbx8 --finalize
+2026-04-01T19:15:24.9272569Z Build record written to /home/runner/work/_temp/docker-actions-toolkit-cwtnVZ/export/thomaskoeppe~gamepile~UPLS5T.dockerbuild (23.73 KB)
+2026-04-01T19:15:24.9301623Z Uploading thomaskoeppe~gamepile~UPLS5T.dockerbuild to blob storage
+2026-04-01T19:15:25.0012762Z Beginning upload of artifact content to blob storage
+2026-04-01T19:15:25.0113107Z Uploaded bytes 24302
+2026-04-01T19:15:25.0599341Z Finished uploading artifact content to blob storage!
+2026-04-01T19:15:25.0605219Z SHA256 hash of uploaded artifact is 2b2381f3ea94debb820b85f60e08e1d0386422be4a6a026046f703ebc198db7d
+2026-04-01T19:15:25.0606616Z Finalizing artifact upload
+2026-04-01T19:15:25.2107929Z Artifact successfully finalized (6228134072)
+2026-04-01T19:15:25.2110980Z Artifact download URL: https://github.com/thomaskoeppe/gamepile/actions/runs/23866195020/artifacts/6228134072
+2026-04-01T19:15:25.2140371Z Writing summary
+2026-04-01T19:15:25.2153568Z ##[endgroup]
+2026-04-01T19:15:25.2154419Z ##[group]Removing temp folder /home/runner/work/_temp/docker-actions-toolkit-A3Dn9T
+2026-04-01T19:15:25.2160802Z ##[endgroup]
+2026-04-01T19:15:25.2161372Z ##[group]Post cache
+2026-04-01T19:15:25.2162635Z State not set
+2026-04-01T19:15:25.2163304Z ##[endgroup]
+2026-04-01T19:15:25.2293809Z Post job cleanup.
+2026-04-01T19:15:25.5285582Z ##[group]Logout from ghcr.io
+2026-04-01T19:15:25.5335069Z [command]/usr/bin/docker logout ghcr.io
+2026-04-01T19:15:25.5459978Z Removing login credentials for ghcr.io
+2026-04-01T19:15:25.5488765Z ##[endgroup]
+2026-04-01T19:15:25.5489427Z ##[group]Post cache
+2026-04-01T19:15:25.5490950Z State not set
+2026-04-01T19:15:25.5491588Z ##[endgroup]
+2026-04-01T19:15:25.5623194Z Post job cleanup.
+2026-04-01T19:15:25.8031159Z ##[group]Removing builder
+2026-04-01T19:15:25.9011139Z [command]/usr/bin/docker buildx rm builder-2ea52125-bd96-41ca-a16a-8f855bb5777e
+2026-04-01T19:15:32.3485362Z builder-2ea52125-bd96-41ca-a16a-8f855bb5777e removed
+2026-04-01T19:15:32.3529268Z ##[endgroup]
+2026-04-01T19:15:32.3529807Z ##[group]Cleaning up certificates
+2026-04-01T19:15:32.3539201Z ##[endgroup]
+2026-04-01T19:15:32.3539638Z ##[group]Post cache
+2026-04-01T19:15:32.3539888Z State not set
+2026-04-01T19:15:32.3540195Z ##[endgroup]
+2026-04-01T19:15:32.3713764Z Post job cleanup.
+2026-04-01T19:15:32.4842805Z [command]/usr/bin/git version
+2026-04-01T19:15:32.4882185Z git version 2.53.0
+2026-04-01T19:15:32.4930275Z Temporarily overriding HOME='/home/runner/work/_temp/4b7c85c5-6c37-45c1-98fb-6a8a60b1fba8' before making global git config changes
+2026-04-01T19:15:32.4931577Z Adding repository directory to the temporary git global config as a safe directory
+2026-04-01T19:15:32.4944049Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/gamepile/gamepile
+2026-04-01T19:15:32.4978627Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-04-01T19:15:32.5009989Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-04-01T19:15:32.5246312Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-04-01T19:15:32.5267051Z http.https://github.com/.extraheader
+2026-04-01T19:15:32.5279928Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-04-01T19:15:32.5311020Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-04-01T19:15:32.5556472Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-04-01T19:15:32.5591216Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-04-01T19:15:32.5954318Z Cleaning up orphan processes
+2026-04-01T19:15:32.6420982Z ##[warning]Node.js 20 actions are deprecated. The following actions are running on Node.js 20 and may not work as expected: actions/checkout@v4, docker/build-push-action@v6, docker/login-action@v3, docker/metadata-action@v5, docker/setup-buildx-action@v3. Actions will be forced to run with Node.js 24 by default starting June 2nd, 2026. Node.js 20 will be removed from the runner on September 16th, 2026. Please check if updated versions of these actions are available that support Node.js 24. To opt into Node.js 24 now, set the FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true environment variable on the runner or in your workflow file. Once Node.js 24 becomes the default, you can temporarily opt out by setting ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
