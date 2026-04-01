@@ -1,3 +1,9 @@
+## [1.4.1](https://github.com/thomaskoeppe/gamepile/compare/v1.4.0...v1.4.1) (2026-04-01)
+
+### Bug Fixes
+
+* **ci:** fix docker public workflow ([c80c978](https://github.com/thomaskoeppe/gamepile/commit/c80c978f138b80c2cc5330c09b8a26ddd31eefc0))
+
 ## [1.4.0](https://github.com/thomaskoeppe/gamepile/compare/v1.3.0...v1.4.0) (2026-04-01)
 
 ### Features
