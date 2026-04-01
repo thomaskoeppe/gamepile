@@ -7,11 +7,18 @@ import { withLogging } from "@/lib/with-logging";
 import {KeyVaultGameGetPayload, KeyVaultGameWhereInput} from "@/prisma/generated/models/KeyVaultGame";
 import {queryClientWithAuth} from "@/server/query";
 
+const SORT_FIELD_MAP = {
+    game_name: { game: { name: "asc" as const } },
+    addedAt: { addedAt: "asc" as const },
+    redeemedAt: { redeemedAt: "asc" as const },
+    originalName: { originalName: "asc" as const },
+} as const;
+
 export const getKeys = queryClientWithAuth.inputSchema(z.object({
     keyVaultId: z.cuid(),
     page: z.number().int().positive(),
-    pageSize: z.number().positive(),
-    sortBy: z.string(),
+    pageSize: z.number().int().positive().max(100),
+    sortBy: z.enum(["game_name", "addedAt", "redeemedAt", "originalName"]).optional(),
     sortOrder: z.enum(["asc", "desc"]),
     filters: z.object({
         name: z.string().optional(),
@@ -19,9 +26,9 @@ export const getKeys = queryClientWithAuth.inputSchema(z.object({
         isOwned: z.boolean().optional(),
         isRedeemed: z.boolean().optional(),
     })
-})).query<{ games: Array<KeyVaultGameGetPayload<{ include: { game: { include: { categories: true, genres: true }}, addedBy: true, redeemedBy: true }}> & { isInMultipleVaults: boolean; }>; total: number; pages: number; page: number; }>(withLogging(async ({ parsedInput: { keyVaultId, page, pageSize, sortBy, sortOrder, filters }, ctx }, { log }) => {
+})).query<{ games: Array<KeyVaultGameGetPayload<{ include: { game: { include: { categories: true, genres: true }}, addedBy: { select: { id: true, username: true, avatarUrl: true } }, redeemedBy: { select: { id: true, username: true, avatarUrl: true } } }}> & { isInMultipleVaults: boolean; }>; total: number; pages: number; page: number; }>(withLogging(async ({ parsedInput: { keyVaultId, page, pageSize, sortBy, sortOrder, filters }, ctx }, { log }) => {
     const offset = (page - 1) * pageSize;
-    let orderBy: { [key: string]: { [key: string]: "asc" | "desc" } } | undefined = undefined;
+    let orderBy: Record<string, unknown> | undefined;
 
     log.info("Fetching keys for vault", {
         userId: ctx.user.id,
@@ -33,13 +40,26 @@ export const getKeys = queryClientWithAuth.inputSchema(z.object({
         filters,
     });
 
+    const hasVaultAccess = await prisma.keyVault.findFirst({
+        where: {
+            id: keyVaultId,
+            OR: [{ createdById: ctx.user.id }, { users: { some: { userId: ctx.user.id } } }],
+        },
+        select: { id: true },
+    });
+
+    if (!hasVaultAccess) {
+        throw new Error("Vault not found or access denied.");
+    }
+
     if (sortBy) {
-        const parts = sortBy.split("_");
-        orderBy = {
-            [parts[0]]: {
-                [parts[1]]: sortOrder
-            }
-        };
+        const baseOrderBy = SORT_FIELD_MAP[sortBy];
+        if ("game" in baseOrderBy) {
+            orderBy = { game: { name: sortOrder } };
+        } else {
+            const [field] = Object.keys(baseOrderBy);
+            orderBy = { [field]: sortOrder };
+        }
     }
 
     const filter: KeyVaultGameWhereInput[] = [];
@@ -127,8 +147,20 @@ export const getKeys = queryClientWithAuth.inputSchema(z.object({
                         genres: true
                     }
                 },
-                addedBy: true,
-                redeemedBy: true
+                addedBy: {
+                    select: {
+                        id: true,
+                        username: true,
+                        avatarUrl: true,
+                    },
+                },
+                redeemedBy: {
+                    select: {
+                        id: true,
+                        username: true,
+                        avatarUrl: true,
+                    },
+                },
             },
             orderBy: orderBy ? orderBy : undefined,
             skip: offset,

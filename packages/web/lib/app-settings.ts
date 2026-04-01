@@ -9,7 +9,25 @@ import type { AppSettingValueType } from "@/types/app-setting";
  * excluded.
  */
 export const PUBLIC_SETTING_KEYS = [
-    AppSettingKey.UI_GAME_LIBRARY_PRERENDERED_ROWS
+    AppSettingKey.MAX_VAULTS_PER_USER,
+    AppSettingKey.MAX_COLLECTIONS_PER_USER,
+    AppSettingKey.UI_GAME_LIBRARY_PRERENDERED_ROWS,
+    AppSettingKey.ALLOW_PUBLIC_COLLECTIONS,
+    AppSettingKey.DISABLE_VAULT_SHARING,
+    AppSettingKey.ADMIN_CAN_DELETE_ANY_VAULT,
+    AppSettingKey.ADMIN_CAN_DELETE_ANY_COLLECTION,
+    AppSettingKey.ADMIN_CAN_CHANGE_RESOURCE_OWNER,
+    AppSettingKey.ALLOW_VAULT_DELETION,
+    AppSettingKey.VAULT_PIN_MAX_LENGTH,
+    AppSettingKey.VAULT_PIN_MIN_LENGTH,
+    AppSettingKey.VAULT_PASSWORD_MAX_LENGTH,
+    AppSettingKey.VAULT_PASSWORD_MIN_LENGTH,
+    AppSettingKey.VAULT_AUTH_ALLOW_PIN,
+    AppSettingKey.VAULT_AUTH_ALLOW_PASSWORD,
+    AppSettingKey.VAULT_DEFAULT_AUTH_TYPE,
+    AppSettingKey.VAULT_ALLOW_PASSWORD_CHANGE,
+    AppSettingKey.ALLOW_INVITE_CODE_GENERATION,
+    AppSettingKey.ALLOW_USER_ACCOUNT_DELETION
 ] as const satisfies readonly AppSettingKey[];
 
 /** The type of settings that are safe to expose client-side. */
@@ -51,6 +69,18 @@ const g = globalThis as typeof globalThis & {
     __appSettingsLoaded?: boolean;
 };
 
+function assertSettingsLoaded(operation: string): void {
+    if (g.__appSettingsLoaded) {
+        return;
+    }
+
+    const error = new Error(
+        `App settings are not loaded. Refusing to continue during ${operation}. Ensure loadSettings() completed during startup.`,
+    );
+    log.error("App settings accessed before load completed", error, { operation });
+    throw error;
+}
+
 function store(): SettingsStore {
     if (!g.__appSettings) g.__appSettings = {};
     return g.__appSettings;
@@ -73,22 +103,29 @@ export async function loadSettings(): Promise<void> {
 
     log.info("Loading app settings from database");
 
-    const rows = await prisma.appSetting.findMany();
-    const hydrated: SettingsStore = { ...DEFAULTS };
+    try {
+        const rows = await prisma.appSetting.findMany();
+        const hydrated: SettingsStore = { ...DEFAULTS };
 
-    for (const row of rows) {
-        const key = row.key as AppSettingKey;
-        (hydrated as Record<string, unknown>)[key] =
-            row.value as unknown as AppSettingValueType[typeof key];
+        for (const row of rows) {
+            const key = row.key as AppSettingKey;
+            (hydrated as Record<string, unknown>)[key] =
+                row.value as unknown as AppSettingValueType[typeof key];
+        }
+
+        g.__appSettings = hydrated;
+        g.__appSettingsLoaded = true;
+
+        log.info("App settings loaded into memory", {
+            count: rows.length,
+            keys: rows.map(r => r.key),
+        });
+    } catch (error) {
+        g.__appSettings = undefined;
+        g.__appSettingsLoaded = false;
+        log.error("Failed to load app settings", error instanceof Error ? error : new Error(String(error)));
+        throw error;
     }
-
-    g.__appSettings = hydrated;
-    g.__appSettingsLoaded = true;
-
-    log.info("App settings loaded into memory", {
-        count: rows.length,
-        keys: rows.map(r => r.key),
-    });
 }
 
 /**
@@ -101,6 +138,7 @@ export async function loadSettings(): Promise<void> {
  * @returns The current typed value for the key, falling back to its default.
  */
 export function getSetting<K extends AppSettingKey>(key: K): AppSettingValueType[K] {
+    assertSettingsLoaded(`getSetting(${key})`);
     const value = store()[key];
     return (value !== undefined ? value : DEFAULTS[key]) as AppSettingValueType[K];
 }
@@ -113,6 +151,7 @@ export function getSetting<K extends AppSettingKey>(key: K): AppSettingValueType
  * @returns A complete {@link AppSettingValueType} record containing every setting key.
  */
 export function getAllSettings(): AppSettingValueType {
+    assertSettingsLoaded("getAllSettings()");
     return { ...DEFAULTS, ...store() } as AppSettingValueType;
 }
 

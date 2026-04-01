@@ -19,14 +19,12 @@ function createPrismaClient() {
     prisma.$on('query', (e) => {
         log.debug(`Prisma query: ${e.query} (${e.duration}ms)`, {
             'prisma.query': e.query,
-            'prisma.params': e.params,
             'prisma.duration': e.duration,
         });
 
         if (e.duration > 500) {
             log.warn(`Slow Prisma query detected: ${e.query} (${e.duration}ms)`, {
                 'prisma.query': e.query,
-                'prisma.params': e.params,
                 'prisma.duration': e.duration,
             });
         }
@@ -37,6 +35,6 @@ function createPrismaClient() {
 
 const prisma = globalForPrisma.prisma || createPrismaClient();
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+globalForPrisma.prisma = prisma;
 
 export default prisma;

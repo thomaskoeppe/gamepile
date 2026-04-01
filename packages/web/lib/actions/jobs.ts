@@ -1,6 +1,7 @@
 "use server";
 
 import {requireAdmin} from "@/lib/auth/admin";
+import { rateLimitAction } from "@/lib/auth/rate-limit";
 import { getCurrentSession } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
@@ -101,6 +102,16 @@ export async function getLatestJobByType(
  * @param userId - Optional user to associate the job with.
  */
 export async function createJob(type: JobType, userId?: string): Promise<void> {
+    if (!userId) {
+        const session = await getCurrentSession();
+        await requireAdmin();
+
+        const rateLimitError = await rateLimitAction({ session: session ?? undefined });
+        if (rateLimitError) {
+            throw new Error(rateLimitError.message);
+        }
+    }
+
     const job = await prisma.job.create({
         data: {
             type,
@@ -110,7 +121,7 @@ export async function createJob(type: JobType, userId?: string): Promise<void> {
 
     await jobsQueue.add(type, { jobId: job.id, userId, type });
 
-    log.info("Admin job created and queued", {
+    log.info("Job created and queued", {
         jobId: job.id,
         type,
         userId,
@@ -125,7 +136,13 @@ export async function createJob(type: JobType, userId?: string): Promise<void> {
  * @param jobId - The ID of the job to cancel.
  */
 export async function cancelJob(jobId: string): Promise<void> {
+    const session = await getCurrentSession();
     await requireAdmin();
+
+    const rateLimitError = await rateLimitAction({ session: session ?? undefined });
+    if (rateLimitError) {
+        throw new Error(rateLimitError.message);
+    }
 
     log.info("Canceling job", { jobId });
 

@@ -1,4 +1,4 @@
-import { createHash,randomBytes } from "crypto";
+import { createHash, randomBytes } from "crypto";
 import { cookies } from "next/headers";
 
 import { logger } from "@/lib/logger";
@@ -12,6 +12,17 @@ export interface SessionData {
     session: Session
 }
 
+type SessionWithUser = Session & { user: User | null };
+
+export interface CreatedSession {
+    session: Session;
+    token: string;
+}
+
+function hashSessionToken(token: string): string {
+    return createHash("sha256").update(token).digest("hex");
+}
+
 /**
  * Generates a cryptographically secure session token.
  * Combines 32 random bytes with the current timestamp, then hashes the result
@@ -20,10 +31,7 @@ export interface SessionData {
  * @returns A 64-character hex-encoded session token.
  */
 export function generateSessionToken(): string {
-    const randomData = randomBytes(32);
-    const timestamp = Date.now().toString();
-    const combined = `${randomData.toString("hex")}-${timestamp}`;
-    return createHash("sha256").update(combined).digest("hex");
+    return randomBytes(32).toString("hex");
 }
 
 /**
@@ -40,7 +48,7 @@ export function generateSessionToken(): string {
 export async function createUserSession(
     userId: string,
     request?: Request
-): Promise<Session> {
+): Promise<CreatedSession> {
     const token = generateSessionToken();
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + parseInt(process.env.WEB_SESSION_DURATION_DAYS || "7"));
@@ -65,7 +73,7 @@ export async function createUserSession(
     const session = await prisma.session.create({
         data: {
             user: { connect: { id: userId } },
-            token,
+            token: hashSessionToken(token),
             expiresAt,
             ipAddress,
             userAgent,
@@ -73,7 +81,7 @@ export async function createUserSession(
     });
 
     log.info("User session created", { userId, sessionId: session.id });
-    return session;
+    return { session, token };
 }
 
 /**
@@ -140,9 +148,28 @@ export async function getCurrentSession(): Promise<SessionData | null> {
         return null;
     }
 
-    const session = await prisma.session.findUnique({
-        where: { token },
-    });
+    const tokenHash = hashSessionToken(token);
+
+    let session = await prisma.session.findUnique({
+        where: { token: tokenHash },
+        include: { user: true },
+    }) as SessionWithUser | null;
+
+    if (!session) {
+        const legacySession = await prisma.session.findUnique({
+            where: { token },
+            include: { user: true },
+        }) as SessionWithUser | null;
+
+        if (legacySession) {
+            session = await prisma.session.update({
+                where: { id: legacySession.id },
+                data: { token: tokenHash },
+                include: { user: true },
+            }) as SessionWithUser;
+            log.info("Migrated legacy plaintext session token", { sessionId: legacySession.id, userId: legacySession.userId });
+        }
+    }
 
     if (!session) {
         log.warn("Session cookie present but no matching DB record — clearing cookie", {
@@ -163,9 +190,7 @@ export async function getCurrentSession(): Promise<SessionData | null> {
         return null;
     }
 
-    const user = await prisma.user.findUnique({
-        where: { id: session.userId }
-    });
+    const user = session.user;
 
     if (!user) {
         log.warn("Session references non-existent user — deleting session", {
@@ -180,10 +205,12 @@ export async function getCurrentSession(): Promise<SessionData | null> {
         return null;
     }
 
-    await prisma.session.update({
-        where: { id: session.id },
-        data: { lastActivity: new Date() },
-    });
+    if (Date.now() - session.lastActivity.getTime() > 5 * 60 * 1_000) {
+        await prisma.session.update({
+            where: { id: session.id },
+            data: { lastActivity: new Date() },
+        });
+    }
 
     log.debug("Session validated", {
         sessionId: session.id,
@@ -208,9 +235,28 @@ export async function validateSessionToken(
 ): Promise<SessionData | null> {
     log.debug("Validating session token", { tokenPrefix: token.slice(0, 8) + "…" });
 
-    const session = await prisma.session.findUnique({
-        where: { token },
-    });
+    const tokenHash = hashSessionToken(token);
+
+    let session = await prisma.session.findUnique({
+        where: { token: tokenHash },
+        include: { user: true },
+    }) as SessionWithUser | null;
+
+    if (!session) {
+        const legacySession = await prisma.session.findUnique({
+            where: { token },
+            include: { user: true },
+        }) as SessionWithUser | null;
+
+        if (legacySession) {
+            session = await prisma.session.update({
+                where: { id: legacySession.id },
+                data: { token: tokenHash },
+                include: { user: true },
+            }) as SessionWithUser;
+            log.info("Migrated legacy plaintext session token", { sessionId: legacySession.id, userId: legacySession.userId });
+        }
+    }
 
     if (!session) {
         log.debug("Session token not found in database");
@@ -227,9 +273,7 @@ export async function validateSessionToken(
         return null;
     }
 
-    const user = await prisma.user.findUnique({
-        where: { id: session.userId },
-    });
+    const user = session.user;
 
     if (!user) {
         log.warn("Session token references non-existent user", {
@@ -239,10 +283,12 @@ export async function validateSessionToken(
         return null;
     }
 
-    await prisma.session.update({
-        where: { id: session.id },
-        data: { lastActivity: new Date() },
-    });
+    if (Date.now() - session.lastActivity.getTime() > 5 * 60 * 1_000) {
+        await prisma.session.update({
+            where: { id: session.id },
+            data: { lastActivity: new Date() },
+        });
+    }
 
     log.debug("Session token validated", { sessionId: session.id, userId: user.id });
     return { user, session };
@@ -258,8 +304,9 @@ export async function invalidateSession(): Promise<void> {
     const token = await getSessionCookie();
     if (token) {
         log.info("Invalidating session", { tokenPrefix: token.slice(0, 8) + "…" });
-        await prisma.session.delete({
-            where: { token },
+        const tokenHash = hashSessionToken(token);
+        await prisma.session.deleteMany({
+            where: { OR: [{ token: tokenHash }, { token }] },
         });
         await clearSessionCookie();
         log.info("Session invalidated and cookie cleared");

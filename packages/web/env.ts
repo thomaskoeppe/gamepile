@@ -12,9 +12,7 @@ const schema = z.object({
         }),
 
     DATABASE_URL: z.string()
-        .optional()
         .refine(val => {
-            if (!val) return true;
             try {
                 const url = new URL(val);
                 return url.protocol === "postgresql:";
@@ -70,7 +68,7 @@ const schema = z.object({
     OTEL_EXPORTER_OTLP_HEADERS: z.string()
         .optional()
         .refine(val => {
-            if (!val) return true; // optional
+            if (!val) return true;
             return val
                 .split(",")
                 .every(item => /^[^=]+=[^=]+$/.test(item.trim()));

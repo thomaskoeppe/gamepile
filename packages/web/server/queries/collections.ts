@@ -18,8 +18,8 @@ import {queryClientWithAuth} from "@/server/query";
 export const getCollections = queryClientWithAuth.query<Prisma.CollectionGetPayload<{
     include: {
         _count: { select: { games: true } },
-        createdBy: true,
-        users: { include: { user: true, }, },
+        createdBy: { select: { id: true, username: true, avatarUrl: true } },
+        users: { include: { user: { select: { id: true, username: true, avatarUrl: true } }, }, },
         games: { take: 5, orderBy: { addedAt: 'asc', }, include: { game: { select: { appId: true, }, }, }, },
     }
 }>[]>(withLogging(async ({ ctx }, { log }) => {
@@ -29,9 +29,13 @@ export const getCollections = queryClientWithAuth.query<Prisma.CollectionGetPayl
 
     return prisma.collection.findMany({
         include: {
-            createdBy: true, users: {
+            createdBy: {
+                select: { id: true, username: true, avatarUrl: true },
+            }, users: {
                 include: {
-                    user: true,
+                    user: {
+                        select: { id: true, username: true, avatarUrl: true },
+                    },
                 },
             }, games: {
                 take: 5, orderBy: {
@@ -78,7 +82,10 @@ export const getCollections = queryClientWithAuth.query<Prisma.CollectionGetPayl
  *   the collection does not exist or the user does not have access.
  */
 export const getCollection = queryClientWithAuth.inputSchema(z.object({ collectionId: z.cuid() })).query<Prisma.CollectionGetPayload<{
-    include: { createdBy: true, users: { include: { user: true } } }
+    include: {
+        createdBy: { select: { id: true, username: true, avatarUrl: true } },
+        users: { include: { user: { select: { id: true, username: true, avatarUrl: true } } } },
+    }
 }> | null>(withLogging(async ({ parsedInput: { collectionId }, ctx }, { log }) => {
     log.info("Fetching collection for user", {
         userId: ctx.user.id,
@@ -102,9 +109,13 @@ export const getCollection = queryClientWithAuth.inputSchema(z.object({ collecti
                 }
             }]
         }, include: {
-            createdBy: true, users: {
+            createdBy: {
+                select: { id: true, username: true, avatarUrl: true },
+            }, users: {
                 include: {
-                    user: true,
+                    user: {
+                        select: { id: true, username: true, avatarUrl: true },
+                    },
                 },
             }
         }

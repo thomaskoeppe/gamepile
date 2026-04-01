@@ -51,6 +51,33 @@ class BrowserLogger {
         return 'sess_' + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
     }
 
+    private sanitizeConsoleMessage(value: string): string {
+        return value
+            .replace(/\r/g, "\\r")
+            .replace(/\n/g, "\\n")
+            .replace(/[\u001b\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "?")
+            .slice(0, 4_000);
+    }
+
+    private mirrorDevConsole(level: BrowserLogEntry['level'], message: string, context: LogContext, error?: Error): void {
+        const safeMessage = this.sanitizeConsoleMessage(message);
+
+        switch (level) {
+            case "error":
+                console.error("%s", `[browser-log] ${safeMessage}`, context, error ?? "");
+                break;
+            case "warn":
+                console.warn("%s", `[browser-log] ${safeMessage}`, context, error ?? "");
+                break;
+            case "debug":
+                console.debug("%s", `[browser-log] ${safeMessage}`, context, error ?? "");
+                break;
+            default:
+                console.info("%s", `[browser-log] ${safeMessage}`, context, error ?? "");
+                break;
+        }
+    }
+
     /** Merge OTel span context + browser metadata into caller-supplied fields. */
     private enrich(context: LogContext = {}): LogContext {
         const span = trace.getActiveSpan();
@@ -85,8 +112,7 @@ class BrowserLogger {
         }
 
         if (process.env.NODE_ENV === 'development') {
-             
-            console[level](`[browser-log] ${message}`, entry.context, error ?? '');
+            this.mirrorDevConsole(level, message, entry.context, error);
         }
 
         this.buffer.push(entry);
