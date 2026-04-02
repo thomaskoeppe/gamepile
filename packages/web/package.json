@@ -1,6 +1,6 @@
 {
   "name": "@gamepile/web",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Package containing the web frontend for gamepile, built with Next.js and TypeScript.",
   "private": true,
   "scripts": {

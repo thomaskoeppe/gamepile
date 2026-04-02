@@ -1,3 +1,9 @@
+## [1.4.2](https://github.com/thomaskoeppe/gamepile/compare/v1.4.1...v1.4.2) (2026-04-02)
+
+### Bug Fixes
+
+* **library:** fix ncaught Error: React.Children.only expected to receive a single React element child error ([8602111](https://github.com/thomaskoeppe/gamepile/commit/86021115c9836fd54bdd54134dfe1fcabd455102))
+
 ## [1.4.1](https://github.com/thomaskoeppe/gamepile/compare/v1.4.0...v1.4.1) (2026-04-01)
 
 ### Bug Fixes
