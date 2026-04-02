@@ -14,7 +14,6 @@ import {
     DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import { KeyVaultGameGetPayload } from "@/prisma/generated/models/KeyVaultGame";
 
 export type VaultGameRow = KeyVaultGameGetPayload<{
@@ -108,8 +107,7 @@ export function createVaultKeyColumns({
                     <span className="inline-flex items-center">
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <span className={cn("mr-2", row.original.isOwned ? "text-muted-foreground" : "text-green-500")}>●</span>
-                                <span>{name}</span>
+                                <span><span className={row.original.isOwned ? "text-muted-foreground" : "text-green-500"}>●</span> {name}</span>
                             </TooltipTrigger>
                             <TooltipContent>{row.original.isOwned ? "You already own this game" : "This game is not in your library"}</TooltipContent>
                         </Tooltip>
