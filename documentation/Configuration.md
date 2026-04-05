@@ -23,16 +23,16 @@ These are read by the `web` service.
 |---|---|---|
 | `STEAM_API_KEY` | 32-char hex string | Steam Web API key. Obtain from [steamcommunity.com/dev/apikey](https://steamcommunity.com/dev/apikey). Used for user profile lookups, owned-game fetches, and catalog sync. |
 | `WEB_VAULT_TOKEN_SECRET` | string (min 32 chars) | HMAC secret for signing per-vault access cookies. Changing this invalidates all active vault sessions. Generate with `openssl rand -hex 32`. |
-| `DOMAIN` | hostname | Public hostname without protocol or trailing slash (e.g. `gamepile.example.com` or `localhost:8080`). Used internally by the Compose file to construct `WEB_APP_URL`. |
-| `WEB_APP_URL` | URL | Full public URL including protocol (e.g. `https://gamepile.example.com`). Used as the OpenID return URL and the Server Action origin. Must match exactly what the browser sends in the `Origin` header. |
+| `DOMAIN` | hostname | Public hostname without protocol or trailing slash (e.g. `gamepile.example.com` or `localhost:8080`). The full `docker-compose.yml` file uses this to default `WEB_APP_URL` to `http://${DOMAIN}` and `WEB_ALLOWED_ORIGINS` to `DOMAIN`. |
+| `WEB_APP_URL` | URL | Full public URL including protocol (e.g. `https://gamepile.example.com`). Used as the OpenID return URL and the Server Action origin. Must match exactly what the browser sends in the `Origin` header. Required by the app itself, but the full `docker-compose.yml` file supplies a default when omitted. |
 
-When using `docker-compose.yml`, `DATABASE_URL` is constructed automatically from `POSTGRES_*` variables and does not need to be set in `.env`.
+When using the full `docker-compose.yml`, `DATABASE_URL` is constructed automatically from `POSTGRES_*` variables and does not need to be set in `.env`. When using `docker-compose.worker.remote.yml`, you must set `DATABASE_URL` explicitly because PostgreSQL is external.
 
 ### Optional — application
 
 | Variable | Type | Default | Description |
 |---|---|---|---|
-| `WEB_ALLOWED_ORIGINS` | comma-separated hostnames | — | Additional hostnames allowed to submit Server Actions. Useful when the app is accessed through multiple domains or a CDN. Example: `gamepile.example.com,www.gamepile.example.com` |
+| `WEB_ALLOWED_ORIGINS` | comma-separated hostnames | — | Additional hostnames allowed to submit Server Actions. Useful when the app is accessed through multiple domains or a CDN. Example: `gamepile.example.com,www.gamepile.example.com`. The full `docker-compose.yml` defaults this to `DOMAIN` when omitted. |
 | `WEB_SESSION_COOKIE_NAME` | string | `__session` | Name of the authentication session cookie. |
 | `WEB_SESSION_DURATION_DAYS` | integer 1–365 | `7` | How many days a session stays valid without activity. |
 | `DATABASE_URL` | PostgreSQL URL | — | Prisma connection string. Required when running outside Docker Compose. Format: `postgresql://user:password@host:5432/dbname?schema=public` |
@@ -105,12 +105,12 @@ These are read by the `worker` service. Many overlap with the web variables (sam
 
 The worker respects Steam API rate limits to avoid being throttled. These defaults are conservative and suitable for most deployments.
 
-| Variable | Type | Default | Description |
-|---|---|---|---|
-| `WORKER_STEAM_RATE_LIMIT_MAX` | integer | `200` | Maximum number of Steam API requests allowed per window. |
+| Variable | Type | Default          | Description |
+|---|---|------------------|---|
+| `WORKER_STEAM_RATE_LIMIT_MAX` | integer | `200`            | Maximum number of Steam API requests allowed per window. |
 | `WORKER_STEAM_RATE_LIMIT_WINDOW_MS` | integer (ms) | `300000` (5 min) | The rolling window for the rate limit counter. |
-| `WORKER_STEAM_RATE_LIMIT_MIN_INTERVAL_MS` | integer (ms) | `1500` | Minimum gap between individual API calls, regardless of the window limit. |
-| `WORKER_STEAM_RATE_LIMIT_SCOPE` | `local` \| `distributed` | `distributed` | `distributed` uses Redis to share the counter across multiple worker replicas. Use `local` only when running a single worker instance without Redis rate-limit coordination. |
+| `WORKER_STEAM_RATE_LIMIT_MIN_INTERVAL_MS` | integer (ms) | `1100`           | Minimum gap between individual API calls, regardless of the window limit. |
+| `WORKER_STEAM_RATE_LIMIT_SCOPE` | `local` \| `distributed` | `local`          | `distributed` uses Redis to share the counter across multiple worker replicas. Use `local` only when running a single worker instance without Redis rate-limit coordination. |
 
 ### Optional — observability
 
@@ -125,16 +125,27 @@ The worker respects Steam API rate limits to avoid being throttled. These defaul
 
 ## Docker Compose Variables
 
-When using the provided `docker-compose.yml`, these variables are read directly from `.env` and used to configure the internal services. You do not set `DATABASE_URL` manually — the Compose file builds it from these.
+The repository ships with two Compose entry points:
+
+- `docker-compose.yml` — full stack (`postgres`, `redis`, `migrate`, `web`, `worker`, `caddy`)
+- `docker-compose.worker.remote.yml` — worker only, targeting external PostgreSQL + Redis
+
+For the full-stack compose file, these variables are read directly from `.env` (or `--env-file`) and used to configure the internal services. You do not set `DATABASE_URL` manually there — Compose builds it from `POSTGRES_*`.
 
 | Variable | Default | Description |
 |---|---|---|
+| `DOMAIN` | `gamepile.example.com` | Hostname used by the full-stack compose file to default `WEB_APP_URL` to `http://${DOMAIN}` and `WEB_ALLOWED_ORIGINS` to `DOMAIN`. |
 | `POSTGRES_USER` | `gamepile` | PostgreSQL user created on first start. |
 | `POSTGRES_PASSWORD` | `gamepile_secret` | PostgreSQL password. **Change this in production.** |
 | `POSTGRES_DB` | `gamepile` | PostgreSQL database name. |
 | `REDIS_PASSWORD` | `redis_secret` | Redis password. **Change this in production.** |
-| `ACME_EMAIL` | `admin@example.com` | Contact email for ACME TLS certificates if you extend Caddy for HTTPS. |
 | `LOG_LEVEL` | `info` | Log level forwarded to both `web` and `worker` containers. |
+
+For `docker-compose.worker.remote.yml`, set `DATABASE_URL`, `REDIS_HOST`, `REDIS_PORT`, and `STEAM_API_KEY` explicitly. That compose file includes two one-shot readiness services that block worker startup until:
+
+1. PostgreSQL accepts connections,
+2. the `schema_migrations` table exists, and
+3. Redis responds to `PING`.
 
 ---
 

@@ -96,13 +96,17 @@ The canonical game catalog, populated from the Steam API. Key fields:
 - `type` — distinguishes games from DLCs, demos, mods, etc.
 - `detailsFetchedAt` / `steamLastModified` — used to decide when to re-fetch
 
-Games have many-to-many relations with `Category` and `Genre`.
+Games have many-to-many relations with `Category` and `Tag`.
 
 ---
 
-### `Category` and `Genre`
+### `Category`
 
-Lookup tables for Steam categories (e.g. "Multi-player", "Steam Achievements") and genres (e.g. "Action", "RPG"). Both use integer IDs from Steam alongside a human-readable `name`. Many-to-many with `Game`.
+Lookup table for Steam categories (e.g. "Multi-player", "Steam Achievements"). Uses integer IDs from Steam alongside a human-readable `name`. Many-to-many with `Game`.
+
+### `Tag`
+
+Lookup table for Steam tags (e.g. "Action", "RPG", "Open World"). Uses integer IDs from Steam alongside a human-readable `name`. Many-to-many with `Game`.
 
 ---
 
