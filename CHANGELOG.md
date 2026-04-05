@@ -1,3 +1,13 @@
+## [2.0.1](https://github.com/thomaskoeppe/gamepile/compare/v2.0.0...v2.0.1) (2026-04-05)
+
+### Bug Fixes
+
+* **worker:** update minimum interval for Steam API calls ([2912234](https://github.com/thomaskoeppe/gamepile/commit/291223412d953c830afdb698827f0db7ce96c469))
+
+### Refactors
+
+* **docker:** docker & k8s build and files ([787ec7a](https://github.com/thomaskoeppe/gamepile/commit/787ec7a02cb67f8c7eb395334f535c854300c8bf))
+
 ## [2.0.0](https://github.com/thomaskoeppe/gamepile/compare/v1.4.2...v2.0.0) (2026-04-05)
 
 ### ⚠ BREAKING CHANGES
