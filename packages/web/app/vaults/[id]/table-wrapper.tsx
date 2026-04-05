@@ -5,7 +5,7 @@ import { useServerQuery } from "@/lib/hooks/use-server-query";
 import { useSession } from "@/lib/providers/session";
 import { KeyVaultAuthType } from "@/prisma/generated/browser";
 import { unredeemKey as unredeemKeyAction } from "@/server/actions/vault-keys";
-import { getGameCategories, getGameGenres } from "@/server/queries/games";
+import { getGameCategories } from "@/server/queries/games";
 import { getKeys } from "@/server/queries/vault-keys";
 
 import { KeyDialog } from "./key-dialog";
@@ -63,10 +63,6 @@ export function TableWrapper({
             }})
     );
 
-    const { data: genresResult } = useServerQuery(
-        user ? ["genres"] : null,
-        () => getGameGenres()
-    );
     const { data: categoriesResult } = useServerQuery(
         user ? ["categories"] : null,
         () => getGameCategories()
@@ -77,8 +73,7 @@ export function TableWrapper({
     }, [isRevalidating, onRevalidating]);
 
     const keysData = keysResult?.success ? keysResult.data : null;
-    const data: VaultGameRow[] = (keysData?.games ?? []).map((g) => ({ ...g, isOwned: false }));
-    const genres = genresResult?.success ? genresResult.data : [];
+    const data = useMemo<VaultGameRow[]>(() => keysData?.games ?? [], [keysData?.games]);
     const categories = categoriesResult?.success ? categoriesResult.data : [];
 
     const unredeemAction = useAction(unredeemKeyAction, { onSuccess: () => mutateKeys() });
@@ -138,7 +133,6 @@ export function TableWrapper({
             <div className="space-y-4">
                 <VaultFilterToolbar
                     filters={filters}
-                    genres={genres}
                     categories={categories}
                     onNameChange={handleNameChange}
                     onTagsChange={(tags) => { setFilters((prev) => ({ ...prev, tags })); setPage(1); setSelectedVaultGameIds([]); }}

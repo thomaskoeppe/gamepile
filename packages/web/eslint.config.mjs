@@ -16,6 +16,7 @@ const eslintConfig = defineConfig([
   {
     rules: {
       "semi": ["error", "always"],
+      "react/display-name": "off",
       "simple-import-sort/imports": "error",
       "simple-import-sort/exports": "error",
       "unused-imports/no-unused-imports": "error",

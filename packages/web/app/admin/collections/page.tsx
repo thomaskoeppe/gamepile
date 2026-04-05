@@ -87,12 +87,16 @@ export default function AdminCollectionsPage() {
                     </Card>
                 ) : collections ? (
                     <div className={cn("relative transition-opacity duration-200", isRevalidating && "opacity-80")}>
-                        <AdminCollectionsTable collections={collections} users={users} onMutate={() => mutate()} />
+                        <AdminCollectionsTable
+                            collections={collections}
+                            users={users}
+                            onMutate={() => mutate()}
+                        />
                     </div>
                 ) : null}
-
-                <LoadingIndicator show={isRevalidating} />
             </div>
+
+            <LoadingIndicator show={isRevalidating} />
         </>
     );
 }

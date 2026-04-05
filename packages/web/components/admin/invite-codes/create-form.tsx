@@ -1,6 +1,6 @@
 import { Copy, LoaderCircle, Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { type FormEvent, useState } from "react";
+import { SubmitEvent, useState } from "react";
 
 import {
   type ActionFeedbackState,
@@ -63,7 +63,7 @@ export function InviteCodeCreateForm({
     },
   });
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setCreatedCode(null);
 

@@ -3,7 +3,7 @@ import {GameType, Platform} from "@/prisma/generated/enums";
 export type ExplorerSortField =
     | "name"
     | "releaseDate"
-    | "metacriticScore"
+    | "reviewScore"
     | "type";
 
 export type ExplorerSortDirection = "asc" | "desc";
@@ -17,13 +17,13 @@ export type OwnershipFilter = "all" | "owned" | "unowned";
 
 export interface ExplorerFilters {
     search: string;
-    genreIds: string[];
     categoryIds: string[];
+    tagIds: string[];
     platforms: Platform[];
     gameType: GameType | null;
     isFree: boolean | null;
-    metacriticMin: number | null;
-    metacriticMax: number | null;
+    reviewScoreMin: number | null;
+    reviewScoreMax: number | null;
     releaseDateFrom: string | null;
     releaseDateTo: string | null;
     ownership?: OwnershipFilter;
@@ -34,22 +34,24 @@ export interface ExplorerGameRow {
     appId: number | null;
     name: string;
     shortDescription: string | null;
-    metacriticScore: number | null;
+    reviewScore: number | null;
+    reviewPercentage: number | null;
+    reviewCount: number | null;
+    reviewScoreLabel: string | null;
     isFree: boolean;
     releaseDate: Date | null;
     type: GameType;
     platforms: Platform[];
     developers: string[];
     publishers: string[];
-    genres: { id: string; name: string }[];
     categories: { id: string; name: string }[];
+    tags: { id: string; name: string }[];
     owned: boolean;
 }
 
 export interface ExplorerFilterOptions {
-    genres: { id: string; name: string }[];
     categories: { id: string; name: string }[];
+    tags: { id: string; name: string }[];
 }
 
 export type ExplorerViewMode = "table" | "grid";
-

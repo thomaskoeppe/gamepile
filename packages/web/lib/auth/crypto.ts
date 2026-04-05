@@ -76,19 +76,26 @@ function deriveWrappingKey(password: string, keySalt: string): Buffer {
 }
 
 /**
+ * Encrypts a UTF-8 plaintext payload using AES-256-GCM and returns a serialized
+ * `iv:authTag:ciphertext` value (all hex-encoded) for storage.
+ */
+function wrapPayloadWithAesKey(payload: string, aesKey: Buffer): string {
+    const iv = randomBytes(12);
+    const cipher = createCipheriv(AES_ALGO, aesKey, iv);
+    const ciphertext = Buffer.concat([cipher.update(payload, "utf8"), cipher.final()]);
+    const authTag = cipher.getAuthTag();
+
+    return [iv.toString("hex"), authTag.toString("hex"), ciphertext.toString("hex")].join(":");
+}
+
+/**
  * Encrypts (wraps) the raw vault key with a password-derived wrapping key.
  *
  * @returns `iv:authTag:ciphertext` (all hex-encoded, colon-separated).
  */
 export function wrapVaultKey(vaultKeyHex: string, password: string, keySalt: string): string {
     const aesKey = deriveWrappingKey(password, keySalt);
-    const iv = randomBytes(12);
-
-    const cipher = createCipheriv(AES_ALGO, aesKey, iv);
-    const ciphertext = Buffer.concat([cipher.update(vaultKeyHex, "utf8"), cipher.final()]);
-    const authTag = cipher.getAuthTag();
-
-    return [iv.toString("hex"), authTag.toString("hex"), ciphertext.toString("hex")].join(":");
+    return wrapPayloadWithAesKey(vaultKeyHex, aesKey);
 }
 
 /**
@@ -123,13 +130,7 @@ function deriveRecoveryAesKey(recoveryKey: string): Buffer {
  */
 export function wrapVaultKeyWithRecovery(vaultKeyHex: string, recoveryKey: string): string {
     const aesKey = deriveRecoveryAesKey(recoveryKey);
-    const iv = randomBytes(12);
-
-    const cipher = createCipheriv(AES_ALGO, aesKey, iv);
-    const ciphertext = Buffer.concat([cipher.update(vaultKeyHex, "utf8"), cipher.final()]);
-    const authTag = cipher.getAuthTag();
-
-    return [iv.toString("hex"), authTag.toString("hex"), ciphertext.toString("hex")].join(":");
+    return wrapPayloadWithAesKey(vaultKeyHex, aesKey);
 }
 
 /**

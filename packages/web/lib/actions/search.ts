@@ -5,7 +5,7 @@ import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import {redis} from "@/lib/redis";
 import {RankedGameResult,searchGamesRanked} from "@/lib/search-query";
-import {Category, Genre, Prisma} from "@/prisma/generated/client";
+import {Category, Prisma, Tag} from "@/prisma/generated/client";
 
 const log = logger.child("server.actions.search");
 
@@ -16,7 +16,7 @@ const MAX_RECENT = 5;
 const MAX_TRENDING = 10;
 const RESULT_LIMIT = 5;
 
-export type SearchResultType = "game" | "collection" | "vault" | "category" | "genre";
+export type SearchResultType = "game" | "collection" | "vault" | "category" | "tag";
 
 export interface SearchResult {
     type: SearchResultType;
@@ -34,7 +34,7 @@ export interface SearchResults {
     collections: SearchResult[];
     vaults: SearchResult[];
     categories: SearchResult[];
-    genres: SearchResult[];
+    tags: SearchResult[];
     totalCount: number;
 }
 
@@ -100,8 +100,8 @@ function categoryToSearchResult(category: Category): SearchResult {
     return {type: "category", id: category.id, name: category.name};
 }
 
-function genreToSearchResult(genre: Genre): SearchResult {
-    return {type: "genre", id: genre.id, name: genre.name};
+function tagToSearchResult(tag: Tag): SearchResult {
+    return {type: "tag", id: tag.id, name: tag.name};
 }
 
 /** Retrieves the authenticated user's recent search queries from Redis. */
@@ -183,7 +183,7 @@ function rankedGameToSearchResult(game: RankedGameResult): SearchResult {
         description: game.shortDescription ?? undefined,
         appId: game.appId ?? undefined,
         metadata: {
-            metacriticScore: game.metacriticScore ?? 0,
+            reviewScore: game.reviewScore ?? 0,
             isFree: game.isFree,
             ...(game.releaseDate ? {releaseDate: game.releaseDate} : {}),
         },
@@ -234,7 +234,7 @@ function buildSearchQueries(q: string) {
             take: RESULT_LIMIT,
         }),
 
-        genres: prisma.genre.findMany({
+        tags: prisma.tag.findMany({
             where: {name: {contains: q, mode: "insensitive"}},
             take: RESULT_LIMIT,
         }),
@@ -248,7 +248,7 @@ export async function search(query: string): Promise<SearchResults | null> {
     const q = normalizeQuery(query);
 
     if (!q) {
-        return {games: [], collections: [], vaults: [], categories: [], genres: [], totalCount: 0};
+        return {games: [], collections: [], vaults: [], categories: [], tags: [], totalCount: 0};
     }
 
     const cached = await redis.get(rk.results(q));
@@ -262,12 +262,12 @@ export async function search(query: string): Promise<SearchResults | null> {
     log.debug(`Cache miss: "${q}"`);
 
     const queries = buildSearchQueries(q);
-    const [games, collections, vaults, categories, genres] = await Promise.all([
+    const [games, collections, vaults, categories, tags] = await Promise.all([
         queries.games,
         queries.collections,
         queries.vaults,
         queries.categories,
-        queries.genres,
+        queries.tags,
     ]);
 
     const results: SearchResults = {
@@ -275,10 +275,10 @@ export async function search(query: string): Promise<SearchResults | null> {
         collections: collections.map(collectionToSearchResult),
         vaults: vaults.map(vaultToSearchResult),
         categories: categories.map(categoryToSearchResult),
-        genres: genres.map(genreToSearchResult),
+        tags: tags.map(tagToSearchResult),
         totalCount:
             games.length + collections.length + vaults.length +
-            categories.length + genres.length,
+            categories.length + tags.length,
     };
 
     fireAndForget(redis.set(rk.results(q), JSON.stringify(results), "EX", SEARCH_CACHE_TTL), "cacheSet");

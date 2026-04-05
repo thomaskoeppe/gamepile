@@ -23,13 +23,13 @@ import type {
 
 const DEFAULT_FILTERS: ExplorerFilters = {
     search: "",
-    genreIds: [],
     categoryIds: [],
+    tagIds: [],
     platforms: [],
     gameType: null,
     isFree: null,
-    metacriticMin: null,
-    metacriticMax: null,
+    reviewScoreMin: null,
+    reviewScoreMax: null,
     releaseDateFrom: null,
     releaseDateTo: null,
     ownership: "all",
@@ -40,11 +40,11 @@ const DEFAULT_SORT: ExplorerSort = { field: "name", direction: "asc" };
 function parseInitialFilters(params: URLSearchParams): ExplorerFilters {
     const filters = { ...DEFAULT_FILTERS };
     const search = params.get("search");
-    const genreIds = params.get("genreIds");
     const categoryIds = params.get("categoryIds");
+    const tagIds = params.get("tagIds");
     if (search) filters.search = search;
-    if (genreIds) filters.genreIds = genreIds.split(",");
     if (categoryIds) filters.categoryIds = categoryIds.split(",");
+    if (tagIds) filters.tagIds = tagIds.split(",");
     return filters;
 }
 
@@ -65,7 +65,7 @@ export default function ExplorePage() {
 
     const filterOptions = filterOptionsResult?.success
         ? filterOptionsResult.data
-        : { genres: [], categories: [] };
+        : { categories: [], tags: [] };
 
     const activeFilters = { ...filters, search: debouncedSearch };
 
@@ -92,7 +92,7 @@ export default function ExplorePage() {
                 setDebouncedSearch(newFilters.search);
             }, 400);
         } else {
-            setDebouncedSearch(filters.search);
+            setDebouncedSearch(newFilters.search);
         }
     }, [filters.search]);
 
@@ -146,8 +146,8 @@ export default function ExplorePage() {
                                 <SelectItem value="name_desc">Name (Z–A)</SelectItem>
                                 <SelectItem value="releaseDate_desc">Release (Newest)</SelectItem>
                                 <SelectItem value="releaseDate_asc">Release (Oldest)</SelectItem>
-                                <SelectItem value="metacriticScore_desc">Metacritic (High)</SelectItem>
-                                <SelectItem value="metacriticScore_asc">Metacritic (Low)</SelectItem>
+                                <SelectItem value="reviewScore_desc">Review Score (High)</SelectItem>
+                                <SelectItem value="reviewScore_asc">Review Score (Low)</SelectItem>
                             </SelectContent>
                         </Select>
 

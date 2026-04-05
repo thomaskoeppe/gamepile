@@ -44,17 +44,20 @@ const AUTH_ROUTES = ["/"];
 export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const requestId = crypto.randomUUID();
-    const reqLog = log.child("proxy", { pathname, method: request.method, requestId });
-
     const clientIp = getClientIp(request);
+    const userAgent = request.headers.get("user-agent") ?? "unknown";
+
+    const reqLog = log.child("proxy", { pathname, method: request.method, requestId, clientIp, userAgent, proxy: [
+            request.headers.get("x-forwarded-for"),
+            request.headers.get("x-real-ip"),
+    ]});
+
     const sessionCookieName = process.env.WEB_SESSION_COOKIE_NAME || "__session";
     const sessionToken = request.cookies.get(sessionCookieName)?.value;
     const hasSession = !!sessionToken;
 
     reqLog.debug("Proxy request received", {
-        clientIp,
         hasSession,
-        userAgent: request.headers.get("user-agent") ?? "unknown",
     });
 
     const start = Date.now();
@@ -67,7 +70,6 @@ export async function proxy(request: NextRequest) {
         const rl = await consumeRateLimit(authEndpointLimiter, `ip:${clientIp}`);
         if (!rl.success) {
             reqLog.warn("Auth rate limit exceeded", {
-                clientIp,
                 retryAfterMs: rl.retryAfterMs,
                 limiter: "authEndpoint",
                 durationMs: Date.now() - start,
@@ -87,7 +89,6 @@ export async function proxy(request: NextRequest) {
 
     if (!globalRl.success) {
         reqLog.warn("Global rate limit exceeded", {
-            clientIp,
             hasSession,
             retryAfterMs: globalRl.retryAfterMs,
             limiter: hasSession ? "globalAuth" : "globalAnon",
@@ -105,7 +106,7 @@ export async function proxy(request: NextRequest) {
         `default-src 'self'`,
         `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV !== "production" ? "'unsafe-eval' " : ""}https://va.vercel-scripts.com`,
         `style-src 'self' 'unsafe-inline'`,
-        `img-src 'self' data: blob: https://avatars.steamstatic.com https://steamcdn-a.akamaihd.net https://cdn.cloudflare.steamstatic.com https://shared.akamai.steamstatic.com https://placehold.co`,
+        `img-src 'self' data: blob: https://avatars.steamstatic.com https://steamcdn-a.akamaihd.net https://cdn.cloudflare.steamstatic.com https://cdn.akamai.steamstatic.com https://shared.akamai.steamstatic.com https://placehold.co`,
         `connect-src 'self' https://vitals.vercel-insights.com https://video.akamai.steamstatic.com`,
         `media-src 'self' data: blob: https://video.akamai.steamstatic.com`,
         `font-src 'self'`,
@@ -167,7 +168,10 @@ export async function proxy(request: NextRequest) {
             reqLog.info("No session — redirecting to login", { redirectTarget: pathname, durationMs: Date.now() - start });
 
             const loginUrl = new URL("/", request.url);
-            loginUrl.searchParams.set("redirect", pathname);
+            const redirectTarget = request.nextUrl.search
+                ? `${pathname}${request.nextUrl.search}`
+                : pathname;
+            loginUrl.searchParams.set("redirect", redirectTarget);
 
             reqLog.info("Redirecting to login page", { loginUrl: loginUrl.toString() });
 

@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "crypto";
 import { cookies } from "next/headers";
 
+import { getClientIp } from "@/lib/auth/rate-limit";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import {Session, User} from "@/prisma/generated/client";
@@ -21,6 +22,46 @@ export interface CreatedSession {
 
 function hashSessionToken(token: string): string {
     return createHash("sha256").update(token).digest("hex");
+}
+
+/**
+ * Resolves a session record by token, including a one-time migration of legacy
+ * plaintext tokens to SHA-256 hashes. This helper is shared by
+ * {@link getCurrentSession} and {@link validateSessionToken} to avoid
+ * duplicating the hash → find → legacy-fallback → migrate flow.
+ *
+ * @param token - The raw session token string.
+ * @returns The matching `Session` (with `user` included), or `null` if not found.
+ */
+async function findSessionByToken(token: string): Promise<SessionWithUser | null> {
+    const tokenHash = hashSessionToken(token);
+
+    let session = await prisma.session.findUnique({
+        where: { token: tokenHash },
+        include: { user: true },
+    }) as SessionWithUser | null;
+
+    if (!session) {
+        // Legacy fallback: try matching the plaintext token and migrate it
+        const legacySession = await prisma.session.findUnique({
+            where: { token },
+            include: { user: true },
+        }) as SessionWithUser | null;
+
+        if (legacySession) {
+            session = await prisma.session.update({
+                where: { id: legacySession.id },
+                data: { token: tokenHash },
+                include: { user: true },
+            }) as SessionWithUser;
+            log.info("Migrated legacy plaintext session token", {
+                sessionId: legacySession.id,
+                userId: legacySession.userId,
+            });
+        }
+    }
+
+    return session;
 }
 
 /**
@@ -57,10 +98,8 @@ export async function createUserSession(
     let userAgent: string | undefined;
 
     if (request) {
-        ipAddress =
-            request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-            request.headers.get("x-real-ip") ||
-            undefined;
+        const rawIp = getClientIp(request);
+        ipAddress = rawIp !== "unknown" ? rawIp : undefined;
         userAgent = request.headers.get("user-agent") || undefined;
     }
 
@@ -148,28 +187,7 @@ export async function getCurrentSession(): Promise<SessionData | null> {
         return null;
     }
 
-    const tokenHash = hashSessionToken(token);
-
-    let session = await prisma.session.findUnique({
-        where: { token: tokenHash },
-        include: { user: true },
-    }) as SessionWithUser | null;
-
-    if (!session) {
-        const legacySession = await prisma.session.findUnique({
-            where: { token },
-            include: { user: true },
-        }) as SessionWithUser | null;
-
-        if (legacySession) {
-            session = await prisma.session.update({
-                where: { id: legacySession.id },
-                data: { token: tokenHash },
-                include: { user: true },
-            }) as SessionWithUser;
-            log.info("Migrated legacy plaintext session token", { sessionId: legacySession.id, userId: legacySession.userId });
-        }
-    }
+    const session = await findSessionByToken(token);
 
     if (!session) {
         log.warn("Session cookie present but no matching DB record — clearing cookie", {
@@ -235,28 +253,7 @@ export async function validateSessionToken(
 ): Promise<SessionData | null> {
     log.debug("Validating session token", { tokenPrefix: token.slice(0, 8) + "…" });
 
-    const tokenHash = hashSessionToken(token);
-
-    let session = await prisma.session.findUnique({
-        where: { token: tokenHash },
-        include: { user: true },
-    }) as SessionWithUser | null;
-
-    if (!session) {
-        const legacySession = await prisma.session.findUnique({
-            where: { token },
-            include: { user: true },
-        }) as SessionWithUser | null;
-
-        if (legacySession) {
-            session = await prisma.session.update({
-                where: { id: legacySession.id },
-                data: { token: tokenHash },
-                include: { user: true },
-            }) as SessionWithUser;
-            log.info("Migrated legacy plaintext session token", { sessionId: legacySession.id, userId: legacySession.userId });
-        }
-    }
+    const session = await findSessionByToken(token);
 
     if (!session) {
         log.debug("Session token not found in database");

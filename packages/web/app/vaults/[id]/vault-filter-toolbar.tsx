@@ -12,7 +12,6 @@ import { KeyVaultAuthType } from "@/prisma/generated/browser";
 
 interface VaultFilterToolbarProps {
     filters: { name: string; tags: string[]; isOwned: boolean | null; isRedeemed: boolean | null };
-    genres: string[];
     categories: string[];
     onNameChange: (name: string) => void;
     onTagsChange: (tags: string[]) => void;
@@ -31,7 +30,6 @@ interface VaultFilterToolbarProps {
 
 export function VaultFilterToolbar({
     filters,
-    genres,
     categories,
     onNameChange,
     onTagsChange,
@@ -63,7 +61,6 @@ export function VaultFilterToolbar({
                 <div className="relative flex-1">
                     <MultiSelectCombobox
                         options={[
-                            ...genres.map((g) => ({ label: g, value: `genre_${g}`, category: "genre" })),
                             ...categories.map((c) => ({ label: c, value: `category_${c}`, category: "category" })),
                         ]}
                         selected={filters.tags}

@@ -37,37 +37,37 @@ export function getStatusConfig(status: JobStatus): StatusConfig {
         case JobStatus.QUEUED:
             return {
                 label:   "Queued",
-                icon:    <Circle className="h-3.5 w-3.5" />,
-                classes: "bg-yellow-500/15 text-yellow-500 border-yellow-500/30",
+                icon:    <Circle className="size-3.5" />,
+                classes: "border-border bg-muted/60 text-muted-foreground",
             };
         case JobStatus.ACTIVE:
             return {
                 label:   "Active",
-                icon:    <LoaderCircle className="h-3.5 w-3.5 animate-spin" />,
-                classes: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+                icon:    <LoaderCircle className="size-3.5 animate-spin" />,
+                classes: "border-primary/35 bg-primary/15 text-primary",
             };
         case JobStatus.COMPLETED:
             return {
                 label:   "Completed",
-                icon:    <CircleCheckBig className="h-3.5 w-3.5" />,
-                classes: "bg-green-500/15 text-green-400 border-green-500/30",
+                icon:    <CircleCheckBig className="size-3.5" />,
+                classes: "border-primary/40 bg-primary/20 text-primary",
             };
         case JobStatus.PARTIALLY_COMPLETED:
             return {
                 label:   "Partial",
-                icon:    <CircleAlert className="h-3.5 w-3.5" />,
-                classes: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+                icon:    <CircleAlert className="size-3.5" />,
+                classes: "border-primary/25 bg-primary/10 text-primary/80",
             };
         case JobStatus.FAILED:
             return {
                 label:   "Failed",
-                icon:    <CircleSlash className="h-3.5 w-3.5" />,
-                classes: "bg-red-500/15 text-red-400 border-red-500/30",
+                icon:    <CircleSlash className="size-3.5" />,
+                classes: "border-border bg-muted/80 text-foreground",
             };
         case JobStatus.CANCELED:
             return {
                 label:   "Canceled",
-                icon:    <CircleMinus className="h-3.5 w-3.5" />,
+                icon:    <CircleMinus className="size-3.5" />,
                 classes: "bg-muted text-muted-foreground border-border",
             };
     }
@@ -91,8 +91,8 @@ export function StatusBadge({ status }: { status: JobStatus }) {
 
 function logLevelClass(level: string): string {
     switch (level.toLowerCase()) {
-        case "error": return "text-red-400";
-        case "warn":  return "text-amber-400";
+        case "error": return "text-foreground";
+        case "warn":  return "text-primary/80";
         default:      return "text-muted-foreground";
     }
 }
@@ -131,7 +131,7 @@ function ProgressSection({ snapshot }: { snapshot: JobSnapshot }) {
         <span>
           {completedItems.toLocaleString()} / {totalItems.toLocaleString()} items
             {failedItems > 0 && (
-                <span className="ml-2 text-amber-400">
+                <span className="ml-2 text-primary/80">
               ({failedItems.toLocaleString()} failed)
             </span>
             )}
@@ -159,7 +159,7 @@ function LogTail({ snapshot }: { snapshot: JobSnapshot }) {
     return (
         <ScrollArea
             ref={containerRef}
-            className="h-36 rounded-md bg-black/30 p-2 font-mono text-[11px] leading-relaxed space-y-0.5"
+            className="h-36 rounded-md border border-border/60 bg-muted/40 p-2 font-mono text-[11px] leading-relaxed space-y-0.5"
         >
             {snapshot.logs.map((entry) => (
                 <div key={entry.id} className="flex gap-2 min-w-0">
@@ -211,8 +211,8 @@ function NoJobCard({ jobType }: { jobType: JobType }) {
 
 function ErrorCard() {
     return (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-4">
-            <p className="text-sm text-red-400">Failed to load job status.</p>
+        <div className="rounded-xl border border-border bg-muted/40 p-4">
+            <p className="text-sm text-foreground">Failed to load job status.</p>
         </div>
     );
 }
@@ -264,10 +264,10 @@ function JobCard({
                 <div className="flex items-center gap-2 shrink-0">
                     {isReconnecting && (
                         <span
-                            className="flex items-center gap-1 text-xs text-amber-400"
+                            className="flex items-center gap-1 text-xs text-primary/80"
                             title="Stream disconnected — reconnecting"
                         >
-              <WifiOff className="h-3 w-3" />
+              <WifiOff className="size-3" />
               Reconnecting
             </span>
                     )}
@@ -276,8 +276,8 @@ function JobCard({
             </div>
 
             {snapshot.errorMessage && (
-                <div className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2">
-                    <p className="text-xs text-red-400 font-mono wrap-break-word">
+                <div className="rounded-md border border-border bg-muted/60 px-3 py-2">
+                    <p className="text-xs text-foreground font-mono wrap-break-word">
                         {snapshot.errorMessage}
                     </p>
                 </div>

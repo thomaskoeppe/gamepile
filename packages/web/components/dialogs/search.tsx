@@ -2,6 +2,7 @@ import {
     Archive, Clock,
     FolderOpen,
     Search,
+    Tag,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {useCallback, useEffect, useState, useTransition} from "react";
@@ -21,6 +22,12 @@ import {
 } from "@/lib/actions/search";
 import { browserLog } from "@/lib/browser-logger";
 import {cn} from "@/lib/utils";
+
+function getReviewScoreBadgeClass(score: number): string {
+    if (score >= 75) return "border-primary/40 bg-primary/10 text-primary";
+    if (score >= 50) return "border-border bg-muted/60 text-foreground";
+    return "border-border/80 bg-muted/40 text-muted-foreground";
+}
 
 export function SearchTrigger({ onClick, className }: { onClick: () => void; className?: string }) {
     useEffect(() => {
@@ -44,7 +51,7 @@ export function SearchTrigger({ onClick, className }: { onClick: () => void; cla
             )}
         >
             <Search className="size-4" />
-            <span className="hidden sm:inline-flex">Search games, collections...</span>
+            <span className="hidden sm:inline-flex">Search games, tags...</span>
             <span className="sm:hidden">Search</span>
             <kbd className="pointer-events-none ml-auto hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground sm:inline-flex">
                 <span className="text-xs">⌘</span>K
@@ -106,8 +113,8 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
             case "category":
                 navigateAndClose(`/explore?categoryIds=${result.id}`);
                 return;
-            case "genre":
-                navigateAndClose(`/explore?genreIds=${result.id}`);
+            case "tag":
+                navigateAndClose(`/explore?tagIds=${result.id}`);
                 return;
         }
     }, [navigateAndClose]);
@@ -123,17 +130,17 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
     return (
         <>
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogHeader className="sr-only">
-                    <DialogTitle>Search</DialogTitle>
-                    <DialogDescription>Search for games, collections, vaults, categories, and genres</DialogDescription>
-                </DialogHeader>
-
                 <DialogContent className="overflow-hidden p-0 sm:max-w-2xl" showCloseButton={false}>
-                    <Command shouldFilter={false} className="**:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:font-medium **:[[cmdk-group-heading]]:text-muted-foreground">
+                    <DialogHeader className="sr-only">
+                        <DialogTitle>Search</DialogTitle>
+                        <DialogDescription>Search for games, collections, vaults, categories, and tags</DialogDescription>
+                    </DialogHeader>
+
+                    <Command shouldFilter={false} className="**:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:py-1.5 **:[[cmdk-group-heading]]:text-xs **:[[cmdk-group-heading]]:font-medium **:[[cmdk-group-heading]]:text-muted-foreground">
                         <div className="flex items-center border-b px-3">
                             <Search className="mr-2 size-4 shrink-0 opacity-50" />
                             <CommandInput
-                                placeholder="Search games, collections, categories..."
+                                placeholder="Search games, collections, tags..."
                                 value={query}
                                 onValueChange={setQuery}
                                 className="border-0 focus:ring-0"
@@ -159,7 +166,7 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                                     <div className="flex flex-col items-center gap-2">
                                         <Search className="size-10 text-muted-foreground/50" />
                                         <p className="text-muted-foreground">No results found for &quot;{query}&quot;</p>
-                                        <p className="text-xs text-muted-foreground/70">Try searching for game names, app IDs, or categories</p>
+                                        <p className="text-xs text-muted-foreground/70">Try searching for game names, app IDs, tags, or categories</p>
                                     </div>
                                 </CommandEmpty>
                             )}
@@ -218,17 +225,15 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                                                             </div>
                                                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                                                 <span>App ID: {game.appId}</span>
-                                                                {game.metadata?.metacriticScore ? (
+                                                                {game.metadata?.reviewScore ? (
                                                                     <Badge
                                                                         variant="outline"
                                                                         className={cn(
                                                                             "text-[10px] px-1 py-0",
-                                                                            Number(game.metadata.metacriticScore) >= 75 && "border-green-500 text-green-500",
-                                                                            Number(game.metadata.metacriticScore) >= 50 && Number(game.metadata.metacriticScore) < 75 && "border-yellow-500 text-yellow-500",
-                                                                            Number(game.metadata.metacriticScore) < 50 && "border-red-500 text-red-500"
+                                                                            getReviewScoreBadgeClass(Number(game.metadata.reviewScore)),
                                                                         )}
                                                                     >
-                                                                        {game.metadata.metacriticScore.toString()}
+                                                                        {game.metadata.reviewScore.toString()}
                                                                     </Badge>
                                                                 ) : null}
                                                             </div>
@@ -316,22 +321,21 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                                         </>
                                     )}
 
-                                    {results.genres.length > 0 && (
+                                    {results.tags.length > 0 && (
                                         <>
                                             <CommandSeparator />
-                                            <CommandGroup heading="Genres">
+                                            <CommandGroup heading="Tags">
                                                 <div className="flex flex-wrap gap-1.5 p-2">
-                                                    {results.genres.map((genre) => {
-                                                        return (
-                                                            <button
-                                                                key={genre.id}
-                                                                onClick={() => handleSelect(genre)}
-                                                                className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
-                                                            >
-                                                                {genre.name}
-                                                            </button>
-                                                        );
-                                                    })}
+                                                    {results.tags.map((tag) => (
+                                                        <button
+                                                            key={tag.id}
+                                                            onClick={() => handleSelect(tag)}
+                                                            className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+                                                        >
+                                                            <Tag className="size-3" />
+                                                            {tag.name}
+                                                        </button>
+                                                    ))}
                                                 </div>
                                             </CommandGroup>
                                         </>

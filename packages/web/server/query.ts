@@ -1,15 +1,9 @@
-import { z } from "zod";
+import {z} from "zod";
 
 import {rateLimitAction, rateLimitPublic} from "@/lib/auth/rate-limit";
-import { getCurrentSession } from "@/lib/auth/session";
+import {getCurrentSession} from "@/lib/auth/session";
 import {logger} from "@/lib/logger";
-
-type QueryResult<T> =
-    | { success: true; data: T; }
-    | { success: false, error: string; };
-
-type AuthContext = { user: { id: string } };
-type Handler<TInput, TOutput, TCtx> = (input: { parsedInput: TInput; ctx: TCtx }) => Promise<TOutput>;
+import {AuthContext, Handler, QueryResult} from "@/types/server-query";
 
 const log = logger.child("server.queries");
 

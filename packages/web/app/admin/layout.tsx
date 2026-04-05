@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { type ReactNode } from "react";
 
@@ -6,6 +7,14 @@ import { Header } from "@/components/header";
 import { getCurrentSession } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+    title: {
+        default: "Admin",
+        template: "%s — Admin — GAMEPILE",
+    },
+    description: "Administration panel for managing users, jobs, configuration, and platform settings.",
+};
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
     const sessionData = await getCurrentSession();

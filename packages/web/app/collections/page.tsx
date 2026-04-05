@@ -198,6 +198,7 @@ export default function CollectionsPage() {
 
     const isLoading = sessionLoading || collectionsLoading || result === undefined;
     const collections = result?.success ? result.data : null;
+    const ownedCollectionCount = collections?.filter((collection) => collection.createdBy.id === user?.id).length ?? 0;
     const error = result?.success === false ? result : null;
 
     return (
@@ -215,7 +216,7 @@ export default function CollectionsPage() {
 
                     <div className="flex items-center gap-2">
                         <CreateCollectionDialog onReload={() => mutate()}>
-                            <Button variant="outline" disabled={isLoading || getSetting("MAX_COLLECTIONS_PER_USER") <= (collections?.length ?? 0)}>
+                            <Button variant="outline" disabled={isLoading || getSetting("MAX_COLLECTIONS_PER_USER") <= ownedCollectionCount}>
                                 {!isLoading ? (
                                     <>
                                         <Plus className="size-4 mr-1.5" />

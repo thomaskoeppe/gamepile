@@ -67,6 +67,7 @@ export function DataTable({
                                     <TableHead
                                         key={header.id}
                                         className="text-muted-foreground text-xs font-medium h-10"
+                                        // TanStack table computes exact pixel widths per header.
                                         style={{width: header.getSize()}}
                                     >
                                         {header.isPlaceholder
@@ -128,7 +129,7 @@ export function DataTable({
                     <div className="flex items-center gap-1.5">
                         <span className="text-xs text-muted-foreground">Rows</span>
                         <Select value={String(pageSize)} onValueChange={(v) => onPageSizeChange(Number(v))}>
-                            <SelectTrigger className="h-8 w-17.5 bg-card/50 border-border text-xs">
+                            <SelectTrigger className="h-8 w-20 bg-card/50 border-border text-xs">
                                 <SelectValue/>
                             </SelectTrigger>
                             <SelectContent>

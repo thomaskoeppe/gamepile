@@ -87,12 +87,16 @@ export default function AdminVaultsPage() {
                     </Card>
                 ) : vaults ? (
                     <div className={cn("relative transition-opacity duration-200", isRevalidating && "opacity-80")}>
-                        <AdminVaultsTable vaults={vaults} users={users} onMutate={() => mutate()} />
+                        <AdminVaultsTable
+                            vaults={vaults}
+                            users={users}
+                            onMutate={() => mutate()}
+                        />
                     </div>
                 ) : null}
-
-                <LoadingIndicator show={isRevalidating} />
             </div>
+
+            <LoadingIndicator show={isRevalidating} />
         </>
     );
 }

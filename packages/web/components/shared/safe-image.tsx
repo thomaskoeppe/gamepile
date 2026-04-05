@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 interface SafeImageProps extends Omit<ImageProps, "src" | "onError"> {
     /** Ordered list of image URLs to try. Falls through on error. */
-    srcs: string[];
+    srcs: Array<string | null>;
     /** Content shown when all URLs fail. Defaults to a muted icon + optional label. */
     fallback?: ReactNode;
     /** Label shown in the default fallback (only used when `fallback` is not provided). */
@@ -37,14 +37,16 @@ export function SafeImage({
     className,
     ...imageProps
 }: SafeImageProps) {
+    const imageSrcs = srcs.filter((src) => src !== null && src.trim() !== "") as string[];
+
     const [index, setIndex] = useState(0);
-    const failed = index >= srcs.length;
+    const failed = index >= imageSrcs.length;
 
     const handleError = useCallback(() => {
         setIndex((prev) => prev + 1);
     }, []);
 
-    if (failed || srcs.length === 0 || srcs.filter((src) => src.trim().length > 0).length === 0) {
+    if (failed || imageSrcs.length === 0) {
         if (fallback) return <>{fallback}</>;
 
         return (
@@ -67,7 +69,7 @@ export function SafeImage({
     return (
         <Image
             {...imageProps}
-            src={srcs[index]}
+            src={imageSrcs[index]}
             className={className}
             onError={handleError}
             alt={imageProps.alt || ""}

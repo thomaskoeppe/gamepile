@@ -16,17 +16,24 @@ function buildWhere(
 ): Prisma.GameWhereInput {
     const conditions: Prisma.GameWhereInput[] = [];
 
+    const toExclusiveDate = (isoDate: string): Date => {
+        const date = new Date(isoDate);
+        date.setDate(date.getDate() + 1);
+        return date;
+    };
+
     if (searchIds) conditions.push({ id: { in: searchIds } });
-    if (filters.genreIds?.length) conditions.push({ genres: { some: { id: { in: filters.genreIds } } } });
     if (filters.categoryIds?.length) conditions.push({ categories: { some: { id: { in: filters.categoryIds } } } });
+    if (filters.tagIds?.length) conditions.push({ tags: { some: { id: { in: filters.tagIds } } } });
     if (filters.platforms?.length) conditions.push({ platforms: { hasSome: filters.platforms as Platform[] } });
     if (filters.gameType) conditions.push({ type: filters.gameType });
     if (filters.isFree === true) conditions.push({ isFree: true });
     if (filters.isFree === false) conditions.push({ isFree: false });
-    if (filters.metacriticMin != null) conditions.push({ metacriticScore: { gte: filters.metacriticMin } });
-    if (filters.metacriticMax != null) conditions.push({ metacriticScore: { lte: filters.metacriticMax } });
+    // UI score range is 0-100, so filter by percent-positive instead of Steam's compact score bucket.
+    if (filters.reviewScoreMin != null) conditions.push({ reviewPercentage: { gte: filters.reviewScoreMin } });
+    if (filters.reviewScoreMax != null) conditions.push({ reviewPercentage: { lte: filters.reviewScoreMax } });
     if (filters.releaseDateFrom) conditions.push({ releaseDate: { gte: new Date(filters.releaseDateFrom) } });
-    if (filters.releaseDateTo) conditions.push({ releaseDate: { lte: new Date(filters.releaseDateTo) } });
+    if (filters.releaseDateTo) conditions.push({ releaseDate: { lt: toExclusiveDate(filters.releaseDateTo) } });
     if (filters.ownership === "owned") conditions.push({ userGames: { some: { userId } } });
     if (filters.ownership === "unowned") conditions.push({ userGames: { none: { userId } } });
 
@@ -37,7 +44,7 @@ function buildOrderBy(sort: ExplorerSort): Prisma.GameOrderByWithRelationInput {
     switch (sort.field) {
         case "name": return { name: sort.direction };
         case "releaseDate": return { releaseDate: { sort: sort.direction, nulls: "last" } };
-        case "metacriticScore": return { metacriticScore: { sort: sort.direction, nulls: "last" } };
+        case "reviewScore": return { reviewPercentage: { sort: sort.direction, nulls: "last" } };
         case "type": return { type: sort.direction };
         default: return { name: "asc" };
     }
@@ -46,8 +53,8 @@ function buildOrderBy(sort: ExplorerSort): Prisma.GameOrderByWithRelationInput {
 function mapGame(
     g: Prisma.GameGetPayload<{
         include: {
-            genres: { select: { id: true; name: true } };
             categories: { select: { id: true; name: true } };
+            tags: { select: { id: true; name: true } };
             userGames: { select: { id: true } };
         };
     }>
@@ -57,28 +64,31 @@ function mapGame(
         appId: g.appId,
         name: g.name,
         shortDescription: g.shortDescription,
-        metacriticScore: g.metacriticScore,
+        reviewScore: g.reviewScore,
+        reviewPercentage: g.reviewPercentage,
+        reviewCount: g.reviewCount,
+        reviewScoreLabel: g.reviewScoreLabel,
         isFree: g.isFree,
         releaseDate: g.releaseDate,
         type: g.type,
         platforms: g.platforms,
         developers: g.developers,
         publishers: g.publishers,
-        genres: g.genres,
         categories: g.categories,
+        tags: g.tags,
         owned: g.userGames.length > 0,
     };
 }
 
 const filtersSchema = z.object({
     search: z.string(),
-    genreIds: z.array(z.string()),
     categoryIds: z.array(z.string()),
+    tagIds: z.array(z.string()),
     platforms: z.array(z.enum(Platform)),
     gameType: z.enum(GameType).nullable(),
     isFree: z.boolean().nullable(),
-    metacriticMin: z.number().nullable(),
-    metacriticMax: z.number().nullable(),
+    reviewScoreMin: z.number().nullable(),
+    reviewScoreMax: z.number().nullable(),
     releaseDateFrom: z.string().nullable(),
     releaseDateTo: z.string().nullable(),
     ownership: z.enum(["all", "owned", "unowned"]).optional(),
@@ -96,7 +106,7 @@ export const getExplorerGames = queryClientWithAuth
     .inputSchema(z.object({
         filters: filtersSchema,
         sort: z.object({
-            field: z.enum(["name", "releaseDate", "metacriticScore", "type"]),
+            field: z.enum(["name", "releaseDate", "reviewScore", "type"]),
             direction: z.enum(["asc", "desc"]),
         }),
         pagination: z.object({
@@ -120,8 +130,8 @@ export const getExplorerGames = queryClientWithAuth
             const rawGames = await prisma.game.findMany({
                 where: buildWhere(filters, ctx.user.id, pageIds),
                 include: {
-                    genres: { select: { id: true, name: true } },
                     categories: { select: { id: true, name: true } },
+                    tags: { select: { id: true, name: true } },
                     userGames: { where: { userId: ctx.user.id }, select: { id: true }, take: 1 },
                 },
             });
@@ -144,8 +154,8 @@ export const getExplorerGames = queryClientWithAuth
             prisma.game.findMany({
                 where,
                 include: {
-                    genres: { select: { id: true, name: true } },
                     categories: { select: { id: true, name: true } },
+                    tags: { select: { id: true, name: true } },
                     userGames: { where: { userId: ctx.user.id }, select: { id: true }, take: 1 },
                 },
                 orderBy: buildOrderBy(sort),
@@ -168,10 +178,10 @@ export const getExplorerFilterOptions = queryClientWithAuth
     .query<ExplorerFilterOptions>(withLogging(async ({ ctx }, { log }) => {
         log.info("Fetching explorer filter options", { userId: ctx.user.id });
 
-        const [genres, categories] = await Promise.all([
-            prisma.genre.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
+        const [categories, tags] = await Promise.all([
             prisma.category.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
+            prisma.tag.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
         ]);
 
-        return { genres, categories };
+        return { categories, tags };
     }, { namespace: "server.queries.explorer:getExplorerFilterOptions" }));
