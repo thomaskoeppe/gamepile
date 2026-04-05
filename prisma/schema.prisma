@@ -86,7 +86,7 @@ model User {
   profileUrl       String
   lastLogin        DateTime          @default(now())
   createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  updatedAt        DateTime          @default(now()) @updatedAt
   role             UserRole          @default(USER)
   sessions         Session[]
   userGames        UserGame[]
@@ -132,17 +132,45 @@ model UserSettings {
   privacyAllowProfileView       Boolean @default(true)
 }
 
+model GameScreenshot {
+  id        String   @id @default(cuid())
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  gameId    String   @db.Uuid
+  url       String
+  createdAt DateTime @default(now())
+}
+
+model GameVideo {
+  id        String   @id @default(cuid())
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  gameId    String   @db.Uuid
+  url       String
+  title     String?
+  createdAt DateTime @default(now())
+}
+
 model Game {
   id                String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   appId             Int?                     @unique
   name              String
   description       String?
   shortDescription  String?
+  fullDescription   String?
   developers        String[]
   publishers        String[]
+  franchises        String[]
   releaseDate       DateTime?
-  metacriticScore   Int?
-  tags              String[]
+  headerImageUrl    String?
+  capsuleImageUrl   String?
+  libraryCapsuleUrl String?
+  libraryHeroUrl    String?
+  heroCapsuleUrl    String?
+  reviewScore       Int?
+  reviewPercentage  Int?
+  reviewCount       Int?
+  reviewScoreLabel  String?
+  isEarlyAccess     Boolean                  @default(false)
+  steamDeckCompat   Int?
   platforms         Platform[]
   isFree            Boolean                  @default(false)
   detailsFetchedAt  DateTime?
@@ -152,15 +180,27 @@ model Game {
   updatedAt         DateTime                 @default(now()) @updatedAt
   search_vector     Unsupported("tsvector")?
   categories        Category[]               @relation("GameToCategories")
-  genres            Genre[]                  @relation("GameToGenres")
+  tags              Tag[]                    @relation("GameToTags")
   userGames         UserGame[]
   collectionGames   CollectionGame[]
   keyVaultGames     KeyVaultGame[]
   achievements      Achievement[]
+  screenshots       GameScreenshot[]
+  videos            GameVideo[]
 
   @@index([name])
   @@index([appId])
   @@index([search_vector], type: Gin)
+}
+
+model Tag {
+  id    String @id @default(cuid())
+  tagId Int    @unique
+  name  String
+
+  games Game[] @relation("GameToTags")
+
+  @@index([tagId])
 }
 
 model Category {
@@ -171,13 +211,6 @@ model Category {
   games Game[] @relation("GameToCategories")
 }
 
-model Genre {
-  id      String @id @default(cuid())
-  genreId Int    @unique
-  name    String @unique
-
-  games Game[] @relation("GameToGenres")
-}
 
 model Achievement {
   id          String  @id @default(cuid())
@@ -262,8 +295,8 @@ model CollectionGame {
   game         Game       @relation(fields: [gameId], references: [id], onDelete: Cascade)
   gameId       String     @db.Uuid
   addedAt      DateTime   @default(now())
-  addedBy      User?      @relation("CollectionGame_addedBy", fields: [addedById], references: [id], onDelete: SetNull)
-  addedById    String?
+  addedBy      User?      @relation("CollectionGame_addedBy", fields: [addedById], references: [id], onDelete: Cascade)
+  addedById    String
   notes        String?
 
   @@unique([collectionId, gameId])
@@ -287,8 +320,8 @@ model KeyVault {
   games KeyVaultGame[]
   users KeyVaultUser[]
 
-  @@index([createdById])
   @@unique([createdById, name])
+  @@index([createdById])
 }
 
 model KeyVaultUser {
@@ -356,6 +389,8 @@ model InviteCodeUsage {
 
 enum JobType {
   SYNC_STEAM_GAMES
+  SYNC_STEAM_TAGS
+  SYNC_STEAM_CATEGORIES
   IMPORT_USER_LIBRARY
   IMPORT_USER_ACHIEVEMENTS
   REFRESH_GAME_DETAILS
@@ -383,23 +418,23 @@ model JobLog {
 }
 
 model Job {
-  id             String           @id @default(cuid())
-  type           JobType
-  status         JobStatus        @default(QUEUED)
-  progress       Int              @default(0)
-  processedItems Int              @default(0)
-  totalItems     Int              @default(0)
-  failedItems    Int              @default(0)
-  allItemsQueued Boolean          @default(false)
-  startedAt      DateTime?
-  finishedAt     DateTime?
-  errorMessage   String?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  claimedBy      String?
-  userId         String?
-  user           User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
-  logs           JobLog[]
+  id              String           @id @default(cuid())
+  type            JobType
+  status          JobStatus        @default(QUEUED)
+  progress        Int              @default(0)
+  processedItems  Int              @default(0)
+  totalItems      Int              @default(0)
+  failedItems     Int              @default(0)
+  allItemsQueued  Boolean          @default(false)
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  errorMessage    String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  claimedBy       String?
+  userId          String?
+  user            User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  logs            JobLog[]
   failedChildJobs FailedChildJob[]
 
   @@index([status])
