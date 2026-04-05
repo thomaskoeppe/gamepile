@@ -35,7 +35,7 @@ spec:
               done
       containers:
         - name: web
-          image: ghcr.io/thomaskoeppe/gamepile-web:latest
+          image: ghcr.io/thomaskoeppe/gamepile/web:latest
           ports:
             - containerPort: 3000
           envFrom:

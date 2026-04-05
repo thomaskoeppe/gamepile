@@ -50,7 +50,7 @@ const workerEnvSchema = z.object({
     WORKER_GAME_DETAILS_REFRESH_DAYS: z.preprocess((value) => Number(value ?? 30), z.number().int().positive()),
     WORKER_STEAM_RATE_LIMIT_MAX: z.preprocess((value) => Number(value ?? 200), z.number().int().positive()),
     WORKER_STEAM_RATE_LIMIT_WINDOW_MS: z.preprocess((value) => Number(value ?? 5 * 60 * 1_000), z.number().int().positive()),
-    WORKER_STEAM_RATE_LIMIT_MIN_INTERVAL_MS: z.preprocess((value) => Number(value ?? 500), z.number().int().min(0)),
+    WORKER_STEAM_RATE_LIMIT_MIN_INTERVAL_MS: z.preprocess((value) => Number(value ?? 1_100), z.number().int().min(0)),
     WORKER_STEAM_RATE_LIMIT_SCOPE: z.enum(["local", "distributed"]).default("local"),
 });
 
