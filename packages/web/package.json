@@ -56,7 +56,7 @@
     "ioredis": "^5.10.1",
     "lucide-react": "^1.7.0",
     "next": "^16.2.2",
-    "next-safe-action": "^8.3.0",
+    "next-safe-action": "^8.4.0",
     "radix-ui": "^1.4.3",
     "rate-limiter-flexible": "^10.0.1",
     "react": "^19.2.4",
