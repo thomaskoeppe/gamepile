@@ -7,7 +7,7 @@
     "migrate:deploy": "node run-sql-migrations.mjs"
   },
   "dependencies": {
-    "postgres": "^3.4.7"
+    "postgres": "^3.4.8"
   }
 }
 
