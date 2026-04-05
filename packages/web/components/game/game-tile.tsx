@@ -9,7 +9,7 @@ import {Prisma} from "@/prisma/generated/client";
 
 dayjs.extend(relativeTime);
 
-export function GameTile({ game, onRevalidate }: { game: Prisma.GameGetPayload<{ include: { categories: true, genres: true } }> & { playtime?: number; owned: boolean; }, onRevalidate?: () => void }) {
+export function GameTile({ game, onRevalidate }: { game: Prisma.GameGetPayload<{ include: { categories: true, tags: true } }> & { playtime?: number; owned: boolean; }, onRevalidate?: () => void }) {
     const [isVisible, setIsVisible] = useState(false);
     const imgRef = useRef<HTMLDivElement>(null);
     const [isHovered, setIsHovered] = useState(false);
@@ -67,7 +67,7 @@ export function GameTile({ game, onRevalidate }: { game: Prisma.GameGetPayload<{
                         onMouseLeave={handleMouseLeave}
                     >
                         <SafeImage
-                            srcs={[`https://steamcdn-a.akamaihd.net/steam/apps/${game.appId}/library_600x900.jpg`]}
+                            srcs={[game.libraryCapsuleUrl, game.heroCapsuleUrl]}
                             alt={String(game.id)}
                             className="rounded-lg object-cover h-full w-full"
                             width={200}

@@ -20,3 +20,4 @@ CLAUDE.md
 .agent-project.json
 /.github/copilot-instructions.md
 /.github/git-commit-instructions.md
+migration_lock.toml

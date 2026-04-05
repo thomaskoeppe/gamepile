@@ -1,4 +1,12 @@
-import { defineConfig } from "tsup";
+import {defineConfig} from "tsup";
+
+/**
+ * tsup build configuration for the worker package.
+ *
+ * Bundles the worker entry point as a single ESM file targeting Node.js 22.
+ * Workspace packages (`@gamepile/*`) are inlined so the production Docker image
+ * does not need a separate `@gamepile/shared` package at runtime.
+ */
 
 export default defineConfig({
     entry: ["src/index.ts"],
@@ -9,8 +17,5 @@ export default defineConfig({
     sourcemap: true,
     splitting: false,
     tsconfig: "tsconfig.json",
-    // Bundle workspace packages (@gamepile/*) inline so the runner image
-    // does not need a separate @gamepile/shared package at runtime.
     noExternal: [/@gamepile\//],
 });
-

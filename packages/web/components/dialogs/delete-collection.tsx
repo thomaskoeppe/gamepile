@@ -66,7 +66,7 @@ export function DeleteCollectionDialog({
                     <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                         Cancel
                     </Button>
-                    <Button type="button" variant="destructive" onClick={handleDelete} disabled={isPending}>
+                    <Button type="button" variant="outline" className="border-primary/40 text-primary hover:bg-primary/10" onClick={handleDelete} disabled={isPending}>
                         {isPending ? <LoaderCircle className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
                         Delete Collection
                     </Button>

@@ -32,7 +32,46 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "GAMEPILE | Your Game Library"
+    title: {
+        default: "GAMEPILE",
+        template: "%s — GAMEPILE",
+    },
+    description:
+        "Self-hosted Steam library manager. Import your games, build curated collections, and store activation keys in encrypted vaults.",
+    authors: [
+        { name: "thomaskoeppe", url: "https://github.com/thomaskoeppe" },
+    ],
+    creator: "thomaskoeppe",
+    keywords: [
+        "steam",
+        "game library",
+        "game collection",
+        "key vault",
+        "self-hosted",
+        "game management",
+    ],
+    icons: {
+        icon: [
+            { url: "/favicon.ico", sizes: "any" },
+            { url: "/logo.svg", type: "image/svg+xml" },
+        ],
+        apple: { url: "/logo_4x.png" },
+    },
+    openGraph: {
+        type: "website",
+        siteName: "GAMEPILE",
+        title: "GAMEPILE",
+        description:
+            "Self-hosted Steam library manager. Import your games, build curated collections, and store activation keys in encrypted vaults.",
+        images: [{ url: "/logo_4x.png", width: 512, height: 512, alt: "GAMEPILE logo" }],
+    },
+    twitter: {
+        card: "summary",
+        title: "GAMEPILE",
+        description:
+            "Self-hosted Steam library manager. Import your games, build curated collections, and store activation keys in encrypted vaults.",
+        images: ["/logo_4x.png"],
+    }
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

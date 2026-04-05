@@ -33,6 +33,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const allowedOrigin = parseOrigin(process.env.WEB_APP_URL ?? "");
 
     if (originHeader && allowedOrigin && requestOrigin !== allowedOrigin) {
+        log.warn("Blocked log ingestion from disallowed origin", {
+            requestOrigin,
+            allowedOrigin,
+        });
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

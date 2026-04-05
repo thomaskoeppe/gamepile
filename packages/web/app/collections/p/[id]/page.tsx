@@ -42,20 +42,20 @@ export default async function PublicCollectionPage({ params }: { params: Promise
         return redirect(`/collections/${id}`, RedirectType.push);
     }
 
-    const [collectionGames, categories, genres] = await Promise.all([
+    const [collectionGames, categories, tags] = await Promise.all([
         prisma.collectionGame.findMany({
             where: { collectionId: id },
             include: {
                 game: {
                     include: {
                         categories: true,
-                        genres: true,
+                        tags: true,
                     },
                 },
             },
         }),
         prisma.category.findMany({ select: { name: true } }),
-        prisma.genre.findMany({ select: { name: true } }),
+        prisma.tag.findMany({ select: { name: true } }),
     ]);
 
     const games = collectionGames.map((cg) => ({
@@ -68,7 +68,7 @@ export default async function PublicCollectionPage({ params }: { params: Promise
             collection={collection}
             games={games}
             categories={categories}
-            genres={genres}
+            tags={tags}
         />
     );
 }
@@ -86,7 +86,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     }
 
     return {
-        title: `${collection.name} — Gamepile`,
+        title: collection.name,
         description: collection.description ?? `A public collection with ${collection._count.games} games.`,
     };
 }

@@ -8,7 +8,7 @@ import {useServerQuery} from "@/lib/hooks/use-server-query";
 import {useSession} from "@/lib/providers/session";
 import {cn} from "@/lib/utils";
 import {JobType} from "@/prisma/generated/browser";
-import {getGameCategories, getGameGenres} from "@/server/queries/games";
+import {getGameCategories, getGameTags} from "@/server/queries/games";
 import {getGamesForUser} from "@/server/queries/user-games";
 
 export default function Home() {
@@ -22,14 +22,14 @@ export default function Home() {
         ["categories"], () => getGameCategories()
     );
 
-    const { data: genresResult } = useServerQuery(
-        ["genres"], () => getGameGenres()
+    const {data: tagsResult} = useServerQuery(
+        ["tags"], () => getGameTags()
     );
 
     const isLoading = sessionLoading || gamesLoading || gamesResult === undefined;
     const games = gamesResult?.success ? gamesResult.data : [];
     const categories = categoriesResult?.success ? categoriesResult.data : [];
-    const genres = genresResult?.success ? genresResult.data : [];
+    const tags = tagsResult?.success ? tagsResult.data : [];
 
     return (
         <>
@@ -44,7 +44,7 @@ export default function Home() {
                     <GameList
                         games={games}
                         categories={categories}
-                        genres={genres}
+                        tags={tags}
                         isLoading={isLoading}
                     />
                 </div>

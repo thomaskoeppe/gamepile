@@ -38,8 +38,8 @@ export async function GET(request: NextRequest) {
             games: [],
             vaultGames: [],
             collectionGames: [],
-            genres: [],
             categories: [],
+            tags: [],
             users: [],
         });
     }
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     const contains = q;
     const mode = "insensitive" as const;
 
-    const [rankedGames, vaultGames, collectionGames, genres, categories, users] = await Promise.all([
+    const [rankedGames, vaultGames, collectionGames, categories, tags, users] = await Promise.all([
         searchGamesRanked(q, 8),
 
         prisma.keyVaultGame.findMany({
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
             orderBy: { game: { name: "asc" } },
         }),
 
-        prisma.genre.findMany({
+        prisma.category.findMany({
             where: { name: { contains, mode } },
             select: {
                 id: true,
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
             orderBy: { name: "asc" },
         }),
 
-        prisma.category.findMany({
+        prisma.tag.findMany({
             where: { name: { contains, mode } },
             select: {
                 id: true,
@@ -132,8 +132,8 @@ export async function GET(request: NextRequest) {
             games: rankedGames.length,
             vaultGames: vaultGames.length,
             collectionGames: collectionGames.length,
-            genres: genres.length,
             categories: categories.length,
+            tags: tags.length,
             users: users.length,
         },
         durationMs: Date.now() - start,
@@ -148,8 +148,8 @@ export async function GET(request: NextRequest) {
         })),
         vaultGames,
         collectionGames,
-        genres,
         categories,
+        tags,
         users,
     });
 }

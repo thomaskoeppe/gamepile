@@ -38,8 +38,8 @@ export function VaultAuthGate({ vaultId, vaultName, authType, onSuccess }: Vault
 
     return (
         <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center px-4 overflow-hidden">
-            <Card>
-                <CardContent className="flex flex-col items-center gap-6 text-center">
+            <Card className="w-full max-w-md rounded-xl border-border bg-card/80">
+                <CardContent className="flex flex-col items-center gap-6 p-6 text-center sm:p-7">
                     <div className="flex flex-col items-center gap-3 text-center">
                         <div className="flex items-center justify-center">
                             <Lock className="h-10 w-10 text-primary" />
@@ -55,7 +55,7 @@ export function VaultAuthGate({ vaultId, vaultName, authType, onSuccess }: Vault
                         </div>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="w-full space-y-4">
                         <div className="relative">
                             {isPin ? (
                                     <div className="relative">
@@ -69,7 +69,7 @@ export function VaultAuthGate({ vaultId, vaultName, authType, onSuccess }: Vault
                                             placeholder="Enter PIN"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value.replace(/\D/g, ""))}
-                                            className="bg-muted border-border text-center text-xl tracking-widest focus-visible:border-primary focus-visible:ring-rin w-100"
+                                            className="w-full bg-muted border-border text-center text-xl tracking-widest focus-visible:border-primary focus-visible:ring-ring"
                                             disabled={isPending}
                                             aria-invalid={!!serverError}
                                             autoFocus
@@ -84,7 +84,7 @@ export function VaultAuthGate({ vaultId, vaultName, authType, onSuccess }: Vault
                                         placeholder="Enter password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="bg-muted border-border pr-10 focus-visible:border-primary focus-visible:ring-ring w-100"
+                                        className="w-full bg-muted border-border pr-10 focus-visible:border-primary focus-visible:ring-ring"
                                         disabled={isPending}
                                         aria-invalid={!!serverError}
                                         autoFocus
@@ -92,10 +92,10 @@ export function VaultAuthGate({ vaultId, vaultName, authType, onSuccess }: Vault
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword((v) => !v)}
+                                        aria-label={showPassword ? "Hide password" : "Show password"}
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                                        tabIndex={-1}
                                     >
-                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                                     </button>
                                 </div>
                             )}

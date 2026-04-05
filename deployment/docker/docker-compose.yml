@@ -1,16 +1,31 @@
 # ─── Shared environment anchors ──────────────────────
+# Compose reads values from `.env` (or `--env-file`) for interpolation.
+# `env_file` is still kept on app services so extra application variables from
+# the same source file are passed through to the running containers unchanged.
 x-common-env: &common-env
-  NODE_ENV: production
+  NODE_ENV: "${NODE_ENV:-production}"
   DOMAIN: "${DOMAIN:-gamepile.example.com}"
-  ACME_EMAIL: "${ACME_EMAIL:-admin@example.com}"
   POSTGRES_USER: "${POSTGRES_USER:-gamepile}"
   POSTGRES_DB: "${POSTGRES_DB:-gamepile}"
-  REDIS_HOST: redis
-  REDIS_PORT: "6379"
   POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-gamepile_secret}"
+  # Redis — default to the container service name inside Docker
+  REDIS_HOST: "${REDIS_HOST:-redis}"
+  REDIS_PORT: "${REDIS_PORT:-6379}"
   REDIS_PASSWORD: "${REDIS_PASSWORD:-redis_secret}"
+  # Optional Redis ACL username (omit if not needed)
+  REDIS_USERNAME: "${REDIS_USERNAME:-}"
   STEAM_API_KEY: "${STEAM_API_KEY}"
   WEB_VAULT_TOKEN_SECRET: "${WEB_VAULT_TOKEN_SECRET}"
+  # Full connection string — defaults to the internal postgres container
+  DATABASE_URL: "${DATABASE_URL:-postgresql://${POSTGRES_USER:-gamepile}:${POSTGRES_PASSWORD:-gamepile_secret}@postgres:5432/${POSTGRES_DB:-gamepile}?schema=public}"
+  # Prisma query logging (slow query warnings >500ms)
+  PRISMA_LOG_QUERIES: "${PRISMA_LOG_QUERIES:-true}"
+  # Observability (OpenTelemetry / SigNoz) — all optional
+  OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT:-}"
+  OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-}"
+  OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: "${OTEL_EXPORTER_OTLP_TRACES_PROTOCOL:-http/protobuf}"
+  OTEL_EXPORTER_OTLP_HEADERS: "${OTEL_EXPORTER_OTLP_HEADERS:-}"
+  OTEL_LOG_LEVEL: "${OTEL_LOG_LEVEL:-info}"
 
 services:
   # ────────────────────────────────────────────────────
@@ -57,7 +72,6 @@ services:
     image: ghcr.io/thomaskoeppe/gamepile/migrate:latest
     environment:
       <<: *common-env
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-gamepile}:${POSTGRES_PASSWORD:-gamepile_secret}@postgres:5432/${POSTGRES_DB:-gamepile}?schema=public"
     depends_on:
       postgres:
         condition: service_healthy
@@ -67,17 +81,24 @@ services:
 
   # ────────────────────────────────────────────────────
   # Web (Next.js frontend + API)
+  # `env_file` passes through any extra app variables from `.env`.
+  # The environment block sets the Docker-specific defaults/overrides.
   # ────────────────────────────────────────────────────
   web:
     image: ghcr.io/thomaskoeppe/gamepile/web:latest
     restart: unless-stopped
     env_file:
-      - .env
+      - ../../.env
     environment:
       <<: *common-env
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-gamepile}:${POSTGRES_PASSWORD:-gamepile_secret}@postgres:5432/${POSTGRES_DB:-gamepile}?schema=public"
-      WEB_APP_URL: "http://${DOMAIN:-gamepile.example.com}"
-      WEB_ALLOWED_ORIGINS: "${WEB_ALLOWED_ORIGINS:-gamepile.example.com}"
+      # Default to the public HTTP endpoint exposed by the bundled Caddy proxy.
+      # Override these when terminating TLS elsewhere.
+      WEB_APP_URL: "${WEB_APP_URL:-http://${DOMAIN:-gamepile.example.com}}"
+      WEB_ALLOWED_ORIGINS: "${WEB_ALLOWED_ORIGINS:-${DOMAIN:-gamepile.example.com}}"
+      # These match .env defaults exactly
+      WEB_SESSION_COOKIE_NAME: "${WEB_SESSION_COOKIE_NAME:-__session}"
+      WEB_SESSION_DURATION_DAYS: "${WEB_SESSION_DURATION_DAYS:-7}"
+      NEXT_OTEL_VERBOSE: "${NEXT_OTEL_VERBOSE:-0}"
       LOG_LEVEL: "${LOG_LEVEL:-info}"
       LOG_SERVICE: "gamepile-web"
     depends_on:
@@ -92,26 +113,36 @@ services:
 
   # ────────────────────────────────────────────────────
   # Worker (BullMQ job processor — scale with replicas)
+  # `env_file` passes through any extra app variables from `.env`.
+  # The environment block sets the Docker-specific defaults/overrides.
   # ────────────────────────────────────────────────────
   worker:
     image: ghcr.io/thomaskoeppe/gamepile/worker:latest
     restart: unless-stopped
     env_file:
-      - .env
+      - ../../.env
     environment:
       <<: *common-env
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-gamepile}:${POSTGRES_PASSWORD:-gamepile_secret}@postgres:5432/${POSTGRES_DB:-gamepile}?schema=public"
-      WORKER_JOBS_CONCURRENCY: "3"
-      WORKER_DETAILS_CONCURRENCY: "10"
-      WORKER_STALE_ACTIVE_RECOVERY_DELAY_MS: "1800000"
-      WORKER_ACTIVE_RECOVERY_LOCK_TTL_MS: "60000"
-      WORKER_STEAM_RATE_LIMIT_MAX: "200"
-      WORKER_STEAM_RATE_LIMIT_WINDOW_MS: "300000"
-      WORKER_STEAM_RATE_LIMIT_MIN_INTERVAL_MS: "1500"
-      WORKER_STEAM_RATE_LIMIT_SCOPE: "distributed"
+      # Throughput & recovery — defaults match .env
+      WORKER_JOBS_CONCURRENCY: "${WORKER_JOBS_CONCURRENCY:-3}"
+      WORKER_DETAILS_CONCURRENCY: "${WORKER_DETAILS_CONCURRENCY:-10}"
+      WORKER_STARTUP_DELAY_MS: "${WORKER_STARTUP_DELAY_MS:-300000}"
+      WORKER_STALE_ACTIVE_RECOVERY_DELAY_MS: "${WORKER_STALE_ACTIVE_RECOVERY_DELAY_MS:-1800000}"
+      WORKER_ACTIVE_RECOVERY_LOCK_TTL_MS: "${WORKER_ACTIVE_RECOVERY_LOCK_TTL_MS:-60000}"
+      # Steam rate limiting — defaults match .env
+      WORKER_STEAM_RATE_LIMIT_MAX: "${WORKER_STEAM_RATE_LIMIT_MAX:-200}"
+      WORKER_STEAM_RATE_LIMIT_WINDOW_MS: "${WORKER_STEAM_RATE_LIMIT_WINDOW_MS:-300000}"
+      WORKER_STEAM_RATE_LIMIT_MIN_INTERVAL_MS: "${WORKER_STEAM_RATE_LIMIT_MIN_INTERVAL_MS:-1100}"
+      WORKER_STEAM_RATE_LIMIT_SCOPE: "${WORKER_STEAM_RATE_LIMIT_SCOPE:-local}"
+      # Scheduled jobs — defaults match .env
+      WORKER_SYNC_STEAM_GAMES_CRON: "${WORKER_SYNC_STEAM_GAMES_CRON:-0 3 * * 0}"
+      WORKER_REFRESH_GAME_DETAILS_CRON: "${WORKER_REFRESH_GAME_DETAILS_CRON:-0 0 * * *}"
+      WORKER_GAME_DETAILS_REFRESH_DAYS: "${WORKER_GAME_DETAILS_REFRESH_DAYS:-30}"
+      WORKER_IMPORT_USER_LIBRARY_INTERVAL_MS: "${WORKER_IMPORT_USER_LIBRARY_INTERVAL_MS:-604800000}"
+      # Logging
       LOG_LEVEL: "${LOG_LEVEL:-info}"
       LOG_SERVICE: "gamepile-worker"
-      LOG_ENV: "production"
+      LOG_ENV: "${NODE_ENV:-production}"
     depends_on:
       redis:
         condition: service_healthy
@@ -127,13 +158,24 @@ services:
 
   # ────────────────────────────────────────────────────
   # Caddy (Reverse Proxy — HTTP only)
+  #
+  # Uses a Caddyfile so `trusted_proxies` can be configured.
+  # This is required when running behind another proxy
+  # (Traefik, nginx, Cloudflare) or on Docker Desktop
+  # (Mac/Windows) where the client IP is NATted.
+  #
+  # If Caddy is the ONLY proxy, and you run native Linux
+  # Docker, you can replace the volumes + remove the
+  # Caddyfile and use the CLI shortcut instead:
+  #   command: caddy reverse-proxy --from :8080 --to web:3000
   # ────────────────────────────────────────────────────
   caddy:
     image: caddy:alpine
     restart: unless-stopped
     ports:
       - "8080:8080"
-    command: caddy reverse-proxy --from :8080 --to web:3000
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
     depends_on:
       - web
     networks:

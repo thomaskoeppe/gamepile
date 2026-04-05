@@ -1,4 +1,4 @@
-import { JobStatus, JobType } from "@/prisma/generated/enums";
+import {JobStatus, JobType} from "@/prisma/generated/enums";
 
 export type JobLogEntry = {
     id: string;
@@ -62,6 +62,8 @@ export function isTerminal(status: JobStatus): boolean {
 
 export const JOB_TYPE_LABEL: Record<JobType, string> = {
     SYNC_STEAM_GAMES:        "Steam Game Sync",
+    SYNC_STEAM_TAGS: "Steam Tag Sync",
+    SYNC_STEAM_CATEGORIES: "Steam Category Sync",
     IMPORT_USER_LIBRARY:     "Library Import",
     IMPORT_USER_ACHIEVEMENTS: "Achievement Import",
     REFRESH_GAME_DETAILS:    "Refresh Game Details",

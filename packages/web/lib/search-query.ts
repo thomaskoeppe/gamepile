@@ -5,7 +5,7 @@ export interface RankedGameResult {
     appId: number | null;
     name: string;
     shortDescription: string | null;
-    metacriticScore: number | null;
+    reviewScore: number | null;
     isFree: boolean;
     releaseDate: Date | null;
     type: string;
@@ -47,7 +47,7 @@ function escapeLike(s: string): string {
  *   1 - full-text vector match (weighted A/B/C/D)
  *
  * Within a tier, results are ordered by ts_rank_cd score descending,
- * then by metacritic score as a tiebreaker.
+ * then by review score as a tiebreaker.
  */
 export async function searchGamesRanked(
     query: string,
@@ -58,22 +58,26 @@ export async function searchGamesRanked(
 
     const tsq = buildTsQuery(q);
     const likePattern = `${escapeLike(q)}%`;
+    const fuzzyPattern = `%${escapeLike(q)}%`;
+    const appId = /^\d+$/.test(q) ? parseInt(q, 10) : -1;
 
     if (!tsq) {
         return prisma.$queryRaw<RankedGameResult[]>`
             SELECT
                 "id", "appId", "name", "shortDescription",
-                "metacriticScore", "isFree", "releaseDate", "type",
+                "reviewScore", "isFree", "releaseDate", "type",
                 "platforms"::text[] AS "platforms",
                 "developers", "publishers",
                 CASE
+                    WHEN "appId" = ${appId} THEN 4
                     WHEN lower("name") = lower(${q}) THEN 3
                     WHEN lower("name") LIKE lower(${likePattern}) THEN 2
                     ELSE 1
                 END AS "rank"
             FROM "Game"
-            WHERE lower("name") LIKE lower(${'%' + escapeLike(q) + '%'})
-            ORDER BY "rank" DESC, "metacriticScore" DESC NULLS LAST, "name" ASC
+            WHERE lower("name") LIKE lower(${fuzzyPattern})
+               OR "appId" = ${appId}
+            ORDER BY "rank" DESC, "reviewScore" DESC NULLS LAST, "name" ASC
             LIMIT ${limit}
         `;
     }
@@ -81,10 +85,11 @@ export async function searchGamesRanked(
     return prisma.$queryRaw<RankedGameResult[]>`
         SELECT
             "id", "appId", "name", "shortDescription",
-            "metacriticScore", "isFree", "releaseDate", "type",
+            "reviewScore", "isFree", "releaseDate", "type",
             "platforms"::text[] AS "platforms",
             "developers", "publishers",
             CASE
+                WHEN "appId" = ${appId} THEN 400
                 WHEN lower("name") = lower(${q}) THEN 300
                 WHEN lower("name") LIKE lower(${likePattern}) THEN 200 + ts_rank_cd("search_vector", to_tsquery('english', ${tsq}))
                 WHEN "search_vector" @@ to_tsquery('english', ${tsq}) THEN 100 + ts_rank_cd("search_vector", to_tsquery('english', ${tsq}))
@@ -94,7 +99,8 @@ export async function searchGamesRanked(
         WHERE
             "search_vector" @@ to_tsquery('english', ${tsq})
             OR lower("name") LIKE lower(${'%' + escapeLike(q) + '%'})
-        ORDER BY "rank" DESC, "metacriticScore" DESC NULLS LAST, "name" ASC
+            OR "appId" = ${appId}
+        ORDER BY "rank" DESC, "reviewScore" DESC NULLS LAST, "name" ASC
         LIMIT ${limit}
     `;
 }
@@ -112,6 +118,7 @@ export async function searchGameIds(
     const tsq = buildTsQuery(q);
     const likePattern = `${escapeLike(q)}%`;
     const fuzzyPattern = `%${escapeLike(q)}%`;
+    const appId = /^\d+$/.test(q) ? parseInt(q, 10) : -1;
     const { limit, offset } = pagination;
 
     if (!tsq) {
@@ -120,8 +127,10 @@ export async function searchGameIds(
                 SELECT "id"
                 FROM "Game"
                 WHERE lower("name") LIKE lower(${fuzzyPattern})
+                   OR "appId" = ${appId}
                 ORDER BY
                     CASE
+                        WHEN "appId" = ${appId} THEN 4
                         WHEN lower("name") = lower(${q}) THEN 3
                         WHEN lower("name") LIKE lower(${likePattern}) THEN 2
                         ELSE 1
@@ -133,6 +142,7 @@ export async function searchGameIds(
                 SELECT COUNT(*) as count
                 FROM "Game"
                 WHERE lower("name") LIKE lower(${fuzzyPattern})
+                   OR "appId" = ${appId}
             `,
         ]);
 
@@ -149,8 +159,10 @@ export async function searchGameIds(
             WHERE
                 "search_vector" @@ to_tsquery('english', ${tsq})
                 OR lower("name") LIKE lower(${fuzzyPattern})
+                OR "appId" = ${appId}
             ORDER BY
                 CASE
+                    WHEN "appId" = ${appId} THEN 400
                     WHEN lower("name") = lower(${q}) THEN 300
                     WHEN lower("name") LIKE lower(${likePattern}) THEN 200 + ts_rank_cd("search_vector", to_tsquery('english', ${tsq}))
                     WHEN "search_vector" @@ to_tsquery('english', ${tsq}) THEN 100 + ts_rank_cd("search_vector", to_tsquery('english', ${tsq}))
@@ -165,6 +177,7 @@ export async function searchGameIds(
             WHERE
                 "search_vector" @@ to_tsquery('english', ${tsq})
                 OR lower("name") LIKE lower(${fuzzyPattern})
+                OR "appId" = ${appId}
         `,
     ]);
 

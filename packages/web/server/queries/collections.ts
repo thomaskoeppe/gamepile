@@ -7,6 +7,37 @@ import { withLogging } from "@/lib/with-logging";
 import {CollectionVisibility, Prisma} from "@/prisma/generated/client";
 import {queryClientWithAuth} from "@/server/query";
 
+export const checkCollectionAccess = queryClientWithAuth.inputSchema(z.object({ collectionId: z.cuid() })).query<boolean>(withLogging(async ({ parsedInput: { collectionId }, ctx }, { log }) => {
+    log.info("Checking collection access for user", {
+        userId: ctx.user.id,
+        collectionId
+    });
+
+    return await prisma.collection.findFirst({
+        where: {
+            id: collectionId,
+            OR: [{
+                type: CollectionVisibility.PUBLIC
+            }, {
+                users: {
+                    some: {
+                        userId: ctx.user.id
+                    }
+                }
+            }, {
+                createdBy: {
+                    id: ctx.user.id
+                }
+            }]
+        },
+        select: {
+            id: true
+        }
+    }) !== null;
+}, {
+    namespace: "server.queries.collections:checkCollectionAccess"
+}));
+
 /**
  * Fetches all collections visible to the authenticated user.
  * Includes public collections, collections the user owns, and collections

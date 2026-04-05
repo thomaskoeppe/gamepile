@@ -7,6 +7,20 @@ import { logger } from "@/src/lib/logger.js";
 import prisma from "@/src/lib/prisma.js";
 import { redis } from "@/src/lib/redis.js";
 
+/**
+ * Recovers jobs that are stuck in `ACTIVE` status in the database but are no longer
+ * being processed by any BullMQ worker.
+ *
+ * This can happen when a worker crashes without gracefully completing or failing its jobs.
+ * A distributed Redis lock ensures only one worker runs recovery at a time.
+ *
+ * Recovered jobs are reset to `QUEUED` status so they can be picked up again.
+ *
+ * @param payload - Recovery configuration.
+ * @param payload.hostname - The hostname of the worker performing recovery.
+ * @param payload.staleActiveRecoveryDelayMs - Minimum age (ms) before an ACTIVE job is considered stale.
+ * @param payload.activeRecoveryLockTtlMs - TTL (ms) for the distributed recovery lock.
+ */
 export async function recoverStaleJobs(payload: {
     hostname: string;
     staleActiveRecoveryDelayMs: number;
@@ -19,7 +33,7 @@ export async function recoverStaleJobs(payload: {
 
     const lock = await redis.set(lockKey, lockToken, "PX", activeRecoveryLockTtlMs, "NX");
     if (lock !== "OK") {
-        log.info("Skipping stale ACTIVE recovery because another worker is running it.", { lockKey });
+        log.debug("Skipping stale ACTIVE recovery — another worker holds the lock", { lockKey });
         return;
     }
 
@@ -72,4 +86,3 @@ export async function recoverStaleJobs(payload: {
         });
     }
 }
-

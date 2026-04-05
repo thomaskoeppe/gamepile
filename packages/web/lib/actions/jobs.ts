@@ -1,5 +1,7 @@
 "use server";
 
+import { WORKER_METRICS } from "@gamepile/shared/worker-metrics";
+
 import {requireAdmin} from "@/lib/auth/admin";
 import { rateLimitAction } from "@/lib/auth/rate-limit";
 import { getCurrentSession } from "@/lib/auth/session";
@@ -160,6 +162,14 @@ export async function cancelJob(jobId: string): Promise<void> {
     });
 
     await redis.set(`cancel:parent:${jobId}`, "1", "EX", 60 * 60);
+
+    const now = Date.now();
+    const staleBefore = now - WORKER_METRICS.throughputRetentionWindowSeconds * 1_000;
+    await redis
+        .multi()
+        .zadd(WORKER_METRICS.detailsJobsCompletedKey, now, `${jobId}:${now}`)
+        .zremrangebyscore(WORKER_METRICS.detailsJobsCompletedKey, 0, staleBefore)
+        .exec();
 
     log.info("Job canceled", { jobId });
 }

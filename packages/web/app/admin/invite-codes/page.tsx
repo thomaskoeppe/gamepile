@@ -98,9 +98,9 @@ export default function AdminInviteCodesPage() {
                         <AdminInviteCodesPanel data={data} onMutate={() => mutate()} />
                     </div>
                 ) : null}
-
-                <LoadingIndicator show={isRevalidating} />
             </div>
+
+            <LoadingIndicator show={isRevalidating} />
         </>
     );
 }

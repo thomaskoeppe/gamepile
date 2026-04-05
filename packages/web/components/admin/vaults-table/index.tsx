@@ -50,7 +50,12 @@ export function AdminVaultsTable({
               </tr>
             ) : (
               paginatedVaults.map((vault) => (
-                <VaultOwnerRow key={vault.id} vault={vault} users={users} onMutate={onMutate} />
+                <VaultOwnerRow
+                  key={vault.id}
+                  vault={vault}
+                  users={users}
+                  onMutate={onMutate}
+                />
               ))
             )}
           </tbody>

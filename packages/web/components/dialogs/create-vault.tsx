@@ -85,6 +85,7 @@ export function CreateVaultDialog({
     const [serverError, setServerError] = useState<string | null>(null);
     const [createdRecoveryKey, setCreatedRecoveryKey] = useState<string | null>(null);
     const [copiedRecoveryKey, setCopiedRecoveryKey] = useState(false);
+    const [shouldReloadOnClose, setShouldReloadOnClose] = useState(false);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(schema),
@@ -100,19 +101,29 @@ export function CreateVaultDialog({
 
     const { executeAsync, isPending } = useAction(createVault);
 
+    const closeAndFinalize = useCallback(() => {
+        setOpen(false);
+    }, []);
+
     const resetDialog = useCallback(() => {
         setStep(1);
         setServerError(null);
         setCreatedRecoveryKey(null);
         setCopiedRecoveryKey(false);
+        setShouldReloadOnClose(false);
         form.reset();
     }, [form]);
 
     const handleOpenChange = useCallback((next: boolean) => {
         browserLog.info(next ? 'Create vault dialog opened' : 'Create vault dialog closed', { component: 'CreateVaultDialog' });
         setOpen(next);
-        if (!next) resetDialog();
-    }, [resetDialog]);
+        if (!next) {
+            if (shouldReloadOnClose) {
+                onReload?.();
+            }
+            resetDialog();
+        }
+    }, [onReload, resetDialog, shouldReloadOnClose]);
 
     useEffect(() => {
         if (authType !== KeyVaultAuthType.PIN) {
@@ -144,12 +155,12 @@ export function CreateVaultDialog({
 
         if (result?.data?.id) {
             browserLog.info('Vault created', { vaultId: result.data.id });
-            onReload?.();
+            setShouldReloadOnClose(true);
             if (result.data.recoveryKey) {
                 setCreatedRecoveryKey(result.data.recoveryKey);
                 setStep(3);
             } else {
-                setOpen(false);
+                closeAndFinalize();
                 setTimeout(resetDialog, 300);
             }
         } else {
@@ -157,7 +168,7 @@ export function CreateVaultDialog({
             setServerError(result?.serverError ?? "An unexpected error occurred.");
             setStep(3);
         }
-    }, [authType, form, executeAsync, onReload, resetDialog]);
+    }, [authType, form, executeAsync, closeAndFinalize, resetDialog]);
 
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
         if (e.key !== "Enter" || e.target instanceof HTMLTextAreaElement) return;
@@ -339,7 +350,7 @@ export function CreateVaultDialog({
 
                         <DialogFooter>
                             {createdRecoveryKey ? (
-                                <Button type="button" onClick={() => setOpen(false)}>
+                                <Button type="button" onClick={closeAndFinalize}>
                                     Done
                                 </Button>
                             ) : (

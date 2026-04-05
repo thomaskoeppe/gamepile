@@ -8,16 +8,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 
-export function MetacriticFilter({
+export function ReviewScoreFilter({
   min,
   max,
-  onMinChange,
-  onMaxChange,
+  onChange,
 }: {
   min: number | null;
   max: number | null;
-  onMinChange: (value: number | null) => void;
-  onMaxChange: (value: number | null) => void;
+  onChange: (value: { min: number | null; max: number | null }) => void;
 }) {
   const [localValues, setLocalValues] = useState<[number, number]>([min ?? 0, max ?? 100]);
 
@@ -30,8 +28,7 @@ export function MetacriticFilter({
   const handleSliderCommit = (values: number[]) => {
     const newMin = values[0] === 0 ? null : values[0];
     const newMax = values[1] === 100 ? null : values[1];
-    onMinChange(newMin);
-    onMaxChange(newMax);
+    onChange({ min: newMin, max: newMax });
   };
 
   const getScoreColor = (score: number) => {
@@ -48,11 +45,12 @@ export function MetacriticFilter({
           size="sm"
           className={cn(
             "h-9 gap-2 border-border/50 bg-card/50 hover:bg-card/80 hover:border-border",
+            !hasFilter && "text-muted-foreground",
             hasFilter && "border-primary/50 bg-primary/5"
           )}
         >
           <SlidersHorizontal className="h-3.5 w-3.5" />
-          <span className="text-sm">Metacritic</span>
+          <span className="text-sm">Review Score</span>
           {hasFilter && (
             <Badge variant="secondary" className="h-5 px-1.5 text-[10px] bg-primary/10 text-primary border-primary/20">
               {min ?? 0}-{max ?? 100}
@@ -71,8 +69,7 @@ export function MetacriticFilter({
                 size="sm"
                 className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
                 onClick={() => {
-                  onMinChange(null);
-                  onMaxChange(null);
+                  onChange({ min: null, max: null });
                   setLocalValues([0, 100]);
                 }}
               >

@@ -35,6 +35,6 @@ export function sanitizePostAuthRedirect(redirectPath: string | null | undefined
         return DEFAULT_POST_AUTH_REDIRECT;
     }
 
-    return url.pathname;
+    return url.search ? `${url.pathname}${url.search}` : url.pathname;
 }
 

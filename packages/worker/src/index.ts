@@ -1,60 +1,54 @@
-import { z } from "zod";
+/**
+ * Worker entry point — validates environment, initializes telemetry and logging,
+ * starts the BullMQ workers, and installs graceful shutdown handlers.
+ *
+ * @module index
+ */
+import {z} from "zod";
 
-import { validateWorkerEnv } from "@/src/lib/env.js";
+import {validateWorkerEnv} from "@/src/lib/env.js";
 
-const envValidateResult = validateWorkerEnv();
+const envResult = validateWorkerEnv();
 
-if (!envValidateResult.success) {
+if (!envResult.success) {
     process.stderr.write("Worker environment variable validation failed\n");
-    process.stderr.write(`${z.prettifyError(envValidateResult.error)}\n`);
+    process.stderr.write(`${z.prettifyError(envResult.error)}\n`);
     process.exit(1);
 }
 
-const [{ shutdownTracing }, { initializeLogsExporter }, { logger, flushLogs }, workerModule, { default: prisma }, { redis }] = await Promise.all([
+const [{shutdownTracing}, {initializeLogsExporter}, {logger}, workerModule] = await Promise.all([
     import("@/src/instrumentation.js"),
     import("@/src/lib/logs-exporter.js"),
     import("@/src/lib/logger.js"),
     import("@/src/worker.js"),
-    import("@/src/lib/prisma.js"),
-    import("@/src/lib/redis.js"),
 ]);
 
 initializeLogsExporter();
 
-const { jobsWorker, detailsWorker } = workerModule;
-
+const {shutdownWorkers} = workerModule;
 const log = logger.child("worker.index");
 
 log.info("Starting...");
 
 /**
- * Graceful shutdown handler registered on SIGINT and SIGTERM.
- * Closes BullMQ workers, disconnects Prisma and Redis, flushes logs,
- * and shuts down the OpenTelemetry tracing provider before exiting.
+ * Gracefully shuts down the worker process.
  *
- * @param signal - The OS signal that triggered shutdown.
+ * Stops all BullMQ workers, flushes telemetry, and exits the process.
+ *
+ * @param signal - The OS signal that triggered the shutdown (e.g., `"SIGINT"`, `"SIGTERM"`).
  */
-async function shutdown(signal: string) {
+async function shutdown(signal: string): Promise<void> {
     log.info(`Received ${signal}, shutting down...`);
 
     try {
-        if (jobsWorker) await jobsWorker.close();
+        await shutdownWorkers(signal);
+        await shutdownTracing();
+        process.exit(0);
     } catch (e) {
-        log.error("Error closing worker", e as Error);
+        log.error("Error during shutdown", e as Error);
+        await shutdownTracing();
+        process.exit(1);
     }
-
-    try {
-        if (detailsWorker) await detailsWorker.close();
-    } catch (e) {
-        log.error("Error closing rateLimitWorker", e as Error);
-    }
-    
-    await prisma.$disconnect();
-    await redis.quit();
-    log.info("Shutdown complete");
-    await flushLogs();
-    await shutdownTracing();
-    process.exit(0);
 }
 
 process.on("SIGINT", () => void shutdown("SIGINT"));

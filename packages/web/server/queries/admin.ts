@@ -1,14 +1,35 @@
 "use server";
 
+import { WORKER_METRICS } from "@gamepile/shared/worker-metrics";
 import { z } from "zod";
 
 import { getAllSettings } from "@/lib/app-settings";
 import prisma from "@/lib/prisma";
+import { redis } from "@/lib/redis";
 import { withLogging } from "@/lib/with-logging";
 import type { Prisma } from "@/prisma/generated/client";
 import { JobStatus, JobType } from "@/prisma/generated/enums";
 import { queryClientWithAdmin } from "@/server/query";
 import type { AppSettingValueType } from "@/types/app-setting";
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<{ timedOut: false; value: T } | { timedOut: true }> {
+    let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+
+    try {
+        const timeoutPromise = new Promise<{ timedOut: true }>((resolve) => {
+            timeoutHandle = setTimeout(() => resolve({ timedOut: true }), timeoutMs);
+        });
+
+        return await Promise.race([
+            promise.then((value) => ({ timedOut: false as const, value })),
+            timeoutPromise,
+        ]);
+    } finally {
+        if (timeoutHandle) {
+            clearTimeout(timeoutHandle);
+        }
+    }
+}
 
 export const getAdminCollections = queryClientWithAdmin.query<Array<{
     id: string;
@@ -333,6 +354,15 @@ export const getAdminJobs = queryClientWithAdmin.inputSchema(z.object({
         user: { id: string; username: string; avatarUrl: string | null } | null;
         _count: { logs: number; failedChildJobs: number };
     }>;
+    metrics: {
+        onlineWorkers: number;
+        apiCallsPerSecond: number;
+        apiCallsPerSecondWindowSeconds: number;
+        apiCallsInFiveMinutes: number;
+        apiCallsFiveMinutesWindowSeconds: number;
+        appsFetchedPerMinute: number;
+        appsFetchedPerMinuteWindowSeconds: number;
+    };
     pagination: { page: number; limit: number; total: number; pages: number };
 }>(withLogging(async ({ parsedInput: { page, limit, status, type }, ctx }, { log }) => {
     log.info("Fetching admin jobs", { userId: ctx.user.id, page, limit, status, type });
@@ -341,6 +371,12 @@ export const getAdminJobs = queryClientWithAdmin.inputSchema(z.object({
         ...(status && Object.values(JobStatus).includes(status as JobStatus) ? { status: status as JobStatus } : {}),
         ...(type && Object.values(JobType).includes(type as JobType) ? { type: type as JobType } : {}),
     };
+
+    const nowMs = Date.now();
+    const activeSinceMs = nowMs - WORKER_METRICS.workerOnlineWindowMs;
+    const apiCallsPerSecondSinceMs = nowMs - WORKER_METRICS.apiCallsPerSecondWindowSeconds * 1000;
+    const apiCallsFiveMinutesSinceMs = nowMs - WORKER_METRICS.apiCallsFiveMinutesWindowSeconds * 1000;
+    const appsFetchedPerMinuteSinceMs = nowMs - WORKER_METRICS.appsFetchedPerMinuteWindowSeconds * 1000;
 
     const [jobs, total] = await Promise.all([
         prisma.job.findMany({
@@ -368,6 +404,35 @@ export const getAdminJobs = queryClientWithAdmin.inputSchema(z.object({
         prisma.job.count({ where }),
     ]);
 
+    const metricsReadTimeoutMs = 750;
+    const redisMetricsPromise: Promise<[number, number, number, number]> = Promise.all([
+        redis.zcount(WORKER_METRICS.workersHeartbeatKey, activeSinceMs, "+inf"),
+        redis.zcount(WORKER_METRICS.steamApiCallsKey, apiCallsPerSecondSinceMs, "+inf"),
+        redis.zcount(WORKER_METRICS.steamApiCallsKey, apiCallsFiveMinutesSinceMs, "+inf"),
+        redis.zcount(WORKER_METRICS.steamAppsFetchedKey, appsFetchedPerMinuteSinceMs, "+inf"),
+    ]);
+
+    const metricsResult = await withTimeout(redisMetricsPromise, metricsReadTimeoutMs).catch((error) => {
+        log.warn("Failed to read Redis worker metrics", {
+            userId: ctx.user.id,
+            message: error instanceof Error ? error.message : "Unknown error",
+        });
+        return { timedOut: true } as const;
+    });
+
+    if (metricsResult.timedOut) {
+        log.warn("Redis worker metrics read timed out", {
+            userId: ctx.user.id,
+            metricsReadTimeoutMs,
+        });
+    }
+
+    const [onlineWorkers, apiCallsInPerSecondWindow, apiCallsInFiveMinutesWindow, appsFetchedInPerMinuteWindow] =
+        metricsResult.timedOut ? [0, 0, 0, 0] : metricsResult.value;
+    const apiCallsPerSecond = Number(apiCallsInPerSecondWindow) / WORKER_METRICS.apiCallsPerSecondWindowSeconds;
+    const apiCallsInFiveMinutes = Number(apiCallsInFiveMinutesWindow);
+    const appsFetchedPerMinute = Number(appsFetchedInPerMinuteWindow) / (WORKER_METRICS.appsFetchedPerMinuteWindowSeconds / 60);
+
     return {
         jobs: jobs.map((j) => ({
             ...j,
@@ -375,6 +440,15 @@ export const getAdminJobs = queryClientWithAdmin.inputSchema(z.object({
             finishedAt: j.finishedAt?.toISOString() ?? null,
             createdAt: j.createdAt.toISOString(),
         })),
+        metrics: {
+            onlineWorkers: Number(onlineWorkers),
+            apiCallsPerSecond,
+            apiCallsPerSecondWindowSeconds: WORKER_METRICS.apiCallsPerSecondWindowSeconds,
+            apiCallsInFiveMinutes,
+            apiCallsFiveMinutesWindowSeconds: WORKER_METRICS.apiCallsFiveMinutesWindowSeconds,
+            appsFetchedPerMinute,
+            appsFetchedPerMinuteWindowSeconds: WORKER_METRICS.appsFetchedPerMinuteWindowSeconds,
+        },
         pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     };
 }, {

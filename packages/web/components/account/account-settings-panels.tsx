@@ -287,10 +287,10 @@ export function AccountSettingsPanels() {
                 </Card>
             </div>
 
-            <Card className="border-destructive/40 bg-card/95">
+            <Card className="border-border/70 bg-card/95">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-xl text-foreground">
-                        <Trash2 className="size-5 text-destructive" />
+                        <Trash2 className="size-5 text-primary" />
                         Delete Account
                     </CardTitle>
                     <CardDescription>
@@ -299,12 +299,12 @@ export function AccountSettingsPanels() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {deleteAction.result?.serverError && (
-                        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                        <div className="rounded-lg border border-border bg-muted/50 p-3 text-sm text-foreground">
                             {deleteAction.result.serverError}
                         </div>
                     )}
 
-                    <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-muted-foreground">
+                    <div className="rounded-lg border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
                         <p className="font-medium text-foreground">Before you continue</p>
                         <ul className="mt-2 list-disc space-y-1 pl-5">
                             <li>Your synced library will be removed.</li>
@@ -327,8 +327,8 @@ export function AccountSettingsPanels() {
                     </div>
 
                     <Button
-                        variant="destructive"
-                        className="w-full"
+                        variant="outline"
+                        className="w-full border-primary/40 text-primary hover:bg-primary/10"
                         disabled={deleteAction.isPending || deleteConfirmation.toUpperCase() !== "DELETE"}
                         onClick={handleDeleteAccount}
                     >

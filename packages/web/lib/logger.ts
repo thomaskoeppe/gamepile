@@ -15,14 +15,28 @@
  *   log.info('Saving config', { userId })
  */
 
+import os from "node:os";
+
 import { createLogger, type ILogger, type LogContext, type LogEntry } from "@gamepile/shared/logger";
 
 import { exportLogEntry } from "@/lib/logs-exporter";
 
 export type { ILogger, LogContext, LogEntry };
 
+const HOSTNAME = os.hostname();
+const IPS = Object.values(os.networkInterfaces())
+    .flat()
+    .filter((iface): iface is os.NetworkInterfaceInfo => !!iface && iface.family === "IPv4" && !iface.internal)
+    .map((iface) => iface.address);
+
 export const logger = createLogger({
     exportLogEntry,
     skipInBrowser: true,
     mirrorToStdout: true,
+}, {
+    hostname: HOSTNAME,
+    ips: IPS,
+    env: process.env.NODE_ENV,
+    domain: process.env.DOMAIN,
+    web_app_url: process.env.WEB_APP_URL,
 });

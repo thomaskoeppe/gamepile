@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 
-import { invalidateSettingsCache, loadSettings, upsertSetting, upsertSettings } from "@/lib/app-settings";
+import { getSetting, invalidateSettingsCache, loadSettings, upsertSetting, upsertSettings } from "@/lib/app-settings";
 import prisma from "@/lib/prisma";
 import {jobsQueue} from "@/lib/queue";
 import { withLogging } from "@/lib/with-logging";
@@ -201,6 +201,66 @@ export const changeCollectionOwner = actionClientWithAdmin
         return { success: true, message: "Collection owner updated successfully." };
     }, {
         namespace: "server.actions.admin:changeCollectionOwner",
+    }));
+
+/**
+ * Deletes any vault as an admin when the feature flag allows it.
+ */
+export const deleteVaultAsAdmin = actionClientWithAdmin
+    .inputSchema(z.object({
+        vaultId: z.string().min(1),
+    }))
+    .action(withLogging(async ({ parsedInput: { vaultId }, ctx }, { log }) => {
+        log.info("Deleting vault as admin", { vaultId, userId: ctx.user.id });
+
+        if (!getSetting(AppSettingKey.ADMIN_CAN_DELETE_ANY_VAULT)) {
+            throw new Error("Admin vault deletion is disabled by configuration.");
+        }
+
+        const vault = await prisma.keyVault.findUnique({
+            where: { id: vaultId },
+            select: { id: true },
+        });
+
+        if (!vault) {
+            throw new Error("Vault not found.");
+        }
+
+        await prisma.keyVault.delete({ where: { id: vaultId } });
+
+        return { success: true };
+    }, {
+        namespace: "server.actions.admin:deleteVaultAsAdmin",
+    }));
+
+/**
+ * Deletes any collection as an admin when the feature flag allows it.
+ */
+export const deleteCollectionAsAdmin = actionClientWithAdmin
+    .inputSchema(z.object({
+        collectionId: z.string().min(1),
+    }))
+    .action(withLogging(async ({ parsedInput: { collectionId }, ctx }, { log }) => {
+        log.info("Deleting collection as admin", { collectionId, userId: ctx.user.id });
+
+        if (!getSetting(AppSettingKey.ADMIN_CAN_DELETE_ANY_COLLECTION)) {
+            throw new Error("Admin collection deletion is disabled by configuration.");
+        }
+
+        const collection = await prisma.collection.findUnique({
+            where: { id: collectionId },
+            select: { id: true },
+        });
+
+        if (!collection) {
+            throw new Error("Collection not found.");
+        }
+
+        await prisma.collection.delete({ where: { id: collectionId } });
+
+        return { success: true };
+    }, {
+        namespace: "server.actions.admin:deleteCollectionAsAdmin",
     }));
 
 /**

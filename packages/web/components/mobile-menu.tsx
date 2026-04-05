@@ -29,12 +29,12 @@ export function MobileMenu() {
         <Sheet open={open} onOpenChange={handleOpenChange}>
             <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden text-muted-foreground hover:text-foreground">
-                    <Menu className="h-5 w-5" />
+                    <Menu className="size-5" />
                     <span className="sr-only">Open menu</span>
                 </Button>
             </SheetTrigger>
 
-            <SheetContent side="left" className="w-75 sm:w-87.5 bg-card border-border p-0">
+            <SheetContent side="left" className="w-72 bg-card border-border p-0 sm:w-80">
                 <SheetHeader className="p-4 border-b border-border">
                     <SheetTitle className="text-foreground">Menu</SheetTitle>
                 </SheetHeader>

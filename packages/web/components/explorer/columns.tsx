@@ -1,50 +1,23 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Apple, ArrowDown, ArrowUp, ArrowUpDown, Cpu, Monitor } from "lucide-react";
-import { ElementType, useState } from "react";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
 import { AddToCollectionDropdown } from "@/components/game/add-to-collection-dropdown";
+import { ExpandablePills } from "@/components/shared/expandable-pills";
+import { PlatformIcons } from "@/components/shared/platform-icons";
+import { ReviewScoreCircle } from "@/components/shared/review-score-circle";
 import { SafeImage } from "@/components/shared/safe-image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { ExplorerGameRow } from "@/types/explorer";
 
-const PLATFORM_ICONS: Record<string, { icon: ElementType; label: string }> = {
-    WINDOWS: { icon: Monitor, label: "Windows" },
-    MAC: { icon: Apple, label: "macOS" },
-    LINUX: { icon: Cpu, label: "Linux" },
-};
-
-function MetacriticBadge({ score }: { score: number | null }) {
+function ReviewScoreBadge({ score }: { score: number | null }) {
     if (score == null)
         return <span className="text-xs text-muted-foreground">—</span>;
 
-    const colorClass =
-        score >= 75
-            ? "bg-green-500/10 text-green-500 border-green-500/30"
-            : score >= 50
-                ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/30"
-                : "bg-red-500/10 text-red-500 border-red-500/30";
-
-    return (
-        <Badge
-            variant="outline"
-            className={cn(
-                "text-[11px] px-2 py-0.5 font-semibold tabular-nums",
-                colorClass,
-            )}
-        >
-            {score}
-        </Badge>
-    );
+    return <ReviewScoreCircle score={score} size="sm" />;
 }
 
 function SortableHeader({
@@ -79,55 +52,6 @@ function SortableHeader({
                 <ArrowUpDown className="ml-1.5 h-3 w-3 opacity-50" />
             )}
         </Button>
-    );
-}
-
-/** Pills with expandable "+N" that reveals all items on click */
-function ExpandablePillList({
-    items,
-    max = 2,
-}: {
-    items: { id: string; name: string }[];
-    max?: number;
-}) {
-    const [expanded, setExpanded] = useState(false);
-    const visible = expanded ? items : items.slice(0, max);
-    const overflow = items.length - max;
-
-    return (
-        <div className="flex flex-wrap gap-1">
-            {visible.map((item) => (
-                <Badge
-                    key={item.id}
-                    variant="secondary"
-                    className="text-[10px] px-1.5 py-0 bg-muted text-muted-foreground"
-                >
-                    {item.name}
-                </Badge>
-            ))}
-            {!expanded && overflow > 0 && (
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setExpanded(true);
-                    }}
-                    className="inline-flex items-center rounded-full border border-border/50 bg-muted/30 px-1.5 py-0 text-[10px] text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                >
-                    +{overflow}
-                </button>
-            )}
-            {expanded && items.length > max && (
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setExpanded(false);
-                    }}
-                    className="inline-flex items-center rounded-full border border-border/50 bg-muted/30 px-1.5 py-0 text-[10px] text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                >
-                    less
-                </button>
-            )}
-        </div>
     );
 }
 
@@ -217,17 +141,17 @@ export function createColumns(
             ),
         },
         {
-            id: "genres",
-            header: "Genres",
+            id: "tags",
+            header: "Tags",
             size: 210,
-            cell: ({ row }) => <ExpandablePillList items={row.original.genres} max={2} />,
+            cell: ({ row }) => <ExpandablePills items={row.original.tags} max={2} variant="secondary" />,
         },
         {
             id: "categories",
             header: "Categories",
             size: 210,
             cell: ({ row }) => (
-                <ExpandablePillList items={row.original.categories} max={2} />
+                <ExpandablePills items={row.original.categories} max={2} variant="secondary" />
             ),
         },
         {
@@ -235,40 +159,25 @@ export function createColumns(
             header: "Platforms",
             size: 110,
             cell: ({ row }) => (
-                <TooltipProvider delayDuration={300}>
-                    <div className="flex items-center gap-2">
-                        {row.original.platforms.map((p) => {
-                            const entry = PLATFORM_ICONS[p];
-                            if (!entry) return null;
-                            const Icon = entry.icon;
-                            return (
-                                <Tooltip key={p}>
-                                    <TooltipTrigger asChild>
-                                        <Icon className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors cursor-default" />
-                                    </TooltipTrigger>
-                                    <TooltipContent side="top" className="text-xs">
-                                        {entry.label}
-                                    </TooltipContent>
-                                </Tooltip>
-                            );
-                        })}
-                    </div>
-                </TooltipProvider>
+                <PlatformIcons
+                    platforms={row.original.platforms}
+                    iconClassName="h-3.5 w-3.5 hover:text-foreground transition-colors"
+                />
             ),
         },
         {
-            accessorKey: "metacriticScore",
+            accessorKey: "reviewScore",
             sortUndefined: "last",
             header: () => (
                 <SortableHeader
-                    label="MC"
-                    field="metacriticScore"
+                    label="Score"
+                    field="reviewScore"
                     currentSort={currentSort}
                     onSort={onSort}
                 />
             ),
             size: 80,
-            cell: ({ row }) => <MetacriticBadge score={row.original.metacriticScore} />,
+            cell: ({ row }) => <ReviewScoreBadge score={row.original.reviewPercentage} />,
         },
         {
             accessorKey: "releaseDate",

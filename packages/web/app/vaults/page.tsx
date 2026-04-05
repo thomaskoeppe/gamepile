@@ -2,25 +2,40 @@
 
 import {
     ArrowRight, Calendar, Gamepad2, Library, LoaderCircle,
-    Lock, LockOpen, Plus, RefreshCcw, TriangleAlert, Users,
+    Lock, LockOpen, Plus, RefreshCcw, Trash2, TriangleAlert, Users,
 } from "lucide-react";
 import Link from "next/link";
+import { MouseEvent } from "react";
 
 import { CreateVaultDialog } from "@/components/dialogs/create-vault";
+import { DeleteVaultDialog } from "@/components/dialogs/delete-vault";
 import { Header } from "@/components/header";
 import { LoadingIndicator } from "@/components/shared/loading-indicator";
 import { Shimmer } from "@/components/shared/shimmer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription,CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useServerQuery } from "@/lib/hooks/use-server-query";
-import {useAppSettings} from "@/lib/providers/app-settings";
+import { useAppSettings } from "@/lib/providers/app-settings";
 import { useSession } from "@/lib/providers/session";
-import {cn} from "@/lib/utils";
-import type {Prisma} from "@/prisma/generated/browser";
+import { cn } from "@/lib/utils";
+import type { Prisma } from "@/prisma/generated/browser";
 import { getVaults } from "@/server/queries/vaults";
 
-function VaultCard({ vault, isOwner }: { vault: Prisma.KeyVaultGetPayload<{ include: { _count: { select: { games: true; users: true } } }, omit: { authHash: true, authSalt: true, keySalt: true, encryptedVaultKey: true, recoveryEncryptedVaultKey: true, recoveryKeyHash: true } }>; isOwner: boolean }) {
+function VaultCard({
+    vault,
+    isOwner,
+    onReload,
+}: {
+    vault: Prisma.KeyVaultGetPayload<{ include: { _count: { select: { games: true; users: true } } }, omit: { authHash: true, authSalt: true, keySalt: true, encryptedVaultKey: true, recoveryEncryptedVaultKey: true, recoveryKeyHash: true } }>;
+    isOwner: boolean;
+    onReload?: () => void;
+}) {
+    const handleDeleteClick = (e: MouseEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
     return (
         <Link href={`/vaults/${vault.id}`} className="group">
             <Card className="h-full bg-card border-border transition-all duration-200 hover:border-primary/40 hover:shadow-md hover:shadow-primary/5">
@@ -56,7 +71,7 @@ function VaultCard({ vault, isOwner }: { vault: Prisma.KeyVaultGetPayload<{ incl
                     </div>
                 </CardContent>
 
-                <CardFooter className="justify-between text-xs text-muted-foreground">
+                <CardFooter className="justify-between text-xs text-muted-foreground gap-2">
                     <div className="flex items-center gap-1.5">
                         <Calendar className="size-3.5" />
                         <span>
@@ -65,10 +80,27 @@ function VaultCard({ vault, isOwner }: { vault: Prisma.KeyVaultGetPayload<{ incl
                             })}
                         </span>
                     </div>
-                    <span className="flex items-center gap-1 group-hover:text-primary/80 transition-colors">
-                        View
-                        <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-                    </span>
+
+                    <div className="flex items-center gap-1">
+                        {isOwner && (
+                            <div className="flex" onClick={handleDeleteClick}>
+                                <DeleteVaultDialog vaultId={vault.id} vaultName={vault.name} onDeleted={onReload}>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="size-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10!"
+                                        aria-label={`Delete vault ${vault.name}`}
+                                    >
+                                        <Trash2 className="size-4" />
+                                    </Button>
+                                </DeleteVaultDialog>
+                            </div>
+                        )}
+
+                        <span className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 group-hover:text-primary/80 transition-colors">
+                            View <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+                        </span>
+                    </div>
                 </CardFooter>
             </Card>
         </Link>
@@ -92,6 +124,7 @@ export default function Page() {
 
     const isLoading = sessionLoading || isInitialLoading;
     const vaults = result?.success ? result.data : null;
+    const ownedVaultCount = vaults?.filter((vault) => vault.createdById === user?.id).length ?? 0;
     const error = result?.success === false ? result : null;
 
     return (
@@ -109,7 +142,7 @@ export default function Page() {
 
                     <div className="flex items-center gap-2">
                         <CreateVaultDialog onReload={() => mutate()}>
-                            <Button variant="outline" disabled={isLoading || getSetting("MAX_VAULTS_PER_USER") <= (vaults?.length ?? 0)}>
+                            <Button variant="outline" disabled={isLoading || getSetting("MAX_VAULTS_PER_USER") <= ownedVaultCount}>
                                 {!isLoading ? (
                                     <>
                                         <Plus className="size-4 mr-1.5" />
@@ -165,26 +198,15 @@ export default function Page() {
                     <Card className="bg-card border-border">
                         <CardContent className="flex flex-col items-center justify-center py-16 text-center">
                             <Library className="size-10 text-muted-foreground mb-4" />
-                            <p className="text-sm font-medium mb-1">No collections yet</p>
+                            <p className="text-sm font-medium mb-1">No vaults yet</p>
                             <p className="text-sm text-muted-foreground mb-6">
                                 Create your first vault to organize your keys
                             </p>
 
-                            <CreateVaultDialog onReload={() => mutate()}>
-                                <Button variant="outline" size="sm" disabled={isLoading}>
-                                    {!isLoading ? (
-                                        <>
-                                            <Plus className="size-4 mr-1.5" />
-                                            Create Vault
-                                        </>
-                                    ) : (
-                                        <>
-                                            <LoaderCircle className="size-4 animate-spin" />
-                                            Create Vault
-                                        </>
-                                    )}
-                                </Button>
-                            </CreateVaultDialog>
+                            <Button variant="outline" size="sm" disabled>
+                                <Plus className="size-4 mr-1.5" />
+                                Use the &quot;Create Vault&quot; button above
+                            </Button>
                         </CardContent>
                     </Card>
                 )}
@@ -198,6 +220,7 @@ export default function Page() {
                                 key={vault.id}
                                 vault={vault}
                                 isOwner={vault.createdById === user?.id}
+                                onReload={() => mutate()}
                             />
                         ))}
                     </div>

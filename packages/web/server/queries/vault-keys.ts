@@ -26,7 +26,7 @@ export const getKeys = queryClientWithAuth.inputSchema(z.object({
         isOwned: z.boolean().optional(),
         isRedeemed: z.boolean().optional(),
     })
-})).query<{ games: Array<KeyVaultGameGetPayload<{ include: { game: { include: { categories: true, genres: true }}, addedBy: { select: { id: true, username: true, avatarUrl: true } }, redeemedBy: { select: { id: true, username: true, avatarUrl: true } } }}> & { isInMultipleVaults: boolean; }>; total: number; pages: number; page: number; }>(withLogging(async ({ parsedInput: { keyVaultId, page, pageSize, sortBy, sortOrder, filters }, ctx }, { log }) => {
+})).query<{ games: Array<KeyVaultGameGetPayload<{ include: { game: { include: { categories: true, tags: true }}, addedBy: { select: { id: true, username: true, avatarUrl: true } }, redeemedBy: { select: { id: true, username: true, avatarUrl: true } } }}> & { isInMultipleVaults: boolean; isOwned: boolean; }>; total: number; pages: number; page: number; }>(withLogging(async ({ parsedInput: { keyVaultId, page, pageSize, sortBy, sortOrder, filters }, ctx }, { log }) => {
     const offset = (page - 1) * pageSize;
     let orderBy: Record<string, unknown> | undefined;
 
@@ -84,7 +84,7 @@ export const getKeys = queryClientWithAuth.inputSchema(z.object({
         const f = [];
 
         if (g.length > 0) {
-            f.push({ genres: { some: { name: { in: g } } } });
+            f.push({ tags: { some: { name: { in: g } } } });
         }
 
         if (c.length > 0) {
@@ -144,7 +144,7 @@ export const getKeys = queryClientWithAuth.inputSchema(z.object({
                 game: {
                     include: {
                         categories: true,
-                        genres: true
+                        tags: true,
                     }
                 },
                 addedBy: {
@@ -172,20 +172,33 @@ export const getKeys = queryClientWithAuth.inputSchema(z.object({
     ]);
 
     const gameIds = games.map((g) => g.gameId).filter(Boolean) as string[];
-    const multiVaultCounts = await prisma.keyVaultGame.groupBy({
-        by: ["gameId"],
-        where: {
-            gameId: { in: gameIds },
-            keyVaultId: { not: keyVaultId },
-        },
-        _count: true,
-    });
+    const [multiVaultCounts, ownedUserGames] = await Promise.all([
+        prisma.keyVaultGame.groupBy({
+            by: ["gameId"],
+            where: {
+                gameId: { in: gameIds },
+                keyVaultId: { not: keyVaultId },
+            },
+            _count: true,
+        }),
+        prisma.userGame.findMany({
+            where: {
+                userId: ctx.user.id,
+                gameId: { in: gameIds },
+            },
+            select: {
+                gameId: true,
+            },
+        }),
+    ]);
     const multiVaultSet = new Set(multiVaultCounts.map((r) => r.gameId));
+    const ownedGameIdSet = new Set(ownedUserGames.map((userGame) => userGame.gameId));
 
     return {
         games: games.map((g) => ({
             ...g,
             isInMultipleVaults: multiVaultSet.has(g.gameId),
+            isOwned: Boolean(g.gameId && ownedGameIdSet.has(g.gameId)),
         })),
         total,
         pages: Math.ceil(total / pageSize),

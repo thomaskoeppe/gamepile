@@ -12,25 +12,30 @@ const MIN_YEAR = 1980;
 const STABLE_CURRENT_YEAR = new Date().getFullYear();
 const STABLE_MAX_YEAR = STABLE_CURRENT_YEAR + 2;
 
+type ReleaseFilterMode = "before" | "after" | "range";
+
+function getYearFromDate(date: string | null): number {
+  if (!date) return STABLE_CURRENT_YEAR;
+  return new Date(date).getFullYear();
+}
+
+function resolveMode(fromDate: string | null, toDate: string | null): ReleaseFilterMode {
+  if (fromDate && toDate) return "range";
+  if (fromDate) return "after";
+  if (toDate) return "before";
+  return "range";
+}
+
 export function ReleaseDateFilter({
   fromDate,
   toDate,
-  onFromChange,
-  onToChange,
+  onChange,
 }: {
   fromDate: string | null;
   toDate: string | null;
-  onFromChange: (value: string | null) => void;
-  onToChange: (value: string | null) => void;
+  onChange: (value: { fromDate: string | null; toDate: string | null }) => void;
 }) {
-  const [mode, setMode] = useState<"before" | "after" | "range">(
-    fromDate && toDate ? "range" : fromDate ? "after" : toDate ? "before" : "range"
-  );
-
-  const getYearFromDate = (date: string | null): number => {
-    if (!date) return STABLE_CURRENT_YEAR;
-    return new Date(date).getFullYear();
-  };
+  const [mode, setMode] = useState<ReleaseFilterMode>(resolveMode(fromDate, toDate));
 
   const [selectedYear, setSelectedYear] = useState<number>(
     mode === "before" ? getYearFromDate(toDate) : mode === "after" ? getYearFromDate(fromDate) : STABLE_CURRENT_YEAR
@@ -43,10 +48,9 @@ export function ReleaseDateFilter({
 
   const hasFilter = fromDate !== null || toDate !== null;
 
-  const handleModeChange = (newMode: "before" | "after" | "range") => {
+  const handleModeChange = (newMode: ReleaseFilterMode) => {
     setMode(newMode);
-    onFromChange(null);
-    onToChange(null);
+    onChange({ fromDate: null, toDate: null });
   };
 
   const handleYearChange = (values: number[]) => {
@@ -59,14 +63,11 @@ export function ReleaseDateFilter({
 
   const handleYearCommit = (values: number[]) => {
     if (mode === "before") {
-      onFromChange(null);
-      onToChange(`${values[0]}-12-31`);
+      onChange({ fromDate: null, toDate: `${values[0]}-12-31` });
     } else if (mode === "after") {
-      onFromChange(`${values[0]}-01-01`);
-      onToChange(null);
+      onChange({ fromDate: `${values[0]}-01-01`, toDate: null });
     } else {
-      onFromChange(`${values[0]}-01-01`);
-      onToChange(`${values[1]}-12-31`);
+      onChange({ fromDate: `${values[0]}-01-01`, toDate: `${values[1]}-12-31` });
     }
   };
 
@@ -94,6 +95,7 @@ export function ReleaseDateFilter({
           size="sm"
           className={cn(
             "h-9 gap-2 border-border/50 bg-card/50 hover:bg-card/80 hover:border-border",
+            !hasFilter && "text-muted-foreground",
             hasFilter && "border-primary/50 bg-primary/5"
           )}
         >
@@ -117,8 +119,7 @@ export function ReleaseDateFilter({
                 size="sm"
                 className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
                 onClick={() => {
-                  onFromChange(null);
-                  onToChange(null);
+                  onChange({ fromDate: null, toDate: null });
                   setSelectedYear(STABLE_CURRENT_YEAR);
                   setYearRange([MIN_YEAR + 20, STABLE_CURRENT_YEAR]);
                 }}

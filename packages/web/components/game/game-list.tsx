@@ -1,12 +1,11 @@
-import { useVirtualizer } from '@tanstack/react-virtual';
-import React, {Fragment, useEffect, useMemo, useState} from "react";
-import { useRef } from "react";
+import {useVirtualizer} from '@tanstack/react-virtual';
+import React, {Fragment, useEffect, useMemo, useRef, useState} from "react";
 
 import {GameTile} from "@/components/game/game-tile";
-import { MultiSelectCombobox } from "@/components/shared/multi-select-combobox";
-import { Shimmer } from "@/components/shared/shimmer";
+import {MultiSelectCombobox} from "@/components/shared/multi-select-combobox";
+import {Shimmer} from "@/components/shared/shimmer";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import { browserLog } from "@/lib/browser-logger";
+import {browserLog} from "@/lib/browser-logger";
 import {AppSettingKey, useAppSettings} from "@/lib/providers/app-settings";
 import {Prisma} from "@/prisma/generated/client";
 
@@ -21,14 +20,14 @@ function GameTileSkeleton({ width, height }: { width: number; height: number }) 
 export function GameList({
      games,
      categories,
-     genres,
+     tags,
      showOwnedFilter,
      isLoading = false,
      onRevalidate,
  }: {
-    games: Array<Prisma.GameGetPayload<{ include: { categories: true, genres: true } }> & { playtime?: number; owned: boolean }>;
+    games: Array<Prisma.GameGetPayload<{ include: { categories: true, tags: true } }> & { playtime?: number; owned: boolean }>;
     categories: string[];
-    genres: string[];
+    tags: string[];
     showOwnedFilter?: boolean;
     isLoading?: boolean;
     onRevalidate?: () => void;
@@ -83,13 +82,13 @@ export function GameList({
     const visibleGames = useMemo(() => {
         const filteredGames = games.filter((ug) => {
             const gameCategories = ug.categories.map(c => `category_${c.name}`);
-            const gameGenres = ug.genres.map(g => `genre_${g.name}`);
-            const gameTags = [...gameCategories, ...gameGenres];
+            const gameTags = ug.tags.map(t => `tag_${t.name}`);
+            const tagList = [...gameCategories, ...gameTags];
 
             if (showOnlyOwnedState === "owned" && !ug.owned) return false;
             if (showOnlyOwnedState === "unowned" && ug.owned) return false;
 
-            return selectedTags.every(tag => gameTags.includes(tag));
+            return selectedTags.every(tag => tagList.includes(tag));
         });
 
         return filteredGames.sort((a, b) => {
@@ -143,7 +142,7 @@ export function GameList({
                         <MultiSelectCombobox
                             options={[
                                 ...categories.map(category => ({ label: category, value: `category_${category}`, category: "category" })),
-                                ...genres.map(genre => ({ label: genre, value: `genre_${genre}`, category: "genre" })),
+                                ...tags.map(tag => ({ label: tag, value: `tag_${tag}`, category: "tag" })),
                             ]}
                             placeholder="Filter games..."
                             className="w-full max-w-3xl my-4"
@@ -229,13 +228,11 @@ export function GameList({
             )}
 
             <div className="text-sm text-muted-foreground pt-2">
-                {games.length > 0 ? (
+                {games.length > 0 && (
                     <>
                         Showing {visibleGames.length} of{" "}
                         {visibleGames.length} games
                     </>
-                ) : (
-                    "No results"
                 )}
             </div>
         </div>

@@ -1,4 +1,4 @@
-# 🎮 GAMEPILE
+# <img src="/packages/web/public/logo_simple.png" width="32px" align="center" /> GAMEPILE
 
 **Self-hosted Steam game library manager.** Import your library, build collections, and share game key vaults.
 
@@ -25,10 +25,10 @@
 
 Official images are published to the GitHub Container Registry and updated on every release:
 
-| Image | Tag |
-|---|---|
-| `ghcr.io/thomaskoeppe/gamepile/web` | `latest` |
-| `ghcr.io/thomaskoeppe/gamepile/worker` | `latest` |
+| Image                                   | Tag      |
+|-----------------------------------------|----------|
+| `ghcr.io/thomaskoeppe/gamepile/web`     | `latest` |
+| `ghcr.io/thomaskoeppe/gamepile/worker`  | `latest` |
 | `ghcr.io/thomaskoeppe/gamepile/migrate` | `latest` |
 
 **1. Download the Compose file:**
@@ -43,11 +43,9 @@ curl -O https://raw.githubusercontent.com/thomaskoeppe/gamepile/main/docker-comp
 STEAM_API_KEY=<your-32-char-steam-api-key>
 WEB_VAULT_TOKEN_SECRET=<random-string-min-32-chars>
 DOMAIN=localhost:8080
-WEB_APP_URL=http://localhost:8080
-WEB_ALLOWED_ORIGINS=localhost:8080
 ```
 
-These five variables are the only ones you need to get started. Everything else has defaults. See [Minimal Configuration](#minimal-configuration) for what each one does, and [docs/CONFIGURATION.md](./docs/CONFIGURATION.md) for the full reference.
+For the bundled HTTP Compose deployment, those three variables are enough to get started. Everything else has defaults. `WEB_APP_URL` defaults to `http://${DOMAIN}` and `WEB_ALLOWED_ORIGINS` defaults to `DOMAIN`; override either one when you terminate TLS elsewhere or serve the app from a different public URL. See [Minimal Configuration](#minimal-configuration) for what each one does, and [docs/CONFIGURATION.md](documentation/Configuration.md) for the full reference.
 
 **3. Pull and start:**
 
@@ -83,11 +81,11 @@ Subsequent users sign up with the `USER` role. An admin can promote them manuall
 
 By default, open signup is enabled — any Steam user can create an account. The admin can change this from the admin panel:
 
-| Scenario | `ALLOW_USER_SIGNUP` | `ALLOW_INVITE_CODE_GENERATION` |
-|---|---|---|
-| Anyone can register | `true` (default) | any |
-| Registration closed | `false` | `false` |
-| Invite-only registration | `false` | `true` |
+| Scenario                 | `ALLOW_USER_SIGNUP` | `ALLOW_INVITE_CODE_GENERATION` |
+|--------------------------|---------------------|--------------------------------|
+| Anyone can register      | `true` (default)    | any                            |
+| Registration closed      | `false`             | `false`                        |
+| Invite-only registration | `false`             | `true`                         |
 
 When invite-only mode is active, the admin generates invite codes from `/admin/invite-codes`. Users append `?invite_code=<code>` to the sign-in URL to register.
 
@@ -95,15 +93,13 @@ When invite-only mode is active, the admin generates invite codes from `/admin/i
 
 ## Minimal Configuration
 
-These five variables must be set. Everything else has sensible defaults.
+For the bundled `docker-compose.yml` deployment, these three variables must be set. Everything else has sensible defaults.
 
-| Variable | What it does |
-|---|---|
-| `STEAM_API_KEY` | 32-char hex key from [steamcommunity.com/dev/apikey](https://steamcommunity.com/dev/apikey). Required for profile fetches, library imports, and catalog sync. |
-| `WEB_VAULT_TOKEN_SECRET` | HMAC secret used to sign per-vault access cookies. Must be at least 32 characters. Generate with `openssl rand -hex 32`. |
-| `DOMAIN` | Public hostname without protocol or path (e.g. `gamepile.example.com` or `localhost:8080`). Used by the Compose file to build internal URLs. |
-| `WEB_APP_URL` | Full public URL including protocol (e.g. `https://gamepile.example.com`). Used for Steam OpenID callback and CSRF origin checks. Must match what the browser sees. |
-| `WEB_ALLOWED_ORIGINS` | Comma-separated hostnames allowed to submit Server Actions (e.g. `gamepile.example.com`). Prevents cross-origin form abuse. |
+| Variable                 | What it does                                                                                                                                                                                               |
+|--------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `STEAM_API_KEY`          | 32-char hex key from [steamcommunity.com/dev/apikey](https://steamcommunity.com/dev/apikey). Required for profile fetches, library imports, and catalog sync.                                              |
+| `WEB_VAULT_TOKEN_SECRET` | HMAC secret used to sign per-vault access cookies. Must be at least 32 characters. Generate with `openssl rand -hex 32`.                                                                                   |
+| `DOMAIN`                 | Public hostname without protocol or path (e.g. `gamepile.example.com` or `localhost:8080`). Used by the Compose file to default `WEB_APP_URL` to `http://${DOMAIN}` and `WEB_ALLOWED_ORIGINS` to `DOMAIN`. |
 
 The `DATABASE_URL` and Redis connection are constructed automatically by the Compose file from `POSTGRES_*` and `REDIS_*` variables, which have secure defaults you can override:
 
@@ -114,11 +110,44 @@ POSTGRES_DB=gamepile                # default: gamepile
 REDIS_PASSWORD=changeme             # default: redis_secret
 ```
 
+If you are deploying behind an external TLS proxy or a different public hostname, also set:
+
+```env
+WEB_APP_URL=https://gamepile.example.com
+WEB_ALLOWED_ORIGINS=gamepile.example.com
+```
+
+### Worker-only deploy against external PostgreSQL + Redis
+
+Use `docker-compose.worker.remote.yml` when you want to run only the BullMQ worker against an already-managed database and Redis instance.
+
+Required variables for that compose file:
+
+```env
+DATABASE_URL=postgresql://user:password@db.example.com:5432/gamepile?schema=public
+REDIS_HOST=redis.example.com
+REDIS_PORT=6379
+REDIS_PASSWORD=<your-redis-password>
+STEAM_API_KEY=<your-32-char-steam-api-key>
+```
+
+Start it with:
+
+```bash
+docker compose -f docker-compose.worker.remote.yml up -d
+```
+
+Before the worker starts, Compose runs two one-shot readiness services that wait for:
+
+- PostgreSQL connectivity,
+- the `schema_migrations` table to exist, and
+- Redis to respond to `PING`.
+
 ---
 
 ## Deep Configuration
 
-See **[docs/CONFIGURATION.md](./docs/CONFIGURATION.md)** for the full reference, including:
+See **[docs/CONFIGURATION.md](documentation/Configuration.md)** for the full reference, including:
 
 - All web and worker environment variables with types and defaults
 - Worker concurrency and rate-limit tuning
@@ -129,16 +158,16 @@ See **[docs/CONFIGURATION.md](./docs/CONFIGURATION.md)** for the full reference,
 
 ## Architecture
 
-![Architecture Diagram](./docs/architecture.png)
+![Architecture Diagram](documentation/architecture.png)
 
-| Component | Description |
-|---|---|
-| **web** | Next.js 16 app: UI, Server Actions, Steam OpenID auth, SSE job streaming |
-| **worker** | BullMQ job processor: library imports, game catalog sync, achievement imports |
-| **migrate** | One-shot Prisma migration container. Runs and exits before web/worker start. |
-| **postgres** | Primary data store |
-| **redis** | BullMQ job queue broker and rate-limit store |
-| **caddy** | Bundled reverse proxy on port 8080 |
+| Component    | Description                                                                   |
+|--------------|-------------------------------------------------------------------------------|
+| **web**      | Next.js 16 app: UI, Server Actions, Steam OpenID auth, SSE job streaming      |
+| **worker**   | BullMQ job processor: library imports, game catalog sync, achievement imports |
+| **migrate**  | One-shot Prisma migration container. Runs and exits before web/worker start.  |
+| **postgres** | Primary data store                                                            |
+| **redis**    | BullMQ job queue broker and rate-limit store                                  |
+| **caddy**    | Bundled reverse proxy on port 8080                                            |
 
 Startup ordering is enforced by Compose health checks:
 
@@ -161,7 +190,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT=https://ingest.us2.signoz.cloud/
 OTEL_EXPORTER_OTLP_HEADERS=signoz-ingestion-key=your-key
 ```
 
-See [docs/OBSERVABILITY.md](./docs/OBSERVABILITY.md) for setup options and configuration details.
+See [docs/OBSERVABILITY.md](documentation/Observability.md) for setup options and configuration details.
 
 ---
 
@@ -202,7 +231,7 @@ docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
 
 ## Kubernetes
 
-Manifests are provided in [`docs/k8s/`](./docs/k8s/). The migration runs as a Kubernetes `Job`. The `web` and `worker` `Deployment`s use init containers to wait for the migration job to complete before starting.
+Manifests are provided in [`docs/k8s/`](deployment/k8s). The migration runs as a Kubernetes `Job`. The `web` and `worker` `Deployment`s use init containers to wait for the migration job to complete before starting.
 
 ---
 

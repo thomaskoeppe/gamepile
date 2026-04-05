@@ -60,7 +60,7 @@ export async function GET(request: Request) {
 
         for (let attempt = 1; attempt <= SERIALIZATION_RETRY_LIMIT; attempt += 1) {
             try {
-                const result = await prisma.$transaction(async (tx) => {
+                authResult = await prisma.$transaction(async (tx) => {
                     const existing = await tx.user.findUnique({
                         where: { steamId },
                         select: { id: true },
@@ -168,8 +168,6 @@ export async function GET(request: Request) {
                 }, {
                     isolationLevel: "Serializable",
                 });
-
-                authResult = result;
                 break;
             } catch (error) {
                 if (error instanceof Error) {

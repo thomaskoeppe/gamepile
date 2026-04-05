@@ -1,0 +1,112 @@
+x-worker-common-env: &worker-common-env
+  NODE_ENV: "${NODE_ENV:-production}"
+  DATABASE_URL: "${DATABASE_URL:?DATABASE_URL is required for remote worker deployments}"
+  REDIS_HOST: "${REDIS_HOST:?REDIS_HOST is required for remote worker deployments}"
+  REDIS_PORT: "${REDIS_PORT:-6379}"
+  REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
+  REDIS_USERNAME: "${REDIS_USERNAME:-}"
+  STEAM_API_KEY: "${STEAM_API_KEY:?STEAM_API_KEY is required for remote worker deployments}"
+  PRISMA_LOG_QUERIES: "${PRISMA_LOG_QUERIES:-true}"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT:-}"
+  OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-}"
+  OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: "${OTEL_EXPORTER_OTLP_TRACES_PROTOCOL:-http/protobuf}"
+  OTEL_EXPORTER_OTLP_HEADERS: "${OTEL_EXPORTER_OTLP_HEADERS:-}"
+  OTEL_LOG_LEVEL: "${OTEL_LOG_LEVEL:-info}"
+
+services:
+  # ────────────────────────────────────────────────────
+  # External PostgreSQL readiness + migration gate
+  # Waits until the database accepts connections and the
+  # `schema_migrations` table exists.
+  # ────────────────────────────────────────────────────
+  wait-for-postgres:
+    image: postgres:17-alpine
+    restart: "no"
+    environment:
+      DATABASE_URL: "${DATABASE_URL:?DATABASE_URL is required for remote worker deployments}"
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        until pg_isready -d "$$DATABASE_URL"; do
+          echo "Waiting for PostgreSQL..."
+          sleep 3
+        done
+
+        until psql "$$DATABASE_URL" -tAc "SELECT to_regclass('schema_migrations')" | grep -q "schema_migrations"; do
+          echo "Waiting for SQL migrations to complete..."
+          sleep 3
+        done
+
+  # ────────────────────────────────────────────────────
+  # External Redis readiness gate
+  # Supports optional ACL username and password.
+  # ────────────────────────────────────────────────────
+  wait-for-redis:
+    image: redis:7-alpine
+    restart: "no"
+    environment:
+      REDIS_HOST: "${REDIS_HOST:?REDIS_HOST is required for remote worker deployments}"
+      REDIS_PORT: "${REDIS_PORT:-6379}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
+      REDIS_USERNAME: "${REDIS_USERNAME:-}"
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        set -- -h "$$REDIS_HOST" -p "$$REDIS_PORT"
+
+        if [ -n "$$REDIS_USERNAME" ]; then
+          set -- "$@" --user "$$REDIS_USERNAME"
+        fi
+
+        if [ -n "$$REDIS_PASSWORD" ]; then
+          set -- "$@" -a "$$REDIS_PASSWORD"
+        fi
+
+        until redis-cli "$@" ping | grep -q PONG; do
+          echo "Waiting for Redis at $$REDIS_HOST:$$REDIS_PORT..."
+          sleep 3
+        done
+
+  # ────────────────────────────────────────────────────
+  # Worker only
+  # Uses external PostgreSQL + Redis and starts only after
+  # both dependencies are reachable and migrations exist.
+  # ────────────────────────────────────────────────────
+  worker:
+    image: ghcr.io/thomaskoeppe/gamepile/worker:latest
+    restart: unless-stopped
+    environment:
+      <<: *worker-common-env
+      WORKER_LOG_TO_STDOUT: "${WORKER_LOG_TO_STDOUT:-true}"
+      OTEL_SERVICE_NAME: "${OTEL_SERVICE_NAME:-gamepile-worker}"
+      WORKER_JOBS_CONCURRENCY: "${WORKER_JOBS_CONCURRENCY:-3}"
+      WORKER_DETAILS_CONCURRENCY: "${WORKER_DETAILS_CONCURRENCY:-10}"
+      # The remote compose file already waits for external dependencies, so it
+      # defaults to starting immediately once the readiness checks pass.
+      WORKER_STARTUP_DELAY_MS: "${WORKER_STARTUP_DELAY_MS:-0}"
+      WORKER_STALE_ACTIVE_RECOVERY_DELAY_MS: "${WORKER_STALE_ACTIVE_RECOVERY_DELAY_MS:-1800000}"
+      WORKER_ACTIVE_RECOVERY_LOCK_TTL_MS: "${WORKER_ACTIVE_RECOVERY_LOCK_TTL_MS:-60000}"
+      WORKER_STEAM_RATE_LIMIT_MAX: "${WORKER_STEAM_RATE_LIMIT_MAX:-200}"
+      WORKER_STEAM_RATE_LIMIT_WINDOW_MS: "${WORKER_STEAM_RATE_LIMIT_WINDOW_MS:-300000}"
+      WORKER_STEAM_RATE_LIMIT_MIN_INTERVAL_MS: "${WORKER_STEAM_RATE_LIMIT_MIN_INTERVAL_MS:-1100}"
+      WORKER_STEAM_RATE_LIMIT_SCOPE: "${WORKER_STEAM_RATE_LIMIT_SCOPE:-local}"
+      WORKER_SYNC_STEAM_GAMES_CRON: "${WORKER_SYNC_STEAM_GAMES_CRON:-0 3 * * 0}"
+      WORKER_REFRESH_GAME_DETAILS_CRON: "${WORKER_REFRESH_GAME_DETAILS_CRON:-0 0 * * *}"
+      WORKER_GAME_DETAILS_REFRESH_DAYS: "${WORKER_GAME_DETAILS_REFRESH_DAYS:-30}"
+      WORKER_IMPORT_USER_LIBRARY_INTERVAL_MS: "${WORKER_IMPORT_USER_LIBRARY_INTERVAL_MS:-604800000}"
+      LOG_LEVEL: "${LOG_LEVEL:-info}"
+      LOG_SERVICE: "gamepile-worker"
+      LOG_ENV: "${NODE_ENV:-production}"
+    depends_on:
+      wait-for-postgres:
+        condition: service_completed_successfully
+      wait-for-redis:
+        condition: service_completed_successfully
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+

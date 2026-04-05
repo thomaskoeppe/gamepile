@@ -1,0 +1,22 @@
+{
+	# Trust all private/RFC-1918 ranges so X-Forwarded-For from upstream
+	# proxies (e.g. Traefik, nginx, cloud LB) is not overwritten.
+	servers {
+		trusted_proxies static private_ranges
+	}
+}
+
+:8080 {
+	reverse_proxy web:3000 {
+		# Ensure the real client IP is always forwarded through Docker's
+		# bridge network, even when the source is NATted.
+		header_up X-Real-Ip {client_ip}
+	}
+
+	# Logging (optional — remove for less noise)
+	log {
+		output stdout
+		format console
+	}
+}
+

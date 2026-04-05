@@ -1,6 +1,7 @@
 "use client";
 
-import {Check, ChevronsUpDown, X} from "lucide-react";
+import { cva } from "class-variance-authority";
+import {Check, ChevronsUpDown} from "lucide-react";
 import * as React from "react";
 
 import {Badge} from "@/components/ui/badge";
@@ -17,6 +18,21 @@ import {
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,} from "@/components/ui/tooltip";
 import {cn} from "@/lib/utils";
+
+const selectedTagVariants = cva(
+    "h-5 shrink-0 max-w-25 px-1.5 text-[11px] font-medium",
+    {
+        variants: {
+            tone: {
+                primary: "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20",
+                muted: "border-border/50 text-muted-foreground cursor-default",
+            },
+        },
+        defaultVariants: {
+            tone: "primary",
+        },
+    }
+);
 
 export interface ComboboxOption {
     value: string
@@ -73,16 +89,6 @@ export function MultiSelectCombobox({
         }
     };
 
-    const handleRemovePointerDown = (e: React.PointerEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-    };
-
-    const handleRemove = (value: string, e: React.MouseEvent) => {
-        e.stopPropagation();
-        onChange(selected.filter((item) => item !== value));
-    };
-
     const selectedLabels = React.useMemo(() => {
         return selected
             .map((value) => ({
@@ -109,23 +115,9 @@ export function MultiSelectCombobox({
                         {displayedTags.map((item) => (<Badge
                             key={item.value}
                             variant="secondary"
-                            className="h-5 shrink-0 max-w-25 px-1.5 text-[11px] font-medium bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
+                            className={selectedTagVariants()}
                         >
                             <span className="truncate">{item.label}</span>
-                            <span
-                                role="button"
-                                tabIndex={0}
-                                className="ml-0.5 hover:text-primary/80 cursor-pointer inline-flex shrink-0"
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                        handleRemove(item.value, e as unknown as React.MouseEvent);
-                                    }
-                                }}
-                                onPointerDown={handleRemovePointerDown}
-                                onClick={(e) => handleRemove(item.value, e)}
-                            >
-                                      <X className="h-3 w-3"/>
-                                    </span>
                         </Badge>))}
 
                         {hasHiddenTags && (<TooltipProvider delayDuration={200}>
@@ -133,7 +125,7 @@ export function MultiSelectCombobox({
                                 <TooltipTrigger asChild>
                                     <Badge
                                         variant="outline"
-                                        className="h-5 shrink-0 px-1.5 text-[11px] font-medium border-border/50 text-muted-foreground cursor-default"
+                                        className={selectedTagVariants({ tone: "muted" })}
                                     >
                                         +{hiddenTags.length}
                                     </Badge>
@@ -156,7 +148,7 @@ export function MultiSelectCombobox({
                         </TooltipProvider>)}
                     </>)}
                 </div>
-                <ChevronsUpDown className="ml-1.5 h-3.5 w-3.5 shrink-0 opacity-50"/>
+                <ChevronsUpDown className="ml-1.5 size-3.5 shrink-0 opacity-50"/>
             </Button>
         </PopoverTrigger>
 
@@ -176,12 +168,12 @@ export function MultiSelectCombobox({
                             {groupedOptions.uncategorized.map((option) => (
                                 <CommandItem
                                     key={option.value}
-                                    value={option.value}
+                                    value={`${option.label} ${option.value}`}
                                     onSelect={() => handleSelect(option.value)}
                                     className="cursor-pointer"
                                 >
                                     <Check
-                                        className={cn("mr-2 h-4 w-4 text-primary", selected.includes(option.value) ? "opacity-100" : "opacity-0",)}
+                                        className={cn("mr-2 size-4 text-primary", selected.includes(option.value) ? "opacity-100" : "opacity-0",)}
                                     />
                                     <span className={cn(selected.includes(option.value) && "text-primary font-medium")}>
                                       {option.label}
@@ -197,12 +189,12 @@ export function MultiSelectCombobox({
                             <CommandGroup heading={category.toUpperCase()} className="font-medium">
                                 {categoryOptions.map((option) => (<CommandItem
                                     key={option.value}
-                                    value={option.value}
+                                    value={`${option.label} ${category}`}
                                     onSelect={() => handleSelect(option.value)}
                                     className="cursor-pointer"
                                 >
                                     <Check
-                                        className={cn("mr-2 h-4 w-4 text-primary", selected.includes(option.value) ? "opacity-100" : "opacity-0",)}
+                                        className={cn("mr-2 size-4 text-primary", selected.includes(option.value) ? "opacity-100" : "opacity-0",)}
                                     />
                                     <span
                                         className={cn(selected.includes(option.value) && "text-primary font-medium")}>

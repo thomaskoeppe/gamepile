@@ -10,11 +10,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Prisma } from "@/prisma/generated/browser";
 
-export function ClientPage({ collection, games, categories, genres}: {
+export function ClientPage({ collection, games, categories, tags}: {
     collection: Prisma.CollectionGetPayload<{ include: { createdBy: true; _count: { select: { games: true } }; users: { select: { id: true } } } }>;
-    games: Array<Prisma.GameGetPayload<{ include: { categories: true, genres: true } }> & { playtime?: number; owned: boolean }>,
+    games: Array<Prisma.GameGetPayload<{ include: { categories: true, tags: true } }> & { playtime?: number; owned: boolean }>,
     categories: { name: string }[],
-    genres: { name: string }[],
+    tags: { name: string }[],
 }) {
     return (
         <>
@@ -81,7 +81,7 @@ export function ClientPage({ collection, games, categories, genres}: {
                             <GameList
                                 games={games}
                                 categories={categories.map((c) => c.name)}
-                                genres={genres.map((g) => g.name)}
+                                tags={tags.map((t) => t.name)}
                                 showOwnedFilter={false}
                             />
                         </div>

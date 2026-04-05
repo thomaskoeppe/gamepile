@@ -1,13 +1,13 @@
 'use client';
 
-import {ChevronDown, Gamepad2, Ticket} from "lucide-react";
-import {AlertCircle} from "lucide-react";
+import {AlertCircle, ChevronDown, Gamepad2, Ticket} from "lucide-react";
+import Link from "next/link";
 import {useSearchParams} from "next/navigation";
 import {useEffect, useState} from "react";
 
 import {Alert, AlertDescription} from "@/components/ui/alert";
 import {Button} from "@/components/ui/button";
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
 import {useAppSettings} from "@/lib/providers/app-settings";
 import {useSession} from "@/lib/providers/session";
@@ -134,6 +134,15 @@ export default function Home() {
                         </div>
                     )}
                 </CardContent>
+
+                <CardFooter>
+                    <CardDescription className="text-xs">
+                        Built by <Link href="https://github.com/thomaskoeppe" target="_blank"
+                                       className="text-primary hover:underline">@thomaskoeppe</Link> · Open source
+                        on <Link href="https://github.com/thomaskoeppe/gamepile" target="_blank"
+                                 className="text-primary hover:underline">GitHub</Link>
+                    </CardDescription>
+                </CardFooter>
             </Card>
         </div>
     );

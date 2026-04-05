@@ -87,6 +87,7 @@ export function AddToCollectionDropdown({
                     <Button
                         size="icon"
                         variant="ghost"
+                        aria-label="Add game to collection"
                         className={cn(
                             "size-8 text-muted-foreground hover:bg-muted/50 hover:text-foreground",
                             className
@@ -167,10 +168,10 @@ export function AddToCollectionDropdown({
 
                 <div className="border-t border-border p-2">
                     <CreateCollectionDialog onSuccess={handleNewCollection}>
-                        <button className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-xs text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground">
+                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs text-muted-foreground hover:text-foreground">
                             <FolderPlus className="size-4" />
                             <span>Create new collection</span>
-                        </button>
+                        </Button>
                     </CreateCollectionDialog>
                 </div>
             </PopoverContent>

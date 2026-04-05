@@ -97,7 +97,7 @@ export function MemberPopover({
                 <div className="flex flex-wrap gap-1">
                   {user.isOwner ? (
                     <Badge variant="secondary">
-                      <ShieldCheck className="mr-1 h-3 w-3" /> CREATOR
+                      <ShieldCheck className="mr-1 size-3" /> CREATOR
                     </Badge>
                   ) : (
                     <>
@@ -109,7 +109,7 @@ export function MemberPopover({
                       )}
                       {resourceType === "collection" && "canModify" in user && user.canModify && (
                         <Badge variant="secondary">
-                          <Shield className="mr-1 h-3 w-3" /> CAN MODIFY
+                          <Shield className="mr-1 size-3" /> CAN MODIFY
                         </Badge>
                       )}
                     </>
@@ -120,20 +120,20 @@ export function MemberPopover({
 
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm">
-                <IdCard className="h-4 w-4 text-foreground" />
+                <IdCard className="size-4 text-foreground" />
                 <span className="text-foreground">{user.steamId}</span>
               </div>
 
               {!user.isOwner && "addedAt" in user && (
                 <>
                   <div className="flex items-center gap-3 text-sm">
-                    <Calendar className="h-4 w-4 text-foreground" />
+                    <Calendar className="size-4 text-foreground" />
                     <span className="text-foreground">Member since {new Date(user.addedAt).toLocaleDateString()}</span>
                   </div>
 
                   {"addedBy" in user && user.addedBy && (
                     <div className="flex items-center gap-3 text-sm">
-                      <UserPlus className="h-4 w-4 text-foreground" />
+                      <UserPlus className="size-4 text-foreground" />
                       <span className="text-foreground">Added by </span>
                       <Avatar className="h-5 w-5">
                         <AvatarImage src={user.addedBy.avatarUrl || "/placeholder.svg"} alt={user.addedBy.username} />
@@ -150,7 +150,7 @@ export function MemberPopover({
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full bg-red-600/50 text-foreground hover:bg-red-700/50 hover:text-foreground"
+                className="w-full rounded-md border border-border bg-muted/40 text-foreground hover:bg-muted/70"
                 onClick={() => setConfirmOpen(true)}
               >
                 Remove Member

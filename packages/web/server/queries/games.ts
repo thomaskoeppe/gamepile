@@ -3,97 +3,70 @@
 import {z} from "zod";
 
 import prisma from "@/lib/prisma";
-import {redis} from "@/lib/redis";
-import { withLogging } from "@/lib/with-logging";
+import {withLogging} from "@/lib/with-logging";
 import {queryClientWithAuth} from "@/server/query";
-import {SteamAppDetails} from "@/types/steam";
+import type {GameDetails} from "@/types/game";
 
 /**
  * Fetches the names of all game categories stored in the database.
  *
  * @returns Array of category name strings drawn from the full `Category` table.
  */
-export const getGameCategories = queryClientWithAuth.query<Array<string>>(withLogging(async ({ ctx }, { log }) => {
-    log.info("Fetching categories for game", {
-        userId: ctx.user.id,
-    });
+export const getGameCategories = queryClientWithAuth.query<Array<string>>(withLogging(async ({ctx}, {log}) => {
+    log.info("Fetching categories for game", {userId: ctx.user.id});
 
-    const categories = await prisma.category.findMany({
-        select: {
-            name: true
-        }
-    });
-
+    const categories = await prisma.category.findMany({select: {name: true}});
     return categories.map(c => c.name);
 }, {
     namespace: "server.queries.games:getGameCategories"
 }));
 
+
 /**
- * Fetches the names of all game genres stored in the database.
+ * Fetches the names of all game tags stored in the database.
  *
- * @returns Array of genre name strings drawn from the full `Genre` table.
+ * @returns Array of tag name strings drawn from the full `Tag` table.
  */
-export const getGameGenres = queryClientWithAuth.query<Array<string>>(withLogging(async ({ ctx }, { log }) => {
-    log.info("Fetching genres for game", {
-        userId: ctx.user.id,
-    });
+export const getGameTags = queryClientWithAuth.query<Array<string>>(withLogging(async ({ctx}, {log}) => {
+    log.info("Fetching tags for game", {userId: ctx.user.id});
 
-    const genres = await prisma.genre.findMany({
-        select: {
-            name: true
-        }
-    });
-
-    return genres.map(g => g.name);
+    const tags = await prisma.tag.findMany({select: {name: true}});
+    return tags.map(t => t.name);
 }, {
-    namespace: "server.queries.games:getGameGenres"
+    namespace: "server.queries.games:getGameTags"
 }));
 
+/**
+ * Fetches full game details from the database, including all relations
+ * (categories, tags, screenshots, videos, and highlighted achievements).
+ *
+ * Replaces the previous implementation that fetched from the Steam Store API.
+ *
+ * @returns Game details with all relations, or `null` if not found.
+ */
 export const getGameDetails = queryClientWithAuth.inputSchema(z.object({
-    gameId: z.uuid()
-})).query<SteamAppDetails | null>(withLogging(async ({ parsedInput: { gameId }, ctx }, { log }) => {
-    log.info("Fetching details for game", {
-        userId: ctx.user.id,
-        gameId
-    });
-
-    const redisKey = `gameDetails:${gameId}`;
-    const cachedData = await redis.get(redisKey);
-    if (cachedData) {
-        log.info("Cache hit for game details", { gameId });
-        return JSON.parse(cachedData) as SteamAppDetails;
-    }
+    gameId: z.uuid(),
+})).query<GameDetails | null>(withLogging(async ({parsedInput: {gameId}, ctx}, {log}) => {
+    log.info("Fetching details for game", {userId: ctx.user.id, gameId});
 
     const game = await prisma.game.findUnique({
-        where: {
-            id: gameId
+        where: {id: gameId},
+        include: {
+            categories: {select: {id: true, name: true}},
+            tags: {select: {id: true, name: true}},
+            screenshots: {select: {id: true, url: true}, orderBy: {createdAt: "asc"}},
+            videos: {select: {id: true, url: true, title: true}, orderBy: {createdAt: "asc"}},
+            achievements: {select: {id: true, displayName: true, icon: true}, take: 6},
+            _count: {select: {achievements: true}},
         },
-        select: {
-            appId: true
-        }
     });
 
-    if (!game || !game.appId) throw new Error("No game found.");
-
-    const response = await fetch(`https://store.steampowered.com/api/appdetails?appids=${game.appId}&l=en`, {
-        headers: {
-            "Accept": "application/json",
-        }
-    });
-
-    if (!response.ok) throw new Error("Failed to fetch game details from Steam API.");
-
-    const data = await response.json() as { [key: string]: { success: boolean; data?: SteamAppDetails } };
-    const gameData = data[game.appId.toString()];
-
-    if (gameData?.success && gameData.data) {
-        redis.set(redisKey, JSON.stringify(gameData.data), "EX", 60 * 60 * 12);
-
-        return gameData.data as SteamAppDetails;
+    if (!game) {
+        log.warn("Game not found", {gameId});
+        return null;
     }
 
-    return null;
+    return game;
 }, {
     namespace: "server.queries.games:getGameDetails"
 }));

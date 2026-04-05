@@ -4,7 +4,11 @@ import {rateLimitAction} from "@/lib/auth/rate-limit";
 import {getCurrentSession} from "@/lib/auth/session";
 import {logger} from "@/lib/logger";
 
-const actionClient = createSafeActionClient();
+const actionClient = createSafeActionClient({
+    handleServerError(e) {
+        return e.message;
+    }
+});
 
 const logUnauthenticated = logger.child("server.actions:unauthenticated");
 const logAuthenticated = logger.child("server.actions:authenticated");

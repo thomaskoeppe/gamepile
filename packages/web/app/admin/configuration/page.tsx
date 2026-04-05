@@ -86,9 +86,9 @@ export default function AdminConfigurationPage() {
                 ) : settings ? (
                     <ConfigurationForm settings={settings} onSaved={() => mutate()} />
                 ) : null}
-
-                <LoadingIndicator show={isRevalidating} />
             </div>
+
+            <LoadingIndicator show={isRevalidating} />
         </>
     );
 }

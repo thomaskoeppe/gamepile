@@ -31,16 +31,16 @@ interface DataTableProps<TData> {
 }
 
 export function DataTable<TData>({
-                                     columns,
-                                     data,
-                                     totalCount,
-                                     currentPage,
-                                     pageSize,
-                                     totalPages,
-                                     onPageChange,
-                                     onSortChange,
-                                     isLoading = false,
-                                 }: DataTableProps<TData>) {
+     columns,
+     data,
+     totalCount,
+     currentPage,
+     pageSize,
+     totalPages,
+     onPageChange,
+     onSortChange,
+     isLoading = false,
+ }: DataTableProps<TData>) {
     const [sorting, setSorting] = useState<SortingState>([]);
 
     // eslint-disable-next-line react-hooks/incompatible-library
@@ -88,14 +88,14 @@ export function DataTable<TData>({
                                                     {flexRender(header.column.columnDef.header, header.getContext())}
                                                     {canSort && (
                                                         <span className="text-muted-foreground/50">
-                              {sorted === "asc" ? (
-                                  <ArrowUp className="h-4 w-4"/>
-                              ) : sorted === "desc" ? (
-                                  <ArrowDown className="h-4 w-4"/>
-                              ) : (
-                                  <ArrowUpDown className="h-4 w-4"/>
-                              )}
-                            </span>
+                                                          {sorted === "asc" ? (
+                                                              <ArrowUp className="h-4 w-4"/>
+                                                          ) : sorted === "desc" ? (
+                                                              <ArrowDown className="h-4 w-4"/>
+                                                          ) : (
+                                                              <ArrowUpDown className="h-4 w-4"/>
+                                                          )}
+                                                        </span>
                                                     )}
                                                 </div>
                                             )}

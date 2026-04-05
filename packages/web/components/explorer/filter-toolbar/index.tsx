@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { browserLog } from "@/lib/browser-logger";
+import {cn} from "@/lib/utils";
 import { GameType, Platform } from "@/prisma/generated/enums";
 import type { ExplorerFilterOptions, ExplorerFilters, OwnershipFilter } from "@/types/explorer";
 
-import { MetacriticFilter } from "./metacritic-filter";
 import { ReleaseDateFilter } from "./release-date-filter";
+import { ReviewScoreFilter } from "./review-score-filter";
 
 interface FilterToolbarProps {
   filters: ExplorerFilters;
@@ -37,13 +38,13 @@ export function FilterToolbar({ filters, onChange, options }: FilterToolbarProps
     browserLog.info("Explorer filters cleared", { component: "FilterToolbar" });
     onChange({
       search: "",
-      genreIds: [],
       categoryIds: [],
+      tagIds: [],
       platforms: [],
       gameType: null,
       isFree: null,
-      metacriticMin: null,
-      metacriticMax: null,
+      reviewScoreMin: null,
+      reviewScoreMax: null,
       releaseDateFrom: null,
       releaseDateTo: null,
       ownership: "all",
@@ -51,12 +52,12 @@ export function FilterToolbar({ filters, onChange, options }: FilterToolbarProps
   }, [onChange]);
 
   const activeFilterCount = [
-    filters.genreIds && filters.genreIds.length > 0,
     filters.categoryIds && filters.categoryIds.length > 0,
+    filters.tagIds && filters.tagIds.length > 0,
     filters.platforms && filters.platforms.length > 0,
     !!filters.gameType,
     filters.isFree != null,
-    filters.metacriticMin != null || filters.metacriticMax != null,
+    filters.reviewScoreMin != null || filters.reviewScoreMax != null,
     !!filters.releaseDateFrom || !!filters.releaseDateTo,
     filters.ownership && filters.ownership !== "all",
   ].filter(Boolean).length;
@@ -99,7 +100,10 @@ export function FilterToolbar({ filters, onChange, options }: FilterToolbarProps
           value={filters.ownership ?? "all"}
           onValueChange={(v) => update({ ownership: v as OwnershipFilter })}
         >
-          <SelectTrigger className="h-9 w-32.5 border-border/50 bg-card/50">
+          <SelectTrigger className={cn(
+            "h-9 w-32.5 border-border/50 bg-card/50",
+            (filters.ownership ?? "all") === "all" && "text-muted-foreground"
+          )}>
             <SelectValue placeholder="Ownership" />
           </SelectTrigger>
           <SelectContent>
@@ -113,7 +117,10 @@ export function FilterToolbar({ filters, onChange, options }: FilterToolbarProps
           value={filters.isFree == null ? "any" : filters.isFree ? "free" : "paid"}
           onValueChange={(v) => update({ isFree: v === "any" ? null : v === "free" })}
         >
-          <SelectTrigger className="h-9 w-27.5 border-border/50 bg-card/50">
+          <SelectTrigger className={cn(
+            "h-9 w-33 border-border/50 bg-card/50",
+            filters.isFree == null && "text-muted-foreground"
+          )}>
             <SelectValue placeholder="Pricing" />
           </SelectTrigger>
           <SelectContent>
@@ -124,10 +131,13 @@ export function FilterToolbar({ filters, onChange, options }: FilterToolbarProps
         </Select>
 
         <Select
-          value={filters.gameType ?? ""}
+          value={filters.gameType ?? "all"}
           onValueChange={(v) => update({ gameType: v === "all" ? null : (v as GameType) })}
         >
-          <SelectTrigger className="h-9 w-30 border-border/50 bg-card/50">
+          <SelectTrigger className={cn(
+            "h-9 w-30 border-border/50 bg-card/50",
+            !filters.gameType && "text-muted-foreground"
+          )}>
             <SelectValue placeholder="Type" />
           </SelectTrigger>
           <SelectContent>
@@ -142,15 +152,6 @@ export function FilterToolbar({ filters, onChange, options }: FilterToolbarProps
 
         <div className="mx-1 h-6 w-px bg-border/50" />
 
-        <MultiSelectCombobox
-          options={options.genres.map((g) => ({ value: g.id, label: g.name }))}
-          selected={filters.genreIds ?? []}
-          onChange={(v) => update({ genreIds: v })}
-          placeholder="Genres"
-          searchPlaceholder="Search genres..."
-          className="w-40"
-          maxDisplayedTags={1}
-        />
 
         <MultiSelectCombobox
           options={options.categories.map((c) => ({ value: c.id, label: c.name }))}
@@ -158,6 +159,16 @@ export function FilterToolbar({ filters, onChange, options }: FilterToolbarProps
           onChange={(v) => update({ categoryIds: v })}
           placeholder="Categories"
           searchPlaceholder="Search categories..."
+          className="w-40"
+          maxDisplayedTags={1}
+        />
+
+        <MultiSelectCombobox
+          options={options.tags.map((t) => ({ value: t.id, label: t.name }))}
+          selected={filters.tagIds ?? []}
+          onChange={(v) => update({ tagIds: v })}
+          placeholder="Tags"
+          searchPlaceholder="Search tags..."
           className="w-40"
           maxDisplayedTags={1}
         />
@@ -176,18 +187,18 @@ export function FilterToolbar({ filters, onChange, options }: FilterToolbarProps
 
         <div className="mx-1 h-6 w-px bg-border/50" />
 
-        <MetacriticFilter
-          min={filters.metacriticMin}
-          max={filters.metacriticMax}
-          onMinChange={(v) => update({ metacriticMin: v })}
-          onMaxChange={(v) => update({ metacriticMax: v })}
+        <ReviewScoreFilter
+          key={`review:${filters.reviewScoreMin ?? "null"}:${filters.reviewScoreMax ?? "null"}`}
+          min={filters.reviewScoreMin}
+          max={filters.reviewScoreMax}
+          onChange={({ min, max }) => update({ reviewScoreMin: min, reviewScoreMax: max })}
         />
 
         <ReleaseDateFilter
+          key={`release:${filters.releaseDateFrom ?? "null"}:${filters.releaseDateTo ?? "null"}`}
           fromDate={filters.releaseDateFrom}
           toDate={filters.releaseDateTo}
-          onFromChange={(v) => update({ releaseDateFrom: v })}
-          onToChange={(v) => update({ releaseDateTo: v })}
+          onChange={({ fromDate, toDate }) => update({ releaseDateFrom: fromDate, releaseDateTo: toDate })}
         />
       </div>
     </div>

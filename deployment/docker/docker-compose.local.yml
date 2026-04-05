@@ -5,18 +5,18 @@
 services:
   migrate:
     build:
-      context: .
-      dockerfile: packages/migrate/Dockerfile
+      context: ../..
+      dockerfile: ../../packages/migrate/Dockerfile
     image: gamepile-migrate:local
 
   web:
     build:
-      context: .
-      dockerfile: packages/web/Dockerfile
+      context: ../..
+      dockerfile: ../../packages/web/Dockerfile
     image: gamepile-web:local
 
   worker:
     build:
-      context: .
-      dockerfile: packages/worker/Dockerfile
+      context: ../..
+      dockerfile: ../../packages/worker/Dockerfile
     image: gamepile-worker:local

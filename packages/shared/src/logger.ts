@@ -127,8 +127,8 @@ class Logger implements ILogger {
     }
 }
 
-export function createLogger(options: CreateLoggerOptions): ILogger {
-    return new Logger(options);
+export function createLogger(options: CreateLoggerOptions, baseContext?: LogContext): ILogger {
+    return new Logger(options, baseContext);
 }
 
 
