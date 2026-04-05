@@ -6,14 +6,29 @@ import { logger } from "@/src/lib/logger.js";
 import { redis } from "@/src/lib/redis.js";
 import prisma from "@/src/lib/prisma.js";
 
+/**
+ * Registers all recurring BullMQ job schedulers (cron-based repeatable jobs).
+ *
+ * Persists the desired scheduler configuration in Redis to detect mismatches
+ * across multiple worker instances. Registers schedulers for:
+ * - Steam tag sync
+ * - Steam category sync
+ * - Steam games catalog sync
+ * - Game details refresh
+ * - Internal scheduled tasks (daily housekeeping)
+ *
+ * @param hostname - The hostname of the worker registering the schedulers.
+ */
 export async function registerScheduledJobs(hostname: string): Promise<void> {
     const log = logger.child("worker.scheduler:register", { hostname });
     const env = getWorkerEnv();
     const syncCron = env.WORKER_SYNC_STEAM_GAMES_CRON;
     const refreshCron = env.WORKER_REFRESH_GAME_DETAILS_CRON;
-    const internalScheduledTaskCron = "0 * * * *";
-    const schedulerConfigKey = "gamepile:worker:scheduler-config:v1";
-    const desiredSchedulerConfig = JSON.stringify({ syncCron, refreshCron });
+    const tagsCron = env.WORKER_SYNC_STEAM_TAGS_CRON;
+    const categoriesCron = env.WORKER_SYNC_STEAM_CATEGORIES_CRON;
+    const internalScheduledTaskCron = "0 0 * * *";
+    const schedulerConfigKey = "gamepile:worker:scheduler-config:v2";
+    const desiredSchedulerConfig = JSON.stringify({ syncCron, refreshCron, tagsCron, categoriesCron });
 
     const wroteConfig = await redis.set(schedulerConfigKey, desiredSchedulerConfig, "NX");
     if (wroteConfig !== "OK") {
@@ -26,6 +41,24 @@ export async function registerScheduledJobs(hostname: string): Promise<void> {
             await redis.set(schedulerConfigKey, desiredSchedulerConfig);
         }
     }
+
+    await jobsQueue.upsertJobScheduler(
+        "gamepile.schedule.sync-steam-tags",
+        { pattern: tagsCron },
+        {
+            name: JobType.SYNC_STEAM_TAGS,
+            data: { type: JobType.SYNC_STEAM_TAGS },
+        },
+    );
+
+    await jobsQueue.upsertJobScheduler(
+        "gamepile.schedule.sync-steam-categories",
+        { pattern: categoriesCron },
+        {
+            name: JobType.SYNC_STEAM_CATEGORIES,
+            data: { type: JobType.SYNC_STEAM_CATEGORIES },
+        },
+    );
 
     await jobsQueue.upsertJobScheduler(
         "gamepile.schedule.sync-steam-games",
@@ -56,6 +89,8 @@ export async function registerScheduledJobs(hostname: string): Promise<void> {
 
     log.info("Scheduled jobs registered", {
         scheduledJobs: [
+            { name: "SYNC_STEAM_TAGS", cron: tagsCron },
+            { name: "SYNC_STEAM_CATEGORIES", cron: categoriesCron },
             { name: "SYNC_STEAM_GAMES", cron: syncCron },
             { name: "REFRESH_GAME_DETAILS", cron: refreshCron },
             { name: "INTERNAL_SCHEDULED_TASK", cron: internalScheduledTaskCron },
@@ -63,6 +98,15 @@ export async function registerScheduledJobs(hostname: string): Promise<void> {
     });
 }
 
+/**
+ * Ensures an initial `SYNC_STEAM_GAMES` job exists on first boot.
+ *
+ * If no sync job has ever been created (in any status), creates one and
+ * enqueues it on the jobs queue. This seeds the game catalog on fresh
+ * installations.
+ *
+ * @param hostname - The hostname of the worker performing the check.
+ */
 export async function ensureInitialSyncQueued(hostname: string): Promise<void> {
     const log = logger.child("worker.scheduler:initialSync", { hostname });
 
@@ -92,4 +136,3 @@ export async function ensureInitialSyncQueued(hostname: string): Promise<void> {
 
     log.info("Initial sync job queued", { jobId: dbJob.id });
 }
-

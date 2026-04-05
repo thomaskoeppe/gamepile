@@ -2,25 +2,33 @@ import {Prisma} from "@/src/prisma/generated/client.js";
 import prisma from "@/src/lib/prisma.js";
 import {logger} from "@/src/lib/logger.js";
 
-const log = logger.child("worker.helper");
+const log = logger.child("worker.lib.helper");
 
+/** Number of game stubs to upsert per SQL batch to avoid oversized queries. */
 const UPSERT_CHUNK_SIZE = 500;
 
-type StubInput = {
+/**
+ * Input shape for a minimal game stub to be upserted into the database.
+ */
+type GameStubInput = {
+    /** Steam application ID. */
     appId: number;
+    /** Display name of the game. */
     name:  string;
+    /** Unix timestamp of the last modification on Steam, or null if unknown. */
     steamLastModified: number | null;
 };
 
 /**
- * Bulk-upserts minimal game records ("stubs") from the Steam catalog into the
- * database. Processes in chunks of {@link UPSERT_CHUNK_SIZE} to avoid exceeding
- * PostgreSQL parameter limits. Only updates existing rows when `steamLastModified`
- * has changed.
+ * Bulk-upserts minimal game stub records into the `Game` table.
  *
- * @param stubs - Array of game stub objects to upsert.
+ * Uses raw SQL with `ON CONFLICT` for high-throughput inserts. Stubs are inserted
+ * in chunks of {@link UPSERT_CHUNK_SIZE} to avoid exceeding PostgreSQL parameter limits.
+ * Existing rows are only updated when their `steamLastModified` value has changed.
+ *
+ * @param stubs - Array of game stubs to upsert.
  */
-export async function upsertGameStubs(stubs: StubInput[]): Promise<void> {
+export async function upsertGameStubs(stubs: GameStubInput[]): Promise<void> {
     for (let i = 0; i < stubs.length; i += UPSERT_CHUNK_SIZE) {
         const chunk = stubs.slice(i, i + UPSERT_CHUNK_SIZE);
 
@@ -36,8 +44,9 @@ export async function upsertGameStubs(stubs: StubInput[]): Promise<void> {
           )`
         );
 
-        log.info(`Upserting ${chunk.length} game stubs`, {
-            count: chunk.length,
+        log.debug("Upserting game stubs chunk", {
+            chunkSize: chunk.length,
+            offset: i,
         });
 
         await prisma.$executeRaw`
@@ -61,12 +70,13 @@ export async function upsertGameStubs(stubs: StubInput[]): Promise<void> {
 }
 
 /**
- * Returns the set of game IDs (from the provided list) that are referenced by at
- * least one user-game, collection-game, or vault-game record. Used to avoid deleting
- * games that are still in use.
+ * Returns the set of game IDs that are "connected" — i.e., referenced by at least
+ * one user library entry, collection, or key vault.
  *
- * @param gameIds - Array of game IDs to check.
- * @returns A `Set` of game IDs that have at least one association.
+ * This is used to prioritize detail fetching for games that users actually interact with.
+ *
+ * @param gameIds - Array of game IDs (UUIDs) to check.
+ * @returns A `Set` of game IDs that have at least one connection.
  */
 export async function getConnectedGameIds(gameIds: string[]): Promise<Set<string>> {
     if (gameIds.length === 0) return new Set();

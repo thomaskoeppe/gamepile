@@ -1,20 +1,21 @@
 import prisma from "@/src/lib/prisma.js";
 
 /**
- * Writes a structured log entry for a job to the database.
+ * Creates a structured log entry for a background job in the database.
  *
- * @param jobId - The database ID of the job to log against.
- * @param level - Severity of the log entry: `"info"`, `"warn"`, `"error"`, or
- *   `"success"`.
- * @param message - Human-readable description of the event being logged.
- * @returns A promise that resolves when the log record has been persisted.
+ * These logs are visible in the admin panel's job detail view and provide
+ * a persistent audit trail of job execution steps.
+ *
+ * @param jobId - The UUID of the parent job to attach the log to.
+ * @param level - Severity level of the log entry.
+ * @param message - Human-readable log message.
  */
-export async function createLog(jobId: string, level: "info" | "warn" | "error" | "success", message: string) {
+export async function createLog(
+    jobId: string,
+    level: "info" | "warn" | "error" | "success",
+    message: string,
+): Promise<void> {
     await prisma.jobLog.create({
-        data: {
-            jobId,
-            level,
-            message
-        }
-    })
+        data: { jobId, level, message },
+    });
 }

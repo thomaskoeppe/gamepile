@@ -1,28 +1,24 @@
+import {createLogsExporter} from "@gamepile/shared/logs-exporter";
+
 /**
- * lib/logs-exporter.ts
+ * OTLP logs exporter instance for the worker service.
  *
- * Initialises the OpenTelemetry LoggerProvider and wires it to an OTLP/HTTP
- * exporter.  Must only run on the Node.js server runtime – never in the
- * browser or the Edge runtime.
- *
- * Call initializeLogsExporter() once from instrumentation.ts.
- * Call exportLogEntry() from lib/logger.ts to emit individual records.
- *
- * Compatible package versions (pin these exactly):
- *   @opentelemetry/api                    1.9.0
- *   @opentelemetry/resources              2.2.0
- *   @opentelemetry/semantic-conventions   1.38.0
- *   @opentelemetry/api-logs               0.207.0
- *   @opentelemetry/sdk-logs               0.207.0
- *   @opentelemetry/exporter-logs-otlp-http 0.207.0
+ * Exports structured log entries to the configured OTLP endpoint
+ * under the `gamepile-worker` service name.
  */
-
-import { createLogsExporter } from "@gamepile/shared/logs-exporter";
-
 const logsExporter = createLogsExporter({
     serviceName: "gamepile-worker",
 });
 
+/** Initializes the OTLP log exporter. Must be called once at worker startup. */
 export const initializeLogsExporter = logsExporter.initializeLogsExporter;
+
+/** Forwards a single log entry to the OTLP exporter. */
 export const exportLogEntry = logsExporter.exportLogEntry;
+
+/**
+ * Flushes pending log entries and shuts down the OTLP exporter.
+ *
+ * @returns A promise that resolves when the exporter has been cleanly shut down.
+ */
 export const shutdownLogsExporter = logsExporter.shutdownLogsExporter;
