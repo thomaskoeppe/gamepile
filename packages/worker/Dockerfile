@@ -20,7 +20,6 @@ RUN npm ci --omit=dev --workspace=packages/worker
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages/worker/node_modules ./packages/worker/node_modules
 COPY . .
 
 ENV NODE_ENV=production
@@ -38,7 +37,6 @@ RUN addgroup --system --gid 1001 worker
 RUN adduser --system --uid 1001 worker
 
 COPY --from=prod-deps --chown=worker:worker /app/node_modules ./node_modules
-COPY --from=prod-deps --chown=worker:worker /app/packages/worker/node_modules ./packages/worker/node_modules
 
 COPY --from=builder --chown=worker:worker /app/packages/worker/dist ./packages/worker/dist
 COPY --from=builder --chown=worker:worker /app/packages/worker/src/prisma ./packages/worker/src/prisma

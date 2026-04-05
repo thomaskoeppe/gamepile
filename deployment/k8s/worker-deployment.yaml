@@ -42,7 +42,7 @@ spec:
               done
       containers:
         - name: worker
-          image: ghcr.io/thomaskoeppe/gamepile-worker:latest
+          image: ghcr.io/thomaskoeppe/gamepile/worker:latest
           envFrom:
             - configMapRef:
                 name: gamepile-config
