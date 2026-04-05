@@ -1,3 +1,22 @@
+## [2.0.0](https://github.com/thomaskoeppe/gamepile/compare/v1.4.2...v2.0.0) (2026-04-05)
+
+### ⚠ BREAKING CHANGES
+
+* **layout:** Completely reworked backend logic, Game model etc.
+* **worker:** Completely reworked Steam API implementation & jobs
+* **db:** Game Model was completely reworked, dropped Genres, added Tags, Screenshots and Videos
+
+### Features
+
+* **db:** enhance Game model with screenshots, videos, and tags ([2146468](https://github.com/thomaskoeppe/gamepile/commit/21464689dc2c8d022aeed9efff80d6cca49af242))
+* **layout:** add metadata and layout components for various pages ([a1b4825](https://github.com/thomaskoeppe/gamepile/commit/a1b4825c693b1db8a4fbb0aae153dfb8ecdf2fdb)), closes [#83](https://github.com/thomaskoeppe/gamepile/issues/83) [#81](https://github.com/thomaskoeppe/gamepile/issues/81) [#80](https://github.com/thomaskoeppe/gamepile/issues/80) [#78](https://github.com/thomaskoeppe/gamepile/issues/78) [#77](https://github.com/thomaskoeppe/gamepile/issues/77) [#74](https://github.com/thomaskoeppe/gamepile/issues/74) [#73](https://github.com/thomaskoeppe/gamepile/issues/73) [#72](https://github.com/thomaskoeppe/gamepile/issues/72) [#71](https://github.com/thomaskoeppe/gamepile/issues/71) [#69](https://github.com/thomaskoeppe/gamepile/issues/69) [#62](https://github.com/thomaskoeppe/gamepile/issues/62) [#59](https://github.com/thomaskoeppe/gamepile/issues/59)
+* **logger:** add optional base context to createLogger function ([d615211](https://github.com/thomaskoeppe/gamepile/commit/d6152112a87c264996c1a1a6978be6954e2e98f0))
+* **logo:** add new SVG logo file ([5f53e71](https://github.com/thomaskoeppe/gamepile/commit/5f53e7190076d3a968b26a51df1b3233b4b9523f))
+* **redis:** add worker-metrics export to package.json ([ff2d7a7](https://github.com/thomaskoeppe/gamepile/commit/ff2d7a716605654322a75de389f46b486eb5af57))
+* **redis:** update createRedisOptions to accept RedisEnvVars interface ([d770a70](https://github.com/thomaskoeppe/gamepile/commit/d770a703632f84ba4202313a74f7b7b51d6690eb))
+* **worker:** add worker metrics constants and helper function ([5a0d714](https://github.com/thomaskoeppe/gamepile/commit/5a0d714cdbc1c7929fb2c65e67f7024487a998f2))
+* **worker:** enhance Steam integration with tag and category sync ([f20785e](https://github.com/thomaskoeppe/gamepile/commit/f20785e84e325ec21f9ec2aa996befa174f72b65)), closes [#82](https://github.com/thomaskoeppe/gamepile/issues/82) [#79](https://github.com/thomaskoeppe/gamepile/issues/79) [#75](https://github.com/thomaskoeppe/gamepile/issues/75) [#74](https://github.com/thomaskoeppe/gamepile/issues/74)
+
 ## [1.4.2](https://github.com/thomaskoeppe/gamepile/compare/v1.4.1...v1.4.2) (2026-04-02)
 
 ### Bug Fixes
