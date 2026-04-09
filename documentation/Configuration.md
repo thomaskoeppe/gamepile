@@ -85,7 +85,7 @@ These are read by the `worker` service. Many overlap with the web variables (sam
 | Variable | Type | Default | Description |
 |---|---|---|---|
 | `WORKER_JOBS_CONCURRENCY` | integer | `3` | Number of jobs from the main `gamepile.jobs` queue processed in parallel. Each job can fan out many child tasks. |
-| `WORKER_DETAILS_CONCURRENCY` | integer | `10` | Number of individual game-detail fetch tasks processed in parallel from the `gamepile.game-details` queue. |
+| `WORKER_DETAILS_CONCURRENCY` | integer | `3` | Number of individual game-detail fetch tasks processed in parallel from the `gamepile.game-details` queue. |
 | `WORKER_STARTUP_DELAY_MS` | integer (ms) | `300000` (5 min) | Delay before the worker begins processing after startup. Gives the web service time to finish migration and start up first. |
 | `WORKER_STALE_ACTIVE_RECOVERY_DELAY_MS` | integer (ms) | `1800000` (30 min) | How long a job must be stuck in `ACTIVE` before it is considered stale and recovered. |
 | `WORKER_ACTIVE_RECOVERY_LOCK_TTL_MS` | integer (ms) | `60000` (1 min) | TTL for the Redis distributed lock acquired during stale job recovery. |
@@ -109,7 +109,7 @@ The worker respects Steam API rate limits to avoid being throttled. These defaul
 |---|---|------------------|---|
 | `WORKER_STEAM_RATE_LIMIT_MAX` | integer | `200`            | Maximum number of Steam API requests allowed per window. |
 | `WORKER_STEAM_RATE_LIMIT_WINDOW_MS` | integer (ms) | `300000` (5 min) | The rolling window for the rate limit counter. |
-| `WORKER_STEAM_RATE_LIMIT_MIN_INTERVAL_MS` | integer (ms) | `1100`           | Minimum gap between individual API calls, regardless of the window limit. |
+| `WORKER_STEAM_RATE_LIMIT_MIN_INTERVAL_MS` | integer (ms) | `1000`           | Minimum gap between individual API calls, regardless of the window limit. |
 | `WORKER_STEAM_RATE_LIMIT_SCOPE` | `local` \| `distributed` | `local`          | `distributed` uses Redis to share the counter across multiple worker replicas. Use `local` only when running a single worker instance without Redis rate-limit coordination. |
 
 ### Optional — observability

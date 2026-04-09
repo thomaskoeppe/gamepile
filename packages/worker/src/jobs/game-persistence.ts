@@ -214,23 +214,61 @@ export async function persistGameDetails(
  * @param details - Normalised game details containing screenshot URLs and trailer data.
  */
 async function persistMedia(gameId: string, details: StoreBrowseDetails): Promise<void> {
-    const screenshotData = details.screenshotUrls.map((url) => ({gameId, url}));
+    const screenshotData = details.screenshotUrls.map((url) => ({ gameId, url }));
     const videoData = details.trailers.map((t) => ({
         gameId,
         url: t.url,
         title: t.title,
     }));
 
-    await prisma.$transaction([
-        prisma.gameScreenshot.deleteMany({where: {gameId}}),
-        prisma.gameVideo.deleteMany({where: {gameId}}),
-        ...(screenshotData.length > 0
-            ? [prisma.gameScreenshot.createMany({data: screenshotData})]
-            : []),
-        ...(videoData.length > 0
-            ? [prisma.gameVideo.createMany({data: videoData})]
-            : []),
+    const [existingScreenshots, existingVideos] = await Promise.all([
+        prisma.gameScreenshot.findMany({ where: { gameId }, select: { url: true } }),
+        prisma.gameVideo.findMany({ where: { gameId }, select: { url: true, title: true } }),
     ]);
+
+    const existingScreenshotUrls = new Set(existingScreenshots.map((s) => s.url));
+
+    const screenshotsToCreate = screenshotData.filter((s) => !existingScreenshotUrls.has(s.url));
+    const screenshotsToDelete = existingScreenshots
+        .filter((s) => !details.screenshotUrls.includes(s.url))
+        .map((s) => s.url);
+
+    const existingVideoMap = new Map(existingVideos.map((v) => [v.url, v.title]));
+
+    const videosToCreate = videoData.filter((v) => !existingVideoMap.has(v.url));
+    const videosToUpdate = videoData.filter(
+        (v) => existingVideoMap.has(v.url) && existingVideoMap.get(v.url) !== v.title
+    );
+    
+    const videosToDelete = existingVideos
+        .filter((v) => !videoData.some((newV) => newV.url === v.url))
+        .map((v) => v.url);
+
+    await prisma.$transaction([
+        screenshotsToDelete.length > 0
+            ? prisma.gameScreenshot.deleteMany({
+                  where: { gameId, url: { in: screenshotsToDelete } },
+              })
+            : null,
+        screenshotsToCreate.length > 0
+            ? prisma.gameScreenshot.createMany({ data: screenshotsToCreate })
+            : null,
+
+        videosToDelete.length > 0
+            ? prisma.gameVideo.deleteMany({
+                  where: { gameId, url: { in: videosToDelete } },
+              })
+            : null,
+        videosToCreate.length > 0
+            ? prisma.gameVideo.createMany({ data: videosToCreate })
+            : null,
+        ...videosToUpdate.map((v) =>
+            prisma.gameVideo.update({
+                where: { gameId_url: { gameId, url: v.url } },
+                data: { title: v.title },
+            })
+        ),
+    ].filter(Boolean));
 }
 
 /**

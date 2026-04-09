@@ -4,9 +4,9 @@
 
 > ⚠️ **Beta** — Gamepile is under active development. Expect breaking changes between versions. Use at your own risk.
 
-<img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/library_1.png" width="30%" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/library_2.png" width="30%" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/explore_1.png" width="30%" />
+<img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/documentation/images/library_1.png" width="30%" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/documentation/images/library_2.png" width="30%" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/documentation/images/explore_1.png" width="30%" />
 
-<img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/search_1.png" width="30%" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/search_2.png" width="30%" />
+<img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/documentation/images/search_1.png" width="30%" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/documentation/images/search_2.png" width="30%" />
 
 ## Features
 
