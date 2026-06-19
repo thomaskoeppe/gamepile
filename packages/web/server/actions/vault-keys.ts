@@ -6,12 +6,10 @@ import {
     decryptGameKey,
     encryptGameKey,
     hashKey,
-    unwrapVaultKey,
-    verifyPassword,
 } from "@/lib/auth/crypto";
+import { unwrapVaultKeyFromVault } from "@/lib/auth/vault/key-access";
 import prisma from "@/lib/prisma";
 import { withLogging } from "@/lib/with-logging";
-import {KeyVaultAuthType} from "@/prisma/generated/enums";
 import {actionClientWithAuth} from "@/server/actions";
 
 const keyPattern = /^[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}$/;
@@ -43,42 +41,6 @@ function getVaultKeyAccessWhere(userId: string) {
             },
         ],
     };
-}
-
-/**
- * Verifies the user's secret against the vault and unwraps the vault key.
- * Centralised helper used by all key operations.
- */
-function unwrapVaultKeyFromVault(params: {
-    authType: KeyVaultAuthType;
-    authHash: string | null;
-    authSalt: string | null;
-    keySalt: string | null;
-    encryptedVaultKey: string | null;
-    secret?: string;
-}): string | null {
-    const { authType, authHash, authSalt, keySalt, encryptedVaultKey, secret } = params;
-
-    if (authType === KeyVaultAuthType.NONE) {
-        return null; // NONE vaults store keys in plaintext
-    }
-
-    if (!secret) {
-        throw new Error("Secret is required for this vault");
-    }
-    if (!authHash || !authSalt) {
-        throw new Error("Vault authentication is not properly configured");
-    }
-    if (!encryptedVaultKey || !keySalt) {
-        throw new Error("Vault key material is missing");
-    }
-
-    const verified = verifyPassword(secret, authSalt, authHash);
-    if (!verified) {
-        throw new Error("Incorrect secret");
-    }
-
-    return unwrapVaultKey(encryptedVaultKey, secret, keySalt);
 }
 
 /**
@@ -349,7 +311,7 @@ export const importKeys = actionClientWithAuth.inputSchema(z.object({
         name: z.string(),
         code: z.string(),
     })),
-    secret: z.string().optional(),
+    secret: vaultSecretSchema.optional(),
 })).action<Record<string, { success: boolean; reason?: string }>>(withLogging(async ({ parsedInput: { vaultId, keys, secret }, ctx }, { log }) => {
     log.info("Importing keys to vault", {
         userId: ctx.user.id,

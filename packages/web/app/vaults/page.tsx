@@ -1,7 +1,7 @@
 'use client';
 
 import {
-    ArrowRight, Calendar, Gamepad2, Library, LoaderCircle,
+    ArrowRight, Calendar, Gamepad2, Gift, Library, LoaderCircle,
     Lock, LockOpen, Plus, RefreshCcw, Trash2, TriangleAlert, Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -141,6 +141,13 @@ export default function Page() {
                     </div>
 
                     <div className="flex items-center gap-2">
+                        <Button asChild variant="ghost">
+                            <Link href="/vaults/shared">
+                                <Gift className="size-4 mr-1.5" />
+                                Shared with me
+                            </Link>
+                        </Button>
+
                         <CreateVaultDialog onReload={() => mutate()}>
                             <Button variant="outline" disabled={isLoading || getSetting("MAX_VAULTS_PER_USER") <= ownedVaultCount}>
                                 {!isLoading ? (

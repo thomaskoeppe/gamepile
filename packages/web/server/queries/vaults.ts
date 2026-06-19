@@ -70,6 +70,7 @@ export type VaultDetailData = {
         addedAt: Date;
         canRedeem: boolean;
         canCreate: boolean;
+        canShare: boolean;
     }>;
 };
 
@@ -140,6 +141,7 @@ export const getVaultDetail = queryClientWithAuth.inputSchema(z.object({
             addedAt: member.addedAt,
             canRedeem: member.canRedeem,
             canCreate: member.canCreate,
+            canShare: member.canShare,
         })),
     };
 }, {

@@ -8,6 +8,7 @@ import { Header } from "@/components/header";
 import { LoadingIndicator } from "@/components/shared/loading-indicator";
 import { MemberList, type MemberUser } from "@/components/shared/member-list";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { VaultShareManager } from "@/components/vault/share/vault-share-manager";
 import { VaultAuthGate } from "@/components/vault/vault-auth-gate";
 import { VaultInfoCard } from "@/components/vault/vault-info-card";
 import { useServerQuery } from "@/lib/hooks/use-server-query";
@@ -94,11 +95,10 @@ export default function VaultPage({ params }: { params: Promise<{ id: string }> 
     }
 
     const isOwner = vault ? vault.createdBy.id === user.id : false;
-    const { canRedeem, canCreate } = vault
-        ? (vault.createdBy.id === user.id
-            ? { canRedeem: true, canCreate: true }
-            : vault.users.find(u => u.user.id === user.id) ?? { canRedeem: false, canCreate: false })
-        : { canRedeem: false, canCreate: false };
+    const membership = vault ? vault.users.find((u) => u.user.id === user.id) : undefined;
+    const canRedeem = isOwner || (membership?.canRedeem ?? false);
+    const canCreate = isOwner || (membership?.canCreate ?? false);
+    const canShare = isOwner || (membership?.canShare ?? false);
 
     const members: MemberUser[] = [];
     if (vault) {
@@ -154,6 +154,10 @@ export default function VaultPage({ params }: { params: Promise<{ id: string }> 
                             keyVaultAuthType={vault.authType}
                             onRevalidating={setTableRevalidating}
                         />
+                    )}
+
+                    {vault && canShare && (
+                        <VaultShareManager vaultId={resolvedId} authType={vault.authType} />
                     )}
                 </div>
             </div>
