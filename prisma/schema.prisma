@@ -138,6 +138,9 @@ model GameScreenshot {
   gameId    String   @db.Uuid
   url       String
   createdAt DateTime @default(now())
+
+  @@unique([gameId, url])
+  @@index([gameId])
 }
 
 model GameVideo {
@@ -147,6 +150,9 @@ model GameVideo {
   url       String
   title     String?
   createdAt DateTime @default(now())
+
+  @@unique([gameId, url])
+  @@index([gameId])
 }
 
 model Game {

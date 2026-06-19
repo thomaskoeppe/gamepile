@@ -206,30 +206,82 @@ export async function persistGameDetails(
 }
 
 /**
- * Replaces all screenshots and videos for a game with fresh data from the Steam API.
+ * Synchronises a game's screenshots and videos with fresh data from the Steam API.
  *
- * Deletes existing media records and bulk-creates new ones in a single transaction.
+ * Instead of unconditionally deleting and recreating every media row on each
+ * refresh (which produced heavy, mostly-redundant write load — see issue #94),
+ * this reads the current rows, diffs them against the incoming payload, and only
+ * writes the delta: it inserts new URLs, deletes URLs that disappeared, and
+ * updates a video's title when it changed. When nothing changed — the common
+ * case on a periodic refresh — no transaction is opened and no rows are touched.
+ *
+ * Screenshots and videos are keyed by `url` (unique per game via
+ * `@@unique([gameId, url])`).
  *
  * @param gameId - Internal game UUID.
  * @param details - Normalised game details containing screenshot URLs and trailer data.
  */
 async function persistMedia(gameId: string, details: StoreBrowseDetails): Promise<void> {
-    const screenshotData = details.screenshotUrls.map((url) => ({gameId, url}));
-    const videoData = details.trailers.map((t) => ({
-        gameId,
-        url: t.url,
-        title: t.title,
-    }));
+    const [existingScreenshots, existingVideos] = await prisma.$transaction([
+        prisma.gameScreenshot.findMany({where: {gameId}, select: {id: true, url: true}}),
+        prisma.gameVideo.findMany({where: {gameId}, select: {id: true, url: true, title: true}}),
+    ]);
+
+    // Screenshots — identity is the URL.
+    const existingScreenshotUrls = new Set(existingScreenshots.map((s) => s.url));
+    const incomingScreenshotUrls = new Set(details.screenshotUrls);
+
+    const screenshotsToInsert = details.screenshotUrls
+        .filter((url) => !existingScreenshotUrls.has(url))
+        .map((url) => ({gameId, url}));
+    const screenshotIdsToDelete = existingScreenshots
+        .filter((s) => !incomingScreenshotUrls.has(s.url))
+        .map((s) => s.id);
+
+    // Videos — identity is the URL; the title may change for an existing URL.
+    const existingVideoByUrl = new Map(existingVideos.map((v) => [v.url, v]));
+    const incomingVideoUrls = new Set(details.trailers.map((t) => t.url));
+
+    const videosToInsert = details.trailers
+        .filter((t) => !existingVideoByUrl.has(t.url))
+        .map((t) => ({gameId, url: t.url, title: t.title}));
+    const videoIdsToDelete = existingVideos
+        .filter((v) => !incomingVideoUrls.has(v.url))
+        .map((v) => v.id);
+    const videoTitleUpdates = details.trailers.flatMap((t) => {
+        const existing = existingVideoByUrl.get(t.url);
+        if (existing && (existing.title ?? null) !== (t.title ?? null)) {
+            return [{id: existing.id, title: t.title}];
+        }
+        return [];
+    });
+
+    const hasChanges =
+        screenshotsToInsert.length > 0
+        || screenshotIdsToDelete.length > 0
+        || videosToInsert.length > 0
+        || videoIdsToDelete.length > 0
+        || videoTitleUpdates.length > 0;
+
+    if (!hasChanges) {
+        return;
+    }
 
     await prisma.$transaction([
-        prisma.gameScreenshot.deleteMany({where: {gameId}}),
-        prisma.gameVideo.deleteMany({where: {gameId}}),
-        ...(screenshotData.length > 0
-            ? [prisma.gameScreenshot.createMany({data: screenshotData})]
+        ...(screenshotIdsToDelete.length > 0
+            ? [prisma.gameScreenshot.deleteMany({where: {id: {in: screenshotIdsToDelete}}})]
             : []),
-        ...(videoData.length > 0
-            ? [prisma.gameVideo.createMany({data: videoData})]
+        ...(videoIdsToDelete.length > 0
+            ? [prisma.gameVideo.deleteMany({where: {id: {in: videoIdsToDelete}}})]
             : []),
+        ...(screenshotsToInsert.length > 0
+            ? [prisma.gameScreenshot.createMany({data: screenshotsToInsert, skipDuplicates: true})]
+            : []),
+        ...(videosToInsert.length > 0
+            ? [prisma.gameVideo.createMany({data: videosToInsert, skipDuplicates: true})]
+            : []),
+        ...videoTitleUpdates.map((u) =>
+            prisma.gameVideo.update({where: {id: u.id}, data: {title: u.title}})),
     ]);
 }
 
