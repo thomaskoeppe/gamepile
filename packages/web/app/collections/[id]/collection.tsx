@@ -1,9 +1,10 @@
 "use client";
 
 import dayjs from "dayjs";
-import { Pencil, Trash2 } from "lucide-react";
+import { Link2, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { CustomUrlDialog } from "@/components/dialogs/custom-url";
 import { DeleteCollectionDialog } from "@/components/dialogs/delete-collection";
 import { RenameCollectionDialog } from "@/components/dialogs/rename-collection";
 import { GameList } from "@/components/game/game-list";
@@ -117,6 +118,18 @@ export function Collection({ collectionId }: { collectionId: string }) {
                                                             </Button>
                                                         </RenameCollectionDialog>
 
+                                                        <CustomUrlDialog
+                                                            resourceType="collection"
+                                                            resourceId={collection.id}
+                                                            currentSlug={collection.slug}
+                                                            onReload={() => mutateCollection()}
+                                                        >
+                                                            <Button variant="ghost" size="icon" className="size-8">
+                                                                <Link2 className="size-4" />
+                                                                <span className="sr-only">Set custom URL</span>
+                                                            </Button>
+                                                        </CustomUrlDialog>
+
                                                         <DeleteCollectionDialog
                                                             collectionId={collectionId}
                                                             collectionName={collection.name}
@@ -138,6 +151,13 @@ export function Collection({ collectionId }: { collectionId: string }) {
                                                     <dt className="text-foreground">ID</dt>
                                                     <dd className="text-muted-foreground">{collection?.id}</dd>
                                                 </div>
+
+                                                {collection?.slug && (
+                                                    <div className="flex items-center gap-2">
+                                                        <dt className="text-foreground">URL</dt>
+                                                        <dd className="text-muted-foreground">/collections/{collection.slug}</dd>
+                                                    </div>
+                                                )}
 
                                                 <div className="flex items-center gap-2">
                                                     <dt className="text-foreground">Visibility</dt>

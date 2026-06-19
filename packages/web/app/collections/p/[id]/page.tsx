@@ -26,8 +26,10 @@ export default async function PublicCollectionPage({ params }: { params: Promise
 
     const collection = await prisma.collection.findFirst({
         where: {
-            id,
-            type: CollectionVisibility.PUBLIC,
+            AND: [
+                { OR: [{ id }, { slug: id }] },
+                { type: CollectionVisibility.PUBLIC },
+            ],
         },
         include: {
             createdBy: true,
@@ -39,12 +41,12 @@ export default async function PublicCollectionPage({ params }: { params: Promise
     if (!collection) return notFound();
 
     if (session && (collection.createdBy.id === session.user.id || collection.users.some((u) => u.id === session.user.id))) {
-        return redirect(`/collections/${id}`, RedirectType.push);
+        return redirect(`/collections/${collection.slug ?? collection.id}`, RedirectType.push);
     }
 
     const [collectionGames, categories, tags] = await Promise.all([
         prisma.collectionGame.findMany({
-            where: { collectionId: id },
+            where: { collectionId: collection.id },
             include: {
                 game: {
                     include: {
@@ -77,7 +79,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const { id } = await params;
 
     const collection = await prisma.collection.findFirst({
-        where: { id, type: CollectionVisibility.PUBLIC },
+        where: {
+            AND: [
+                { OR: [{ id }, { slug: id }] },
+                { type: CollectionVisibility.PUBLIC },
+            ],
+        },
         select: { name: true, description: true, _count: { select: { games: true } } },
     });
 

@@ -264,6 +264,7 @@ model UserGameAchievement {
 model Collection {
   id          String               @id @default(cuid())
   name        String
+  slug        String?              @unique
   description String?
   type        CollectionVisibility @default(PRIVATE)
   createdAt   DateTime             @default(now())
@@ -311,6 +312,7 @@ model CollectionGame {
 model KeyVault {
   id                        String           @id @default(cuid())
   name                      String
+  slug                      String?          @unique
   authType                  KeyVaultAuthType
   authHash                  String?
   authSalt                  String?

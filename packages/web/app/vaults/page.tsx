@@ -37,7 +37,7 @@ function VaultCard({
     };
 
     return (
-        <Link href={`/vaults/${vault.id}`} className="group">
+        <Link href={`/vaults/${vault.slug ?? vault.id}`} className="group">
             <Card className="h-full bg-card border-border transition-all duration-200 hover:border-primary/40 hover:shadow-md hover:shadow-primary/5">
                 <CardHeader>
                     <div className="flex items-start justify-between gap-2">

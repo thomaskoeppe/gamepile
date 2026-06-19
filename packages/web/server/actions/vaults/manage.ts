@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { getSetting } from "@/lib/app-settings";
 import prisma from "@/lib/prisma";
+import { getSlugError, normalizeSlug } from "@/lib/slug";
 import { withLogging } from "@/lib/with-logging";
 import { Prisma } from "@/prisma/generated/client";
 import { AppSettingKey } from "@/prisma/generated/enums";
@@ -48,6 +49,65 @@ export const renameVault = actionClientWithAuth
             },
             {
                 namespace: "server.actions.vaults:renameVault",
+            },
+        ),
+    );
+
+/**
+ * Sets or clears the custom URL slug for a vault owned by the authenticated user (#10).
+ *
+ * Passing an empty string clears the slug. Slugs are validated against the shared
+ * rules in `lib/slug.ts` and must be globally unique.
+ *
+ * @param input.vaultId - ID of the vault to update.
+ * @param input.slug - The desired slug, or an empty string to clear it.
+ * @returns `{ success: true, slug }` with the stored slug (or `null` when cleared).
+ */
+export const setVaultSlug = actionClientWithAuth
+    .inputSchema(
+        z.object({
+            vaultId: z.string().min(1),
+            slug: z.string().max(64),
+        }),
+    )
+    .action(
+        withLogging(
+            async ({ parsedInput: { vaultId, slug }, ctx }, { log }) => {
+                const normalized = normalizeSlug(slug);
+                log.info("Setting vault slug", { userId: ctx.user.id, vaultId, slug: normalized });
+
+                if (normalized.length > 0) {
+                    const error = getSlugError(normalized);
+                    if (error) throw new Error(error);
+                }
+
+                const vault = await prisma.keyVault.findFirst({
+                    where: { id: vaultId, createdById: ctx.user.id },
+                    select: { id: true },
+                });
+
+                if (!vault) throw new Error("Vault not found or you do not have permission to edit it.");
+
+                try {
+                    await prisma.keyVault.update({
+                        where: { id: vaultId },
+                        data: { slug: normalized.length > 0 ? normalized : null },
+                    });
+                } catch (error) {
+                    if (
+                        error instanceof Prisma.PrismaClientKnownRequestError
+                        && error.code === "P2002"
+                    ) {
+                        throw new Error("That URL is already taken.");
+                    }
+
+                    throw error;
+                }
+
+                return { success: true, slug: normalized.length > 0 ? normalized : null };
+            },
+            {
+                namespace: "server.actions.vaults:setVaultSlug",
             },
         ),
     );

@@ -117,7 +117,7 @@ function UserAvatarStack({
 
 function CollectionCard({ collection }: { collection: CollectionCardData }) {
     return (
-        <Link href={`/collections/${collection.id}`} className="group">
+        <Link href={`/collections/${collection.slug ?? collection.id}`} className="group">
             <Card className="h-full bg-card border-border transition-all duration-200 hover:border-primary/40 hover:shadow-md hover:shadow-primary/5">
                 <CardHeader>
                     <div className="flex items-start justify-between gap-2">

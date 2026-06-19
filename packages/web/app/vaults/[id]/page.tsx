@@ -32,13 +32,17 @@ export default function VaultPage({ params }: { params: Promise<{ id: string }> 
     const accessStatus = accessResult?.success ? accessResult.data : null;
     const needsAuth = accessStatus && !accessStatus.hasAccess && accessStatus.authType !== KeyVaultAuthType.NONE;
 
+    // The route param may be a custom slug; once access is checked we have the
+    // canonical vault id to thread to authentication, members, and key actions.
+    const resolvedId = accessStatus?.id || id;
+
     const {
         data: vaultResult,
         isRevalidating: vaultRevalidating,
         mutate: mutateVault,
     } = useServerQuery(
-        user && accessStatus?.hasAccess ? ["vault-detail", id, user.id] : null,
-        () => getVaultDetail({ vaultId: id })
+        user && accessStatus?.hasAccess ? ["vault-detail", resolvedId, user.id] : null,
+        () => getVaultDetail({ vaultId: resolvedId })
     );
 
     const vault = vaultResult?.success ? vaultResult.data : null;
@@ -59,7 +63,7 @@ export default function VaultPage({ params }: { params: Promise<{ id: string }> 
             <>
                 <Header />
                 <VaultAuthGate
-                    vaultId={id}
+                    vaultId={resolvedId}
                     vaultName={accessStatus.vaultName}
                     authType={accessStatus.authType}
                     onSuccess={() => mutateAccess()}
@@ -131,7 +135,7 @@ export default function VaultPage({ params }: { params: Promise<{ id: string }> 
 
                                 <CardContent>
                                     <MemberList
-                                        resourceId={id}
+                                        resourceId={resolvedId}
                                         resourceType="vault"
                                         users={members}
                                         isOwner={isOwner}
@@ -144,7 +148,7 @@ export default function VaultPage({ params }: { params: Promise<{ id: string }> 
 
                     {vault && (
                         <TableWrapper
-                            keyVaultId={id}
+                            keyVaultId={resolvedId}
                             canRedeem={canRedeem}
                             canCreate={canCreate}
                             keyVaultAuthType={vault.authType}
