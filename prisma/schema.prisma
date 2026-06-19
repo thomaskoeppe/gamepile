@@ -38,6 +38,17 @@ enum KeyVaultAuthType {
   PASSWORD
 }
 
+enum VaultShareMode {
+  DIRECT
+  REQUEST
+}
+
+enum VaultShareRequestStatus {
+  PENDING
+  APPROVED
+  DENIED
+}
+
 enum UserRole {
   USER
   ADMIN
@@ -99,6 +110,11 @@ model User {
   keyVaultAddedBy  KeyVaultUser[]    @relation("KeyVaultUser_addedBy")
   keyVaultGames    KeyVaultGame[]    @relation("KeyVaultGame_addedBy")
   keyVaultRedeemed KeyVaultGame[]    @relation("KeyVaultGame_redeemedBy")
+  vaultSharesCreated   VaultShare[]          @relation("VaultShareCreator")
+  vaultShareRecipients VaultShareRecipient[] @relation("VaultShareRecipientUser")
+  vaultShareLinkUsages VaultShareLinkUsage[] @relation("VaultShareLinkUser")
+  vaultShareRequested  VaultShareRequest[]   @relation("VaultShareRequestRequester")
+  vaultShareResolved   VaultShareRequest[]   @relation("VaultShareRequestResolver")
   jobs             Job[]
   settings         UserSettings?
   inviteCodes      InviteCode[]
@@ -138,6 +154,9 @@ model GameScreenshot {
   gameId    String   @db.Uuid
   url       String
   createdAt DateTime @default(now())
+
+  @@unique([gameId, url])
+  @@index([gameId])
 }
 
 model GameVideo {
@@ -147,6 +166,9 @@ model GameVideo {
   url       String
   title     String?
   createdAt DateTime @default(now())
+
+  @@unique([gameId, url])
+  @@index([gameId])
 }
 
 model Game {
@@ -258,6 +280,7 @@ model UserGameAchievement {
 model Collection {
   id          String               @id @default(cuid())
   name        String
+  slug        String?              @unique
   description String?
   type        CollectionVisibility @default(PRIVATE)
   createdAt   DateTime             @default(now())
@@ -305,6 +328,7 @@ model CollectionGame {
 model KeyVault {
   id                        String           @id @default(cuid())
   name                      String
+  slug                      String?          @unique
   authType                  KeyVaultAuthType
   authHash                  String?
   authSalt                  String?
@@ -317,8 +341,9 @@ model KeyVault {
   createdBy                 User             @relation("KeyVaultCreator", fields: [createdById], references: [id], onDelete: Cascade)
   createdById               String
 
-  games KeyVaultGame[]
-  users KeyVaultUser[]
+  games  KeyVaultGame[]
+  users  KeyVaultUser[]
+  shares VaultShare[]
 
   @@unique([createdById, name])
   @@index([createdById])
@@ -337,6 +362,7 @@ model KeyVaultUser {
   addedAt   DateTime @default(now())
   canRedeem Boolean  @default(false)
   canCreate Boolean  @default(false)
+  canShare  Boolean  @default(false)
 
   @@unique([keyVaultId, userId])
 }
@@ -358,7 +384,108 @@ model KeyVaultGame {
   redeemedBy   User?     @relation("KeyVaultGame_redeemedBy", fields: [redeemedById], references: [id], onDelete: SetNull)
   redeemedById String?
 
+  shareGames    VaultShareGame[]
+  shareRequests VaultShareRequest[]
+
   @@unique([keyVaultId, hashedKey])
+}
+
+model VaultShare {
+  id                String         @id @default(cuid())
+  keyVault          KeyVault       @relation(fields: [keyVaultId], references: [id], onDelete: Cascade)
+  keyVaultId        String
+  createdBy         User           @relation("VaultShareCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  createdById       String
+  enabled           Boolean        @default(true)
+  mode              VaultShareMode @default(DIRECT)
+  maxKeys           Int?
+  // Passphrase gate, mirroring KeyVault's auth fields. `encryptedVaultKey` holds
+  // the vault key re-wrapped under the share passphrase (null for NONE vaults).
+  authHash          String?
+  authSalt          String?
+  keySalt           String?
+  encryptedVaultKey String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  games      VaultShareGame[]
+  recipients VaultShareRecipient[]
+  links      VaultShareLink[]
+  requests   VaultShareRequest[]
+
+  @@index([keyVaultId])
+  @@index([createdById])
+}
+
+model VaultShareGame {
+  id             String       @id @default(cuid())
+  share          VaultShare   @relation(fields: [shareId], references: [id], onDelete: Cascade)
+  shareId        String
+  keyVaultGame   KeyVaultGame @relation(fields: [keyVaultGameId], references: [id], onDelete: Cascade)
+  keyVaultGameId String
+
+  @@unique([shareId, keyVaultGameId])
+  @@index([shareId])
+}
+
+model VaultShareRecipient {
+  id        String     @id @default(cuid())
+  share     VaultShare @relation(fields: [shareId], references: [id], onDelete: Cascade)
+  shareId   String
+  user      User?      @relation("VaultShareRecipientUser", fields: [userId], references: [id], onDelete: Cascade)
+  userId    String?
+  maxKeys   Int?
+  createdAt DateTime   @default(now())
+
+  @@unique([shareId, userId])
+  @@index([shareId])
+  @@index([userId])
+}
+
+model VaultShareLink {
+  id        String                @id @default(cuid())
+  share     VaultShare            @relation(fields: [shareId], references: [id], onDelete: Cascade)
+  shareId   String
+  token     String                @unique
+  maxUses   Int?
+  expiresAt DateTime?
+  createdAt DateTime              @default(now())
+
+  usages VaultShareLinkUsage[]
+
+  @@index([shareId])
+  @@index([token])
+}
+
+model VaultShareLinkUsage {
+  id       String         @id @default(cuid())
+  link     VaultShareLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  linkId   String
+  usedBy   User           @relation("VaultShareLinkUser", fields: [usedById], references: [id], onDelete: Cascade)
+  usedById String
+  usedAt   DateTime       @default(now())
+
+  @@unique([linkId, usedById])
+  @@index([linkId])
+}
+
+model VaultShareRequest {
+  id             String                  @id @default(cuid())
+  share          VaultShare              @relation(fields: [shareId], references: [id], onDelete: Cascade)
+  shareId        String
+  keyVaultGame   KeyVaultGame            @relation(fields: [keyVaultGameId], references: [id], onDelete: Cascade)
+  keyVaultGameId String
+  requestedBy    User                    @relation("VaultShareRequestRequester", fields: [requestedById], references: [id], onDelete: Cascade)
+  requestedById  String
+  status         VaultShareRequestStatus @default(PENDING)
+  resolvedBy     User?                   @relation("VaultShareRequestResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+  resolvedById   String?
+  createdAt      DateTime                @default(now())
+  resolvedAt     DateTime?
+
+  @@unique([keyVaultGameId, requestedById])
+  @@index([shareId])
+  @@index([requestedById])
 }
 
 model InviteCode {

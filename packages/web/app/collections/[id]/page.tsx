@@ -23,7 +23,7 @@ export default function Page() {
 
     const accessStatus = accessResult?.success ? accessResult.data : null;
 
-    if (!accessStatus) {
+    if (!accessStatus?.hasAccess) {
         return (
             <>
                 <Header />
@@ -45,5 +45,5 @@ export default function Page() {
         );
     }
 
-    return (<Collection collectionId={id} />);
+    return (<Collection collectionId={accessStatus.id} />);
 }

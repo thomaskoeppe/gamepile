@@ -1,7 +1,7 @@
 'use client';
 
 import {
-    ArrowRight, Calendar, Gamepad2, Library, LoaderCircle,
+    ArrowRight, Calendar, Gamepad2, Gift, Library, LoaderCircle,
     Lock, LockOpen, Plus, RefreshCcw, Trash2, TriangleAlert, Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -37,7 +37,7 @@ function VaultCard({
     };
 
     return (
-        <Link href={`/vaults/${vault.id}`} className="group">
+        <Link href={`/vaults/${vault.slug ?? vault.id}`} className="group">
             <Card className="h-full bg-card border-border transition-all duration-200 hover:border-primary/40 hover:shadow-md hover:shadow-primary/5">
                 <CardHeader>
                     <div className="flex items-start justify-between gap-2">
@@ -141,6 +141,13 @@ export default function Page() {
                     </div>
 
                     <div className="flex items-center gap-2">
+                        <Button asChild variant="ghost">
+                            <Link href="/vaults/shared">
+                                <Gift className="size-4 mr-1.5" />
+                                Shared with me
+                            </Link>
+                        </Button>
+
                         <CreateVaultDialog onReload={() => mutate()}>
                             <Button variant="outline" disabled={isLoading || getSetting("MAX_VAULTS_PER_USER") <= ownedVaultCount}>
                                 {!isLoading ? (

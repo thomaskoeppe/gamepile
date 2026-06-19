@@ -1,10 +1,11 @@
 "use client";
 
 import dayjs from "dayjs";
-import { KeyRound, Pencil, Trash2 } from "lucide-react";
+import { KeyRound, Link2, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { ChangeVaultCredentialsDialog } from "@/app/vaults/[id]/change-vault-credentials-dialog";
+import { CustomUrlDialog } from "@/components/dialogs/custom-url";
 import { DeleteVaultDialog } from "@/components/dialogs/delete-vault";
 import { RenameVaultDialog } from "@/components/dialogs/rename-vault";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,18 @@ export function VaultInfoCard({ vault, isOwner, onReload }: VaultInfoCardProps) 
                                 </Button>
                             </RenameVaultDialog>
 
+                            <CustomUrlDialog
+                                resourceType="vault"
+                                resourceId={vault.id}
+                                currentSlug={vault.slug}
+                                onReload={onReload}
+                            >
+                                <Button variant="ghost" size="icon" className="size-8">
+                                    <Link2 className="size-4" />
+                                    <span className="sr-only">Set custom URL</span>
+                                </Button>
+                            </CustomUrlDialog>
+
                             <DeleteVaultDialog
                                 vaultId={vault.id}
                                 vaultName={vault.name}
@@ -79,6 +92,12 @@ export function VaultInfoCard({ vault, isOwner, onReload }: VaultInfoCardProps) 
                         <dt className="text-foreground">ID</dt>
                         <dd className="text-muted-foreground">{vault.id}</dd>
                     </div>
+                    {vault.slug && (
+                        <div className="flex items-center gap-2">
+                            <dt className="text-foreground">URL</dt>
+                            <dd className="text-muted-foreground">/vaults/{vault.slug}</dd>
+                        </div>
+                    )}
                     <div className="flex items-center gap-2">
                         <dt className="text-foreground">Auth Type</dt>
                         <dd className="text-muted-foreground">{vault.authType}</dd>

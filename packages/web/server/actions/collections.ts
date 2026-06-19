@@ -4,7 +4,9 @@ import {z} from "zod";
 
 import {getSetting} from "@/lib/app-settings";
 import prisma from "@/lib/prisma";
+import { getSlugError, normalizeSlug } from "@/lib/slug";
 import { withLogging } from "@/lib/with-logging";
+import { Prisma } from "@/prisma/generated/client";
 import {AppSettingKey, CollectionVisibility} from "@/prisma/generated/enums";
 import {actionClientWithAuth} from "@/server/actions";
 
@@ -83,6 +85,53 @@ export const renameCollection = actionClientWithAuth.inputSchema(z.object({
     return { success: true };
 }, {
     namespace: "server.actions.collections:renameCollection",
+}));
+
+/**
+ * Sets or clears the custom URL slug for a collection owned by the authenticated user (#11).
+ *
+ * Passing an empty string clears the slug. Slugs are validated against the shared
+ * rules in `lib/slug.ts` and must be globally unique.
+ *
+ * @param input.collectionId - ID of the collection to update.
+ * @param input.slug - The desired slug, or an empty string to clear it.
+ * @returns `{ success: true, slug }` with the stored slug (or `null` when cleared).
+ */
+export const setCollectionSlug = actionClientWithAuth.inputSchema(z.object({
+    collectionId: z.string().min(1),
+    slug: z.string().max(64),
+})).action(withLogging(async ({ parsedInput: { collectionId, slug }, ctx }, { log }) => {
+    const normalized = normalizeSlug(slug);
+    log.info("Setting collection slug", { userId: ctx.user.id, collectionId, slug: normalized });
+
+    if (normalized.length > 0) {
+        const error = getSlugError(normalized);
+        if (error) throw new Error(error);
+    }
+
+    const collection = await prisma.collection.findFirst({
+        where: { id: collectionId, createdById: ctx.user.id },
+        select: { id: true },
+    });
+
+    if (!collection) throw new Error("Collection not found or you do not have permission to edit it.");
+
+    try {
+        await prisma.collection.update({
+            where: { id: collectionId },
+            data: { slug: normalized.length > 0 ? normalized : null },
+        });
+    } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+            throw new Error("That URL is already taken.");
+        }
+
+        throw error;
+    }
+
+    return { success: true, slug: normalized.length > 0 ? normalized : null };
+}, {
+    namespace: "server.actions.collections:setCollectionSlug",
 }));
 
 /**

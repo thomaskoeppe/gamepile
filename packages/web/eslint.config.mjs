@@ -14,6 +14,13 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
   {
+    // Pin the React version so eslint-plugin-react skips auto-detection, which
+    // calls context.getFilename() — removed in ESLint 10 and would otherwise crash.
+    settings: {
+      react: {
+        version: "19.2",
+      },
+    },
     rules: {
       "semi": ["error", "always"],
       "react/display-name": "off",
@@ -36,10 +43,13 @@ const eslintConfig = defineConfig([
     }
   },
   {
-    files: ["prisma/generated/**", "components/ui/**"],
+    // Vendored shadcn/ui primitives + generated Prisma client: relax stylistic
+    // and React-internal rules that don't apply to upstream boilerplate.
+    files: ["prisma/generated/**", "components/ui/**", "lib/hooks/use-mobile.ts"],
     rules: {
       semi: "off",
-      "react-hooks/purity": "off"
+      "react-hooks/purity": "off",
+      "react-hooks/set-state-in-effect": "off"
     },
   },
   {

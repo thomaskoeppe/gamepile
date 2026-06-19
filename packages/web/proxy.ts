@@ -149,8 +149,8 @@ export async function proxy(request: NextRequest) {
             if (collectionMatch) {
                 const collectionId = collectionMatch[1];
                 try {
-                    const collection = await prisma.collection.findUnique({
-                        where: { id: collectionId },
+                    const collection = await prisma.collection.findFirst({
+                        where: { OR: [{ id: collectionId }, { slug: collectionId }] },
                         select: { type: true },
                     });
                     if (collection?.type === CollectionVisibility.PUBLIC) {

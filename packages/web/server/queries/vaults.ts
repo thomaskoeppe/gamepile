@@ -57,6 +57,7 @@ export const getVaults = queryClientWithAuth.query<Array<Prisma.KeyVaultGetPaylo
 export type VaultDetailData = {
     id: string;
     name: string;
+    slug: string | null;
     authType: KeyVaultAuthType;
     createdAt: Date;
     updatedAt: Date;
@@ -69,6 +70,7 @@ export type VaultDetailData = {
         addedAt: Date;
         canRedeem: boolean;
         canCreate: boolean;
+        canShare: boolean;
     }>;
 };
 
@@ -88,7 +90,7 @@ export const getVaultDetail = queryClientWithAuth.inputSchema(z.object({
     const vault = await prisma.keyVault.findFirst({
         where: {
             AND: [
-                {id: vaultId},
+                {OR: [{id: vaultId}, {slug: vaultId}]},
                 {
                     OR: [
                         {createdById: ctx.user.id},
@@ -139,6 +141,7 @@ export const getVaultDetail = queryClientWithAuth.inputSchema(z.object({
             addedAt: member.addedAt,
             canRedeem: member.canRedeem,
             canCreate: member.canCreate,
+            canShare: member.canShare,
         })),
     };
 }, {
@@ -146,6 +149,8 @@ export const getVaultDetail = queryClientWithAuth.inputSchema(z.object({
 }));
 
 type VaultAccessStatus = {
+    /** Canonical vault id, resolved from a slug-or-id identifier. Empty when not found. */
+    id: string;
     hasAccess: boolean;
     authType: KeyVaultAuthType;
     vaultName: string;
@@ -167,25 +172,29 @@ export const checkVaultAccess = queryClientWithAuth.inputSchema(z.object({
 
     const vault = await prisma.keyVault.findFirst({
         where: {
-            id: vaultId,
-            OR: [
-                { createdById: ctx.user.id },
-                { users: { some: { userId: ctx.user.id } } },
+            AND: [
+                { OR: [{ id: vaultId }, { slug: vaultId }] },
+                {
+                    OR: [
+                        { createdById: ctx.user.id },
+                        { users: { some: { userId: ctx.user.id } } },
+                    ],
+                },
             ],
         },
-        select: { authType: true, name: true },
+        select: { id: true, authType: true, name: true },
     });
 
     if (!vault) {
-        return { hasAccess: false, authType: KeyVaultAuthType.NONE, vaultName: "" };
+        return { id: "", hasAccess: false, authType: KeyVaultAuthType.NONE, vaultName: "" };
     }
 
     if (vault.authType === KeyVaultAuthType.NONE) {
-        return { hasAccess: true, authType: vault.authType, vaultName: vault.name };
+        return { id: vault.id, hasAccess: true, authType: vault.authType, vaultName: vault.name };
     }
 
-    const hasAccess = await requireVaultAccess(vaultId);
-    return { hasAccess, authType: vault.authType, vaultName: vault.name };
+    const hasAccess = await requireVaultAccess(vault.id);
+    return { id: vault.id, hasAccess, authType: vault.authType, vaultName: vault.name };
 }, {
     namespace: "server.queries.vaults:checkVaultAccess",
 }));

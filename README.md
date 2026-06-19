@@ -4,9 +4,9 @@
 
 > ⚠️ **Beta** — Gamepile is under active development. Expect breaking changes between versions. Use at your own risk.
 
-<img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/library_1.png" width="30%" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/library_2.png" width="30%" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/explore_1.png" width="30%" />
+<img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/documentation/images/library_1.png" width="30%" alt="Library view 1" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/documentation/images/library_2.png" width="30%" alt="Library view 2" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/documentation/images/explore_1.png" width="30%" alt="Explore view 1" />
 
-<img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/search_1.png" width="30%" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/docs/images/search_2.png" width="30%" />
+<img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/documentation/images/search_1.png" width="30%" alt="Search view 1" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/documentation/images/search_2.png" width="30%" alt="Search view 2" />
 
 ## Features
 
@@ -34,7 +34,7 @@ Official images are published to the GitHub Container Registry and updated on ev
 **1. Download the Compose file:**
 
 ```bash
-curl -O https://raw.githubusercontent.com/thomaskoeppe/gamepile/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/thomaskoeppe/gamepile/main/deployment/docker/docker-compose.yml
 ```
 
 **2. Create `.env`:**
@@ -45,7 +45,7 @@ WEB_VAULT_TOKEN_SECRET=<random-string-min-32-chars>
 DOMAIN=localhost:8080
 ```
 
-For the bundled HTTP Compose deployment, those three variables are enough to get started. Everything else has defaults. `WEB_APP_URL` defaults to `http://${DOMAIN}` and `WEB_ALLOWED_ORIGINS` defaults to `DOMAIN`; override either one when you terminate TLS elsewhere or serve the app from a different public URL. See [Minimal Configuration](#minimal-configuration) for what each one does, and [docs/CONFIGURATION.md](documentation/Configuration.md) for the full reference.
+For the bundled HTTP Compose deployment, those three variables are enough to get started. Everything else has defaults. `WEB_APP_URL` defaults to `http://${DOMAIN}` and `WEB_ALLOWED_ORIGINS` defaults to `DOMAIN`; override either one when you terminate TLS elsewhere or serve the app from a different public URL. See [Minimal Configuration](#minimal-configuration) for what each one does, and [documentation/Configuration.md](documentation/Configuration.md) for the full reference.
 
 **3. Pull and start:**
 
@@ -147,7 +147,7 @@ Before the worker starts, Compose runs two one-shot readiness services that wait
 
 ## Deep Configuration
 
-See **[docs/CONFIGURATION.md](documentation/Configuration.md)** for the full reference, including:
+See **[documentation/Configuration.md](documentation/Configuration.md)** for the full reference, including:
 
 - All web and worker environment variables with types and defaults
 - Worker concurrency and rate-limit tuning
@@ -190,7 +190,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT=https://ingest.us2.signoz.cloud/
 OTEL_EXPORTER_OTLP_HEADERS=signoz-ingestion-key=your-key
 ```
 
-See [docs/OBSERVABILITY.md](documentation/Observability.md) for setup options and configuration details.
+See [documentation/Observability.md](documentation/Observability.md) for setup options and configuration details.
 
 ---
 
@@ -231,7 +231,7 @@ docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
 
 ## Kubernetes
 
-Manifests are provided in [`docs/k8s/`](deployment/k8s). The migration runs as a Kubernetes `Job`. The `web` and `worker` `Deployment`s use init containers to wait for the migration job to complete before starting.
+Manifests are provided in [`deployment/k8s/`](deployment/k8s). The migration runs as a Kubernetes `Job`. The `web` and `worker` `Deployment`s use init containers to wait for the migration job to complete before starting.
 
 ---
 

@@ -82,7 +82,7 @@ services:
       WORKER_LOG_TO_STDOUT: "${WORKER_LOG_TO_STDOUT:-true}"
       OTEL_SERVICE_NAME: "${OTEL_SERVICE_NAME:-gamepile-worker}"
       WORKER_JOBS_CONCURRENCY: "${WORKER_JOBS_CONCURRENCY:-3}"
-      WORKER_DETAILS_CONCURRENCY: "${WORKER_DETAILS_CONCURRENCY:-10}"
+      WORKER_DETAILS_CONCURRENCY: "${WORKER_DETAILS_CONCURRENCY:-3}"
       # The remote compose file already waits for external dependencies, so it
       # defaults to starting immediately once the readiness checks pass.
       WORKER_STARTUP_DELAY_MS: "${WORKER_STARTUP_DELAY_MS:-0}"

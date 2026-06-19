@@ -7,33 +7,41 @@ import { withLogging } from "@/lib/with-logging";
 import {CollectionVisibility, Prisma} from "@/prisma/generated/client";
 import {queryClientWithAuth} from "@/server/query";
 
-export const checkCollectionAccess = queryClientWithAuth.inputSchema(z.object({ collectionId: z.cuid() })).query<boolean>(withLogging(async ({ parsedInput: { collectionId }, ctx }, { log }) => {
+export const checkCollectionAccess = queryClientWithAuth.inputSchema(z.object({ collectionId: z.string().min(1) })).query<{ id: string; hasAccess: boolean }>(withLogging(async ({ parsedInput: { collectionId }, ctx }, { log }) => {
     log.info("Checking collection access for user", {
         userId: ctx.user.id,
         collectionId
     });
 
-    return await prisma.collection.findFirst({
+    // The identifier may be a custom slug; return the canonical id so the page
+    // can thread a real cuid to every downstream collection query.
+    const collection = await prisma.collection.findFirst({
         where: {
-            id: collectionId,
-            OR: [{
-                type: CollectionVisibility.PUBLIC
-            }, {
-                users: {
-                    some: {
-                        userId: ctx.user.id
-                    }
+            AND: [
+                { OR: [{ id: collectionId }, { slug: collectionId }] },
+                {
+                    OR: [{
+                        type: CollectionVisibility.PUBLIC
+                    }, {
+                        users: {
+                            some: {
+                                userId: ctx.user.id
+                            }
+                        }
+                    }, {
+                        createdBy: {
+                            id: ctx.user.id
+                        }
+                    }]
                 }
-            }, {
-                createdBy: {
-                    id: ctx.user.id
-                }
-            }]
+            ]
         },
         select: {
             id: true
         }
-    }) !== null;
+    });
+
+    return { id: collection?.id ?? "", hasAccess: collection !== null };
 }, {
     namespace: "server.queries.collections:checkCollectionAccess"
 }));
@@ -112,7 +120,7 @@ export const getCollections = queryClientWithAuth.query<Prisma.CollectionGetPayl
  * @returns The collection object including the creator and members, or `null` if
  *   the collection does not exist or the user does not have access.
  */
-export const getCollection = queryClientWithAuth.inputSchema(z.object({ collectionId: z.cuid() })).query<Prisma.CollectionGetPayload<{
+export const getCollection = queryClientWithAuth.inputSchema(z.object({ collectionId: z.string().min(1) })).query<Prisma.CollectionGetPayload<{
     include: {
         createdBy: { select: { id: true, username: true, avatarUrl: true } },
         users: { include: { user: { select: { id: true, username: true, avatarUrl: true } } } },
@@ -125,20 +133,24 @@ export const getCollection = queryClientWithAuth.inputSchema(z.object({ collecti
 
     return prisma.collection.findFirst({
         where: {
-            id: collectionId,
-            OR: [{
-                type: CollectionVisibility.PUBLIC
-            }, {
-                users: {
-                    some: {
-                        userId: ctx.user.id
-                    }
+            AND: [
+                { OR: [{ id: collectionId }, { slug: collectionId }] },
+                {
+                    OR: [{
+                        type: CollectionVisibility.PUBLIC
+                    }, {
+                        users: {
+                            some: {
+                                userId: ctx.user.id
+                            }
+                        }
+                    }, {
+                        createdBy: {
+                            id: ctx.user.id
+                        }
+                    }]
                 }
-            }, {
-                createdBy: {
-                    id: ctx.user.id
-                }
-            }]
+            ]
         }, include: {
             createdBy: {
                 select: { id: true, username: true, avatarUrl: true },

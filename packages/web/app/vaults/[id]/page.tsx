@@ -8,6 +8,7 @@ import { Header } from "@/components/header";
 import { LoadingIndicator } from "@/components/shared/loading-indicator";
 import { MemberList, type MemberUser } from "@/components/shared/member-list";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { VaultShareManager } from "@/components/vault/share/vault-share-manager";
 import { VaultAuthGate } from "@/components/vault/vault-auth-gate";
 import { VaultInfoCard } from "@/components/vault/vault-info-card";
 import { useServerQuery } from "@/lib/hooks/use-server-query";
@@ -32,13 +33,17 @@ export default function VaultPage({ params }: { params: Promise<{ id: string }> 
     const accessStatus = accessResult?.success ? accessResult.data : null;
     const needsAuth = accessStatus && !accessStatus.hasAccess && accessStatus.authType !== KeyVaultAuthType.NONE;
 
+    // The route param may be a custom slug; once access is checked we have the
+    // canonical vault id to thread to authentication, members, and key actions.
+    const resolvedId = accessStatus?.id || id;
+
     const {
         data: vaultResult,
         isRevalidating: vaultRevalidating,
         mutate: mutateVault,
     } = useServerQuery(
-        user && accessStatus?.hasAccess ? ["vault-detail", id, user.id] : null,
-        () => getVaultDetail({ vaultId: id })
+        user && accessStatus?.hasAccess ? ["vault-detail", resolvedId, user.id] : null,
+        () => getVaultDetail({ vaultId: resolvedId })
     );
 
     const vault = vaultResult?.success ? vaultResult.data : null;
@@ -59,7 +64,7 @@ export default function VaultPage({ params }: { params: Promise<{ id: string }> 
             <>
                 <Header />
                 <VaultAuthGate
-                    vaultId={id}
+                    vaultId={resolvedId}
                     vaultName={accessStatus.vaultName}
                     authType={accessStatus.authType}
                     onSuccess={() => mutateAccess()}
@@ -90,11 +95,10 @@ export default function VaultPage({ params }: { params: Promise<{ id: string }> 
     }
 
     const isOwner = vault ? vault.createdBy.id === user.id : false;
-    const { canRedeem, canCreate } = vault
-        ? (vault.createdBy.id === user.id
-            ? { canRedeem: true, canCreate: true }
-            : vault.users.find(u => u.user.id === user.id) ?? { canRedeem: false, canCreate: false })
-        : { canRedeem: false, canCreate: false };
+    const membership = vault ? vault.users.find((u) => u.user.id === user.id) : undefined;
+    const canRedeem = isOwner || (membership?.canRedeem ?? false);
+    const canCreate = isOwner || (membership?.canCreate ?? false);
+    const canShare = isOwner || (membership?.canShare ?? false);
 
     const members: MemberUser[] = [];
     if (vault) {
@@ -131,7 +135,7 @@ export default function VaultPage({ params }: { params: Promise<{ id: string }> 
 
                                 <CardContent>
                                     <MemberList
-                                        resourceId={id}
+                                        resourceId={resolvedId}
                                         resourceType="vault"
                                         users={members}
                                         isOwner={isOwner}
@@ -144,12 +148,16 @@ export default function VaultPage({ params }: { params: Promise<{ id: string }> 
 
                     {vault && (
                         <TableWrapper
-                            keyVaultId={id}
+                            keyVaultId={resolvedId}
                             canRedeem={canRedeem}
                             canCreate={canCreate}
                             keyVaultAuthType={vault.authType}
                             onRevalidating={setTableRevalidating}
                         />
+                    )}
+
+                    {vault && canShare && (
+                        <VaultShareManager vaultId={resolvedId} authType={vault.authType} />
                     )}
                 </div>
             </div>
