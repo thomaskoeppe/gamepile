@@ -4,13 +4,13 @@ import { Check, ClipboardCopy, Link2, Plus, Share2, Trash2, UserPlus } from "luc
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 
-import { CreateShareDialog } from "@/components/vault/share/create-share-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { CreateShareDialog } from "@/components/vault/share/create-share-dialog";
 import { browserLog } from "@/lib/browser-logger";
 import { useServerQuery } from "@/lib/hooks/use-server-query";
 import { KeyVaultAuthType } from "@/prisma/generated/browser";
@@ -22,8 +22,8 @@ import {
     revokeVaultShareLink,
     updateVaultShare,
 } from "@/server/actions/vault-shares";
-import { getInvitableUsers } from "@/server/queries/vault-users";
 import { getShareRequests, getVaultShares, type VaultShareSummary } from "@/server/queries/vault-shares";
+import { getInvitableUsers } from "@/server/queries/vault-users";
 
 function initials(username: string): string {
     return username.split(" ").map((n) => n[0]).join("").toUpperCase();

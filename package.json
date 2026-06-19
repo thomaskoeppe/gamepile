@@ -22,7 +22,8 @@
     "start": "dotenv -e .env -- npm run start --workspace=packages/web && dotenv -e .env -- npm run start --workspace=packages/worker",
     "unused:worker": "npx dotenv-cli -e .env.example -- knip --workspace packages/worker",
     "unused:web": "npx dotenv-cli -e .env.example -- knip --workspace packages/web",
-    "lint:web": "npm run lint --workspace=packages/web"
+    "lint:web": "npm run lint --workspace=packages/web",
+    "lint:fix:web": "npm run lint:fix --workspace=packages/web"
   },
   "overrides": {
     "prisma": {

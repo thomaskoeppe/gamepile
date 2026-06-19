@@ -1,7 +1,6 @@
 "use server";
 
 import { randomBytes } from "crypto";
-
 import { z } from "zod";
 
 import { getSetting } from "@/lib/app-settings";
@@ -310,13 +309,19 @@ export const claimVaultShareLink = actionClientWithAuth.inputSchema(z.object({
         if (!link.share.enabled) throw new Error("This share is no longer active.");
         if (link.expiresAt && link.expiresAt < new Date()) throw new Error("This share link has expired.");
 
-        // Already claimed by this user — idempotent success.
-        if (link.usages.length > 0) {
-            await tx.vaultShareRecipient.upsert({
-                where: { shareId_userId: { shareId: link.shareId, userId: ctx.user.id } },
-                update: {},
-                create: { shareId: link.shareId, userId: ctx.user.id },
-            });
+        // Already a recipient (via this link, another link, or a direct invite) —
+        // idempotent success without consuming a usage. Only brand-new recipients
+        // are subject to the max-uses limit.
+        const existingRecipient = await tx.vaultShareRecipient.findUnique({
+            where: { shareId_userId: { shareId: link.shareId, userId: ctx.user.id } },
+            select: { id: true },
+        });
+        if (link.usages.length > 0 || existingRecipient) {
+            if (!existingRecipient) {
+                await tx.vaultShareRecipient.create({
+                    data: { shareId: link.shareId, userId: ctx.user.id },
+                });
+            }
             return link.shareId;
         }
 
@@ -345,16 +350,19 @@ async function loadRecipientShare(shareId: string, userId: string) {
         where: { id: shareId },
         include: {
             games: { select: { keyVaultGameId: true } },
-            recipients: { where: { userId }, select: { id: true, maxKeys: true } },
+            recipients: { where: { userId }, select: { id: true, maxKeys: true, userId: true } },
         },
     });
 
     if (!share) throw new Error("Share not found.");
     if (!share.enabled) throw new Error("This share is no longer active.");
-    if (share.recipients.length === 0) throw new Error("You do not have access to this share.");
+
+    if (!share.recipients) throw new Error("You do not have access to this share.");
+    const recipients = share.recipients.filter((r) => r.userId === userId);
+    if (recipients.length === 0) throw new Error("You do not have access to this share.");
 
     const poolIds = share.games.map((g) => g.keyVaultGameId);
-    const effectiveMax = share.recipients[0].maxKeys ?? share.maxKeys ?? null;
+    const effectiveMax = recipients[0].maxKeys ?? share.maxKeys ?? null;
 
     return { share, poolIds, effectiveMax };
 }
@@ -450,11 +458,35 @@ export const requestSharedGame = actionClientWithAuth.inputSchema(z.object({
     if (!target) throw new Error("Key not found.");
     if (target.redeemed) throw new Error("This key is no longer available.");
 
+    // A recipient may re-request a key after a previous request was denied. The
+    // unique constraint is on (keyVaultGameId, requestedById), so reuse the existing
+    // row: a PENDING request blocks (already in flight), an APPROVED one means the
+    // key was already redeemed (also guarded above), and a DENIED one is re-opened.
+    const existing = await prisma.vaultShareRequest.findUnique({
+        where: { keyVaultGameId_requestedById: { keyVaultGameId, requestedById: ctx.user.id } },
+        select: { id: true, status: true },
+    });
+
+    if (existing) {
+        if (existing.status === VaultShareRequestStatus.PENDING) {
+            throw new Error("You have already requested this key.");
+        }
+        if (existing.status === VaultShareRequestStatus.APPROVED) {
+            throw new Error("This key has already been approved for you.");
+        }
+        await prisma.vaultShareRequest.update({
+            where: { id: existing.id },
+            data: { shareId, status: VaultShareRequestStatus.PENDING, resolvedById: null, resolvedAt: null },
+        });
+        return { success: true };
+    }
+
     try {
         await prisma.vaultShareRequest.create({
             data: { shareId, keyVaultGameId, requestedById: ctx.user.id },
         });
     } catch (error) {
+        // Lost a race against a concurrent request for the same key.
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
             throw new Error("You have already requested this key.");
         }

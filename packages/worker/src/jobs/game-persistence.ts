@@ -222,7 +222,7 @@ export async function persistGameDetails(
  * @param details - Normalised game details containing screenshot URLs and trailer data.
  */
 async function persistMedia(gameId: string, details: StoreBrowseDetails): Promise<void> {
-    const [existingScreenshots, existingVideos] = await prisma.$transaction([
+    const [existingScreenshots, existingVideos] = await Promise.all([
         prisma.gameScreenshot.findMany({where: {gameId}, select: {id: true, url: true}}),
         prisma.gameVideo.findMany({where: {gameId}, select: {id: true, url: true, title: true}}),
     ]);

@@ -51,7 +51,9 @@ export function CustomUrlDialog({
     const normalized = normalizeSlug(value);
     const clientError = normalized.length > 0 ? getSlugError(normalized) : null;
 
-    const previewPath = `${BASE_PATH[resourceType]}${normalized || currentSlug || resourceId}`;
+    // When the field is empty the user is removing the custom URL, so fall back to
+    // the canonical id path rather than the now-stale current slug.
+    const previewPath = `${BASE_PATH[resourceType]}${normalized || resourceId}`;
     const fullUrl = useMemo(
         () => (typeof window !== "undefined" ? `${window.location.origin}${previewPath}` : previewPath),
         [previewPath],
