@@ -1,3 +1,15 @@
+## [2.1.0](https://github.com/thomaskoeppe/gamepile/compare/v2.0.1...v2.1.0) (2026-06-19)
+
+### Features
+
+* **vault:** vault sharing with direct claim and request flows ([#9](https://github.com/thomaskoeppe/gamepile/issues/9)) ([9a2225b](https://github.com/thomaskoeppe/gamepile/commit/9a2225b261779c02b709fad8a30320b83fc0e53d))
+* **web:** custom URL slugs for vaults and collections ([#10](https://github.com/thomaskoeppe/gamepile/issues/10), [#11](https://github.com/thomaskoeppe/gamepile/issues/11)) ([4587d5b](https://github.com/thomaskoeppe/gamepile/commit/4587d5ba70866667d796d1a979b8571b862fd693))
+
+### Bug Fixes
+
+* **worker:** diff media instead of delete+recreate on refresh ([#94](https://github.com/thomaskoeppe/gamepile/issues/94)) ([60d65ad](https://github.com/thomaskoeppe/gamepile/commit/60d65ad7d24cf21fea7e0e23d2e060ff99e98d7d))
+* **worker:** reduce WORKER_DETAILS_CONCURRENCY to improve stability ([97eba01](https://github.com/thomaskoeppe/gamepile/commit/97eba011811a87e9535eb2a104d0c5b956337bb6))
+
 ## [2.0.1](https://github.com/thomaskoeppe/gamepile/compare/v2.0.0...v2.0.1) (2026-04-05)
 
 ### Bug Fixes
