@@ -1,3 +1,9 @@
+## [2.2.0](https://github.com/thomaskoeppe/gamepile/compare/v2.1.0...v2.2.0) (2026-06-20)
+
+### Features
+
+* **jobs:** add cancel job functionality in admin panel ([118925f](https://github.com/thomaskoeppe/gamepile/commit/118925fabb2c250f96c9f880212d5fa7946bdbe8))
+
 ## [2.1.0](https://github.com/thomaskoeppe/gamepile/compare/v2.0.1...v2.1.0) (2026-06-19)
 
 ### Features
