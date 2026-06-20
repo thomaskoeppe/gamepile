@@ -1,3 +1,4 @@
+import {isJobCancelled} from "@/src/lib/job/cancel.js";
 import {clearCheckpoint, readCheckpoint, writeCheckpoint} from "@/src/lib/job/checkpoint.js";
 import {tryCompleteParentJob} from "@/src/lib/job/completion.js";
 import {createLog} from "@/src/lib/job/log.js";
@@ -57,6 +58,15 @@ export default async function syncSteamGames(opts: {
     let hasMorePages = true;
 
     while (hasMorePages) {
+        if (await isJobCancelled(jobId)) {
+            log.info("Sync canceled — stopping pagination", {lastAppId, totalQueued});
+            await createLog(jobId, "warn",
+                `Sync canceled by admin. Stopped after queuing ${totalQueued} app(s).`,
+            );
+            await clearCheckpoint(jobId);
+            return;
+        }
+
         const page = await getAppList({
             key: steamApiKey,
             includeGames: true,

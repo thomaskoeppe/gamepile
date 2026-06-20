@@ -1,4 +1,5 @@
 import { gameDetailsQueue } from "@/src/lib/job/queue.js";
+import { isJobCancelled } from "@/src/lib/job/cancel.js";
 import { createLog } from "@/src/lib/job/log.js";
 import { isStaleOrStub, tryCompleteParentJob } from "@/src/lib/job/completion.js";
 import { PRIORITY } from "@/src/lib/job/priority.js";
@@ -118,6 +119,12 @@ export default async function importSteamLibrary(payload: {
     }
 
     log.debug("User games upserted");
+
+    if (await isJobCancelled(jobId)) {
+        log.info("Import canceled — skipping detail-fetch enqueue", { durationMs: Date.now() - startMs });
+        await createLog(jobId, "warn", "Import canceled by admin before queuing game details.");
+        return;
+    }
 
     let alreadyCurrentCount = 0;
     const staleGames: Array<{ appId: number; gameId: string }> = [];

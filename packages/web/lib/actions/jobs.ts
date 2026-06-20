@@ -1,14 +1,11 @@
 "use server";
 
-import { WORKER_METRICS } from "@gamepile/shared/worker-metrics";
-
 import {requireAdmin} from "@/lib/auth/admin";
 import { rateLimitAction } from "@/lib/auth/rate-limit";
 import { getCurrentSession } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import {jobsQueue} from "@/lib/queue";
-import {redis} from "@/lib/redis";
 import { JobStatus, JobType } from "@/prisma/generated/enums";
 import { JobSnapshot } from "@/types/job";
 
@@ -128,48 +125,4 @@ export async function createJob(type: JobType, userId?: string): Promise<void> {
         type,
         userId,
     });
-}
-
-/**
- * Cancels an active or queued job by marking it as CANCELED in the database
- * and setting a Redis cancellation flag for in-flight workers to detect.
- * Requires admin privileges.
- *
- * @param jobId - The ID of the job to cancel.
- */
-export async function cancelJob(jobId: string): Promise<void> {
-    const session = await getCurrentSession();
-    await requireAdmin();
-
-    const rateLimitError = await rateLimitAction({ session: session ?? undefined });
-    if (rateLimitError) {
-        throw new Error(rateLimitError.message);
-    }
-
-    log.info("Canceling job", { jobId });
-
-    await prisma.job.update({
-        where: { id: jobId },
-        data: { status: JobStatus.CANCELED, errorMessage: "Job canceled by admin", finishedAt: new Date() },
-    });
-
-    await prisma.jobLog.create({
-        data: {
-            jobId,
-            level: "error",
-            message: "Job canceled by admin",
-        }
-    });
-
-    await redis.set(`cancel:parent:${jobId}`, "1", "EX", 60 * 60);
-
-    const now = Date.now();
-    const staleBefore = now - WORKER_METRICS.throughputRetentionWindowSeconds * 1_000;
-    await redis
-        .multi()
-        .zadd(WORKER_METRICS.detailsJobsCompletedKey, now, `${jobId}:${now}`)
-        .zremrangebyscore(WORKER_METRICS.detailsJobsCompletedKey, 0, staleBefore)
-        .exec();
-
-    log.info("Job canceled", { jobId });
 }
