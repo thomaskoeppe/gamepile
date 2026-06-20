@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import { CancelJobButton } from "@/components/admin/jobs/cancel-button";
 import {StatusBadge} from "@/components/job-status";
 import { Shimmer } from "@/components/shared/shimmer";
 import { TablePagination } from "@/components/table-pagination";
@@ -203,6 +204,16 @@ export default function AdminJobDetailPage() {
                             </span>
                         )}
                         <StatusBadge status={job.status} />
+                        {(job.status === JobStatus.QUEUED || job.status === JobStatus.ACTIVE) && (
+                            <CancelJobButton
+                                jobId={job.id}
+                                onCanceledAction={() =>
+                                    setJob((prev) =>
+                                        prev ? { ...prev, status: JobStatus.CANCELED } : prev,
+                                    )
+                                }
+                            />
+                        )}
                     </div>
                 </div>
 

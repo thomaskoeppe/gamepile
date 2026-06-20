@@ -93,7 +93,7 @@ export function Header() {
                                 <NavLink href="/library" isActive={pathname === "/library"}>Library</NavLink>
                                 <NavLink href="/explore" isActive={pathname === "/explore"}>Explore</NavLink>
                                 <NavLink href="/collections" isActive={pathname.startsWith("/collections")}>Collections</NavLink>
-                                <NavLink href="/vaults" isActive={pathname === "/vaults"}>Key Vaults</NavLink>
+                                <NavLink href="/vaults" isActive={pathname.startsWith("/vaults")}>Key Vaults</NavLink>
                             </nav>
                         </div>
 

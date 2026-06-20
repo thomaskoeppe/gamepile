@@ -32,6 +32,7 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
+    metadataBase: new URL(process.env.WEB_APP_URL ?? "http://localhost:3000"),
     title: {
         default: "GAMEPILE",
         template: "%s — GAMEPILE",

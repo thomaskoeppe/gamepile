@@ -87,24 +87,18 @@ export async function handleJobByType(payload: {
         case JobType.SYNC_STEAM_TAGS: {
             await syncSteamTags({ jobId: resolvedJobId });
 
-            await prisma.job.update({
-                where: { id: resolvedJobId },
-                data: { status: JobStatus.COMPLETED, finishedAt: new Date() },
-            });
-
-            await createLog(resolvedJobId, "info", "Steam tags sync completed successfully.");
+            if (await markCompletedIfActive(resolvedJobId)) {
+                await createLog(resolvedJobId, "info", "Steam tags sync completed successfully.");
+            }
             break;
         }
 
         case JobType.SYNC_STEAM_CATEGORIES: {
             await syncSteamCategories({ jobId: resolvedJobId });
 
-            await prisma.job.update({
-                where: { id: resolvedJobId },
-                data: { status: JobStatus.COMPLETED, finishedAt: new Date() },
-            });
-
-            await createLog(resolvedJobId, "info", "Steam categories sync completed successfully.");
+            if (await markCompletedIfActive(resolvedJobId)) {
+                await createLog(resolvedJobId, "info", "Steam categories sync completed successfully.");
+            }
             break;
         }
 
@@ -118,12 +112,9 @@ export async function handleJobByType(payload: {
                 importUserLibraryIntervalMs,
             });
 
-            await prisma.job.update({
-                where: { id: resolvedJobId },
-                data: { status: JobStatus.COMPLETED, finishedAt: new Date() },
-            });
-
-            await createLog(resolvedJobId, "info", "Internal scheduled task completed successfully.");
+            if (await markCompletedIfActive(resolvedJobId)) {
+                await createLog(resolvedJobId, "info", "Internal scheduled task completed successfully.");
+            }
             break;
         }
 
@@ -134,6 +125,26 @@ export async function handleJobByType(payload: {
         default:
             throw new UnhandledJobTypeError(type as never);
     }
+}
+
+/**
+ * Marks a job as `COMPLETED` only if it is still `ACTIVE`.
+ *
+ * Job handlers that own their own completion (tags, categories, internal tasks)
+ * call this instead of an unconditional update so that a job canceled by an
+ * admin mid-run is never resurrected back into a terminal `COMPLETED` state.
+ *
+ * @param jobId - The job ID to complete.
+ * @returns `true` if the job was transitioned to `COMPLETED`, `false` if it was
+ *   no longer `ACTIVE` (e.g. canceled).
+ */
+async function markCompletedIfActive(jobId: string): Promise<boolean> {
+    const { count } = await prisma.job.updateMany({
+        where: { id: jobId, status: JobStatus.ACTIVE },
+        data: { status: JobStatus.COMPLETED, finishedAt: new Date() },
+    });
+
+    return count > 0;
 }
 
 /**

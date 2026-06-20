@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getSetting, invalidateSettingsCache, loadSettings, upsertSetting, upsertSettings } from "@/lib/app-settings";
 import prisma from "@/lib/prisma";
 import {jobsQueue} from "@/lib/queue";
+import { redis } from "@/lib/redis";
 import { withLogging } from "@/lib/with-logging";
 import {AppSettingKey, JobStatus, JobType, KeyVaultAuthType, UserRole} from "@/prisma/generated/enums";
 import { actionClientWithAdmin } from "@/server/actions";
@@ -306,6 +307,67 @@ export const invokeAdminJob = actionClientWithAdmin
 
         return { success: true, jobId: job.id, message: `Job "${type}" queued successfully.` };
     }, { namespace: "server.actions.admin:invokeAdminJob" }));
+
+/** Lifetime of the Redis cancellation flag (2 hours) — long enough for any
+ * in-flight batch to drain, short enough to self-clean. */
+const CANCEL_FLAG_TTL_SECONDS = 2 * 60 * 60;
+
+/**
+ * Cancels a queued or running background job.
+ *
+ * Marks the job as `CANCELED` in the database and sets a Redis cancellation
+ * flag that the worker's long-running loops and in-flight child batches poll
+ * cooperatively, so a runaway job (e.g. stuck in an error loop) stops promptly
+ * instead of running indefinitely.
+ *
+ * @param input.jobId - ID of the job to cancel.
+ * @returns Success flag and a confirmation message.
+ */
+export const cancelAdminJob = actionClientWithAdmin
+    .inputSchema(z.object({
+        jobId: z.string().min(1),
+    }))
+    .action(withLogging(async ({ parsedInput: { jobId }, ctx }, { log }) => {
+        log.info("Canceling job", { jobId, canceledBy: ctx.user.id });
+
+        const job = await prisma.job.findUnique({
+            where: { id: jobId },
+            select: { id: true, status: true },
+        });
+
+        if (!job) {
+            throw new Error("Job not found.");
+        }
+
+        if (job.status !== JobStatus.QUEUED && job.status !== JobStatus.ACTIVE) {
+            throw new Error("Only queued or running jobs can be canceled.");
+        }
+
+        // Set the cancellation flag first so any worker that picks up or is
+        // already processing the job observes it as soon as the status flips.
+        await redis.set(`cancel:parent:${jobId}`, "1", "EX", CANCEL_FLAG_TTL_SECONDS);
+
+        const { count } = await prisma.job.updateMany({
+            where: { id: jobId, status: { in: [JobStatus.QUEUED, JobStatus.ACTIVE] } },
+            data: {
+                status: JobStatus.CANCELED,
+                errorMessage: "Job canceled by admin",
+                finishedAt: new Date(),
+            },
+        });
+
+        if (count === 0) {
+            throw new Error("Job already finished before it could be canceled.");
+        }
+
+        await prisma.jobLog.create({
+            data: { jobId, level: "warn", message: "Job canceled by admin" },
+        });
+
+        log.info("Job canceled", { jobId, canceledBy: ctx.user.id });
+
+        return { success: true, message: "Job canceled." };
+    }, { namespace: "server.actions.admin:cancelAdminJob" }));
 
 /**
  * Changes a user's role between ADMIN and USER.

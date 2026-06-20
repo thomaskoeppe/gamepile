@@ -17,6 +17,7 @@ import {WORKER_METRICS} from "@gamepile/shared/worker-metrics";
 import handleFetchGameDetails from "@/src/jobs/fetch-game-details.js";
 import {handleJobByType} from "@/src/handlers/jobs-handler.js";
 import {getWorkerEnv} from "@/src/lib/env.js";
+import {flagJobCancelled, isJobCancelled} from "@/src/lib/job/cancel.js";
 import {createLog} from "@/src/lib/job/log.js";
 import {
     gameDetailsQueue,
@@ -221,10 +222,20 @@ function createJobsWorker(): Worker<JobsQueuePayload> {
                 try {
                     jobId = await ensureDbJobExists(job, jobId, type, userId, span);
 
-                    await prisma.job.update({
-                        where: {id: jobId},
+                    // Claim the job only if it is still runnable. A guarded update
+                    // prevents a job that was canceled while queued from being
+                    // resurrected into the ACTIVE state and run anyway.
+                    const { count: claimed } = await prisma.job.updateMany({
+                        where: { id: jobId, status: { in: [JobStatus.QUEUED, JobStatus.ACTIVE] } },
                         data: { status: JobStatus.ACTIVE, startedAt: new Date(), claimedBy: HOSTNAME },
                     });
+
+                    if (claimed === 0 || await isJobCancelled(jobId)) {
+                        log.info("Skipping job — canceled before it started", { jobId, type });
+                        await createLog(jobId, "warn", "Job was canceled before the worker could start it");
+                        span.setStatus({ code: SpanStatusCode.OK });
+                        return;
+                    }
 
                     await createLog(jobId, "info", "Worker picked up job");
 
@@ -249,13 +260,18 @@ function createJobsWorker(): Worker<JobsQueuePayload> {
                     });
 
                     if (jobId) {
-                        await prisma.job.update({
-                            where: {id: jobId},
+                        // Only fail a job that is still running — never overwrite a
+                        // CANCELED (or already-terminal) status with FAILED.
+                        const { count: failed } = await prisma.job.updateMany({
+                            where: {id: jobId, status: { in: [JobStatus.QUEUED, JobStatus.ACTIVE] }},
                             data: {status: JobStatus.FAILED, finishedAt: new Date(), errorMessage: message},
                         });
 
-                        await redis.set(`cancel:parent:${jobId}`, "1", "EX", 2 * 60 * 60);
-                        await createLog(jobId, "error", `Job failed: ${message}`);
+                        await flagJobCancelled(jobId);
+
+                        if (failed > 0) {
+                            await createLog(jobId, "error", `Job failed: ${message}`);
+                        }
                     }
 
                     throw error;

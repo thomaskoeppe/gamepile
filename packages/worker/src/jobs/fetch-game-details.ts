@@ -1,11 +1,11 @@
 import type {Job} from "bullmq";
 
 import {createGameStub, persistGameDetails, recordChildFailure,} from "@/src/jobs/game-persistence.js";
+import {isJobCancelled} from "@/src/lib/job/cancel.js";
 import {isStaleOrStub, tryCompleteParentJob} from "@/src/lib/job/completion.js";
 import {createLog} from "@/src/lib/job/log.js";
 import {type GameDetailsQueuePayload} from "@/src/lib/job/queue.js";
 import {logger} from "@/src/lib/logger.js";
-import {redis} from "@/src/lib/redis.js";
 import {fetchStoreBrowseDetailsBatch} from "@/src/lib/steam/api/store-browse.js";
 import {publishDetailJobCompletion} from "@/src/lib/worker-metrics.js";
 import prisma from "@/src/lib/prisma.js";
@@ -21,16 +21,6 @@ async function incrementProcessedItems(parentJobId: string, count: number): Prom
         where: {id: parentJobId},
         data: {processedItems: {increment: count}},
     });
-}
-
-/**
- * Checks whether a parent job has been canceled via a Redis flag.
- *
- * @param parentJobId - UUID of the parent job to check.
- * @returns `true` if the cancellation flag is set in Redis.
- */
-async function isParentCancelled(parentJobId: string): Promise<boolean> {
-    return (await redis.get(`cancel:parent:${parentJobId}`)) === "1";
 }
 
 /**
@@ -56,7 +46,7 @@ export default async function handleFetchGameDetails(job: Job<GameDetailsQueuePa
 
     let shouldTryCompleteParent = true;
 
-    if (await isParentCancelled(parentJobId)) {
+    if (await isJobCancelled(parentJobId)) {
         log.debug("Skipped batch — parent cancelled");
         return;
     }
@@ -110,7 +100,7 @@ export default async function handleFetchGameDetails(job: Job<GameDetailsQueuePa
     });
 
     try {
-        if (await isParentCancelled(parentJobId)) {
+        if (await isJobCancelled(parentJobId)) {
             log.debug("Cancelled before fetch");
             shouldTryCompleteParent = false;
             return;
@@ -118,7 +108,7 @@ export default async function handleFetchGameDetails(job: Job<GameDetailsQueuePa
 
         const detailsMap = await fetchStoreBrowseDetailsBatch(staleAppIds);
 
-        if (await isParentCancelled(parentJobId)) {
+        if (await isJobCancelled(parentJobId)) {
             log.debug("Cancelled after fetch");
             shouldTryCompleteParent = false;
             return;

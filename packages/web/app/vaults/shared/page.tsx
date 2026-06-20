@@ -29,7 +29,12 @@ export default function SharedWithMePage() {
             <Header />
 
             <div className="container-fluid mx-auto px-4 py-6">
-                <h1 className="text-xl font-semibold mb-4">Shared with me</h1>
+                <div className="mb-8 space-y-1">
+                    <h1 className="text-2xl font-semibold tracking-tight">Shared with me</h1>
+                    <p className="text-sm text-muted-foreground">
+                        Vaults other users have shared with you
+                    </p>
+                </div>
 
                 {isLoading ? (
                     <div className="flex items-center justify-center py-16">
@@ -47,13 +52,16 @@ export default function SharedWithMePage() {
                                 <Card className="h-full bg-card border-border transition-all hover:border-primary/40 hover:shadow-md">
                                     <CardHeader>
                                         <div className="flex items-start justify-between gap-2">
-                                            <div className="min-w-0">
-                                                <CardTitle className="truncate">{share.vaultName}</CardTitle>
+                                            <div className="space-y-1.5 min-w-0">
+                                                <CardTitle className="text-base truncate">{share.vaultName}</CardTitle>
                                                 <CardDescription>
                                                     {share.gameCount === 0 ? "All keys" : `${share.gameCount} key(s)`}
                                                 </CardDescription>
                                             </div>
-                                            <Badge variant={share.mode === "DIRECT" ? "default" : "secondary"}>
+                                            <Badge
+                                                variant={share.mode === "DIRECT" ? "default" : "secondary"}
+                                                className="shrink-0 text-xs capitalize"
+                                            >
                                                 {share.mode === "DIRECT" ? "Direct" : "Request"}
                                             </Badge>
                                         </div>

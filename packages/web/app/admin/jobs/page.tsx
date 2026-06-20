@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 
+import { CancelJobButton } from "@/components/admin/jobs/cancel-button";
 import { InvokeJobDialog } from "@/components/dialogs/invoke-job";
 import { getStatusConfig, StatusBadge } from "@/components/job-status";
 import { LoadingIndicator } from "@/components/shared/loading-indicator";
@@ -271,11 +272,16 @@ export default function AdminJobsPage() {
                                                 {formatDuration(job.startedAt, job.finishedAt)}
                                             </td>
                                             <td className="px-4 py-3">
-                                                <Link href={`/admin/jobs/${job.id}`}>
-                                                    <Button variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground hover:text-foreground hover:bg-muted">
-                                                        <Eye className="h-3.5 w-3.5" />
-                                                    </Button>
-                                                </Link>
+                                                <div className="flex items-center gap-1">
+                                                    <Link href={`/admin/jobs/${job.id}`}>
+                                                        <Button variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground hover:text-foreground hover:bg-muted">
+                                                            <Eye className="h-3.5 w-3.5" />
+                                                        </Button>
+                                                    </Link>
+                                                    {(job.status === JobStatus.QUEUED || job.status === JobStatus.ACTIVE) && (
+                                                        <CancelJobButton jobId={job.id} compact onCanceledAction={() => mutate()} />
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     );
