@@ -9,6 +9,42 @@ import { GameType,Platform, Prisma } from "@/prisma/generated/client";
 import { queryClientWithAuth } from "@/server/query";
 import type { ExplorerFilterOptions,ExplorerFilters, ExplorerGameRow, ExplorerSort } from "@/types/explorer";
 
+/**
+ * Expands category/tag id selections to every id sharing the same display
+ * name. Names are not unique (Steam reuses them across ids) and the filter
+ * options are deduped by name, so a selected option must match all of its
+ * same-named siblings.
+ */
+async function expandFilterIdsByName(filters: ExplorerFilters): Promise<ExplorerFilters> {
+    const expanded = { ...filters };
+
+    if (filters.categoryIds?.length) {
+        const selected = await prisma.category.findMany({
+            where: { id: { in: filters.categoryIds } },
+            select: { name: true },
+        });
+        const siblings = await prisma.category.findMany({
+            where: { name: { in: selected.map((c) => c.name) } },
+            select: { id: true },
+        });
+        expanded.categoryIds = siblings.map((c) => c.id);
+    }
+
+    if (filters.tagIds?.length) {
+        const selected = await prisma.tag.findMany({
+            where: { id: { in: filters.tagIds } },
+            select: { name: true },
+        });
+        const siblings = await prisma.tag.findMany({
+            where: { name: { in: selected.map((t) => t.name) } },
+            select: { id: true },
+        });
+        expanded.tagIds = siblings.map((t) => t.id);
+    }
+
+    return expanded;
+}
+
 function buildWhere(
     filters: ExplorerFilters,
     userId: string,
@@ -114,8 +150,10 @@ export const getExplorerGames = queryClientWithAuth
             pageSize: z.number().int().positive(),
         }),
     }))
-    .query<ExplorerGamesResult>(withLogging(async ({ parsedInput: { filters, sort, pagination }, ctx }, { log }) => {
-        log.info("Fetching explorer games", { filters, sort, pagination, userId: ctx.user.id });
+    .query<ExplorerGamesResult>(withLogging(async ({ parsedInput: { filters: rawFilters, sort, pagination }, ctx }, { log }) => {
+        log.info("Fetching explorer games", { filters: rawFilters, sort, pagination, userId: ctx.user.id });
+
+        const filters = await expandFilterIdsByName(rawFilters);
 
         if (filters.search.trim().length >= 2) {
             const { ids: pageIds, total } = await searchGameIds(filters.search, {
@@ -178,9 +216,11 @@ export const getExplorerFilterOptions = queryClientWithAuth
     .query<ExplorerFilterOptions>(withLogging(async ({ ctx }, { log }) => {
         log.info("Fetching explorer filter options", { userId: ctx.user.id });
 
+        // Names are not unique (Steam reuses display names across ids); the
+        // filters match by name, so one entry per name is enough.
         const [categories, tags] = await Promise.all([
-            prisma.category.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
-            prisma.tag.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
+            prisma.category.findMany({ select: { id: true, name: true }, distinct: ["name"], orderBy: { name: "asc" } }),
+            prisma.tag.findMany({ select: { id: true, name: true }, distinct: ["name"], orderBy: { name: "asc" } }),
         ]);
 
         return { categories, tags };

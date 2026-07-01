@@ -15,7 +15,11 @@ import type {GameDetails} from "@/types/game";
 export const getGameCategories = queryClientWithAuth.query<Array<string>>(withLogging(async ({ctx}, {log}) => {
     log.info("Fetching categories for game", {userId: ctx.user.id});
 
-    const categories = await prisma.category.findMany({select: {name: true}});
+    const categories = await prisma.category.findMany({
+        select: {name: true},
+        distinct: ["name"],
+        orderBy: {name: "asc"},
+    });
     return categories.map(c => c.name);
 }, {
     namespace: "server.queries.games:getGameCategories"
@@ -30,7 +34,11 @@ export const getGameCategories = queryClientWithAuth.query<Array<string>>(withLo
 export const getGameTags = queryClientWithAuth.query<Array<string>>(withLogging(async ({ctx}, {log}) => {
     log.info("Fetching tags for game", {userId: ctx.user.id});
 
-    const tags = await prisma.tag.findMany({select: {name: true}});
+    const tags = await prisma.tag.findMany({
+        select: {name: true},
+        distinct: ["name"],
+        orderBy: {name: "asc"},
+    });
     return tags.map(t => t.name);
 }, {
     namespace: "server.queries.games:getGameTags"

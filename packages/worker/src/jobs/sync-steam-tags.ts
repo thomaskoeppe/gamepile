@@ -29,26 +29,47 @@ export default async function syncSteamTags(opts: { jobId: string }): Promise<vo
     await createLog(jobId, "info", `Fetched ${tags.length} tags from Steam.`);
 
     let upsertedCount = 0;
+    let failedCount = 0;
 
     for (let i = 0; i < tags.length; i += UPSERT_CHUNK_SIZE) {
         const chunk = tags.slice(i, i + UPSERT_CHUNK_SIZE);
+        const upsertOp = (t: (typeof chunk)[number]) =>
+            prisma.tag.upsert({
+                where: {tagId: t.tagid},
+                create: {tagId: t.tagid, name: t.name},
+                update: {name: t.name},
+            });
 
-        await prisma.$transaction(
-            chunk.map((t) =>
-                prisma.tag.upsert({
-                    where: {tagId: t.tagid},
-                    create: {tagId: t.tagid, name: t.name},
-                    update: {name: t.name},
-                }),
-            ),
-        );
-
-        upsertedCount += chunk.length;
+        try {
+            await prisma.$transaction(chunk.map(upsertOp));
+            upsertedCount += chunk.length;
+        } catch {
+            // One bad row poisons the whole transaction — retry the chunk
+            // item by item so the rest of the sync still lands.
+            for (const t of chunk) {
+                try {
+                    await upsertOp(t);
+                    upsertedCount++;
+                } catch (err) {
+                    failedCount++;
+                    log.warn("Failed to upsert tag", {
+                        tagId: t.tagid,
+                        name: t.name,
+                        message: err instanceof Error ? err.message : String(err),
+                    });
+                }
+            }
+        }
     }
 
-    await createLog(jobId, "info",
-        `Tag sync complete. ${upsertedCount} tag(s) upserted in ${Date.now() - startMs}ms.`,
+    if (failedCount > 0 && upsertedCount === 0) {
+        throw new Error(`Tag sync failed: all ${failedCount} tag upsert(s) failed.`);
+    }
+
+    await createLog(jobId, failedCount > 0 ? "warn" : "info",
+        `Tag sync complete. ${upsertedCount} tag(s) upserted, ` +
+        `${failedCount} failed in ${Date.now() - startMs}ms.`,
     );
 
-    log.info("Steam tag sync completed", {upsertedCount, durationMs: Date.now() - startMs});
+    log.info("Steam tag sync completed", {upsertedCount, failedCount, durationMs: Date.now() - startMs});
 }

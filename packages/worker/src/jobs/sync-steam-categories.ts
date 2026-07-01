@@ -29,26 +29,47 @@ export default async function syncSteamCategories(opts: { jobId: string }): Prom
     await createLog(jobId, "info", `Fetched ${categories.length} categories from Steam.`);
 
     let upsertedCount = 0;
+    let failedCount = 0;
 
     for (let i = 0; i < categories.length; i += UPSERT_CHUNK_SIZE) {
         const chunk = categories.slice(i, i + UPSERT_CHUNK_SIZE);
+        const upsertOp = (c: (typeof chunk)[number]) =>
+            prisma.category.upsert({
+                where: {categoryId: c.categoryid},
+                create: {categoryId: c.categoryid, name: c.display_name},
+                update: {name: c.display_name},
+            });
 
-        await prisma.$transaction(
-            chunk.map((c) =>
-                prisma.category.upsert({
-                    where: {categoryId: c.categoryid},
-                    create: {categoryId: c.categoryid, name: c.display_name},
-                    update: {name: c.display_name},
-                }),
-            ),
-        );
-
-        upsertedCount += chunk.length;
+        try {
+            await prisma.$transaction(chunk.map(upsertOp));
+            upsertedCount += chunk.length;
+        } catch {
+            // One bad row poisons the whole transaction — retry the chunk
+            // item by item so the rest of the sync still lands.
+            for (const c of chunk) {
+                try {
+                    await upsertOp(c);
+                    upsertedCount++;
+                } catch (err) {
+                    failedCount++;
+                    log.warn("Failed to upsert category", {
+                        categoryId: c.categoryid,
+                        name: c.display_name,
+                        message: err instanceof Error ? err.message : String(err),
+                    });
+                }
+            }
+        }
     }
 
-    await createLog(jobId, "info",
-        `Category sync complete. ${upsertedCount} category(ies) upserted in ${Date.now() - startMs}ms.`,
+    if (failedCount > 0 && upsertedCount === 0) {
+        throw new Error(`Category sync failed: all ${failedCount} category upsert(s) failed.`);
+    }
+
+    await createLog(jobId, failedCount > 0 ? "warn" : "info",
+        `Category sync complete. ${upsertedCount} category(ies) upserted, ` +
+        `${failedCount} failed in ${Date.now() - startMs}ms.`,
     );
 
-    log.info("Steam category sync completed", {upsertedCount, durationMs: Date.now() - startMs});
+    log.info("Steam category sync completed", {upsertedCount, failedCount, durationMs: Date.now() - startMs});
 }
