@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/admin";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
+import { parseClampedInt } from "@/lib/utils";
 import { JobStatus, JobType } from "@/prisma/generated/enums";
 
 export async function GET(request: NextRequest) {
@@ -17,8 +18,8 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = request.nextUrl;
-    const page = Math.max(1, parseInt(searchParams.get("page") ?? "1"));
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") ?? "20")));
+    const page = parseClampedInt(searchParams.get("page"), { fallback: 1, min: 1 });
+    const limit = parseClampedInt(searchParams.get("limit"), { fallback: 20, min: 1, max: 100 });
     const statusFilter = searchParams.get("status") as JobStatus | null;
     const typeFilter = searchParams.get("type") as JobType | null;
 

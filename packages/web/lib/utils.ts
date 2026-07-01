@@ -23,6 +23,23 @@ export function formatMinutesToHoursMinutes(totalMinutes: number): string {
     return [daysPart, hoursPart, minutesPart].filter(Boolean).join(" ");
 }
 
+/**
+ * Parses an integer query parameter, clamping it to `[min, max]`.
+ * Returns `fallback` when the value is absent or not a number, so malformed
+ * input (e.g. `?page=abc` → `NaN`) can never reach a database query.
+ */
+export function parseClampedInt(
+    raw: string | null,
+    opts: { fallback: number; min: number; max?: number },
+): number {
+    const parsed = parseInt(raw ?? "", 10);
+    if (Number.isNaN(parsed)) {
+        return opts.fallback;
+    }
+    const floored = Math.max(opts.min, parsed);
+    return opts.max !== undefined ? Math.min(opts.max, floored) : floored;
+}
+
 /** Formats milliseconds as a human-readable `Xh Xm Xs` duration string. */
 export function formatDurationMs(ms: number): string {
     const totalSec = Math.max(0, Math.floor(ms / 1_000));

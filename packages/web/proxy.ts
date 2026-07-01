@@ -67,7 +67,7 @@ export async function proxy(request: NextRequest) {
         pathname.startsWith("/api/auth/signin");
 
     if (isAuthEndpoint) {
-        const rl = await consumeRateLimit(authEndpointLimiter, `ip:${clientIp}`);
+        const rl = await consumeRateLimit(authEndpointLimiter, `ip:${clientIp}`, { failClosed: true });
         if (!rl.success) {
             reqLog.warn("Auth rate limit exceeded", {
                 retryAfterMs: rl.retryAfterMs,
