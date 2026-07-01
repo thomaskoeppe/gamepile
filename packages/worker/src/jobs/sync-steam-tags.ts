@@ -43,9 +43,14 @@ export default async function syncSteamTags(opts: { jobId: string }): Promise<vo
         try {
             await prisma.$transaction(chunk.map(upsertOp));
             upsertedCount += chunk.length;
-        } catch {
+        } catch (chunkError) {
             // One bad row poisons the whole transaction — retry the chunk
             // item by item so the rest of the sync still lands.
+            log.warn("Tag chunk transaction failed — retrying rows individually", {
+                chunkStart: i,
+                chunkSize: chunk.length,
+                message: chunkError instanceof Error ? chunkError.message : String(chunkError),
+            });
             for (const t of chunk) {
                 try {
                     await upsertOp(t);

@@ -43,9 +43,14 @@ export default async function syncSteamCategories(opts: { jobId: string }): Prom
         try {
             await prisma.$transaction(chunk.map(upsertOp));
             upsertedCount += chunk.length;
-        } catch {
+        } catch (chunkError) {
             // One bad row poisons the whole transaction — retry the chunk
             // item by item so the rest of the sync still lands.
+            log.warn("Category chunk transaction failed — retrying rows individually", {
+                chunkStart: i,
+                chunkSize: chunk.length,
+                message: chunkError instanceof Error ? chunkError.message : String(chunkError),
+            });
             for (const c of chunk) {
                 try {
                     await upsertOp(c);

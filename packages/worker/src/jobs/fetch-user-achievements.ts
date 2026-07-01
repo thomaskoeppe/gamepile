@@ -9,14 +9,21 @@ import { logger } from "@/src/lib/logger.js";
 import prisma from "@/src/lib/prisma.js";
 import { fetchGameAchievementSchema, fetchPlayerAchievements } from "@/src/lib/steam/achievements.js";
 
+/** Tolerance before a stored unlock timestamp is corrected to Steam's value. */
+const UNLOCK_TIME_DRIFT_MS = 60_000;
+
 /**
  * Synchronizes the achievement schema and one user's unlocks for a single app.
  *
  * Schema definitions are cached via `Game.achievementsFetchedAt` (staleness
  * follows the same window as game details), so games known to have zero
- * achievements skip both API calls on subsequent imports. All writes use
- * `createMany({ skipDuplicates: true })`, making the whole operation
- * idempotent and safe to retry.
+ * achievements skip both API calls on subsequent imports. On refresh,
+ * definitions whose display data changed on Steam are updated in place.
+ *
+ * Unlocks are insert-only (never deleted), but their timestamps self-correct:
+ * a `0` unlocktime from Steam is stored as "now" as a best guess, and gets
+ * overwritten on a later run when Steam reports the real timestamp. The whole
+ * operation is idempotent and safe to retry.
  *
  * @param app - The app to sync (Steam appId + internal game UUID).
  * @param userId - Internal user ID.
@@ -30,11 +37,7 @@ async function syncAchievementsForApp(
 ): Promise<"synced" | "no-achievements" | "profile-private" | "skipped"> {
     const game = await prisma.game.findUnique({
         where:  { id: app.gameId },
-        select: {
-            createdAt: true,
-            achievementsFetchedAt: true,
-            _count: { select: { achievements: true } },
-        },
+        select: { createdAt: true, achievementsFetchedAt: true },
     });
 
     if (!game) {
@@ -48,16 +51,47 @@ async function syncAchievementsForApp(
         createdAt: game.createdAt,
     });
 
-    if (!schemaStale && game._count.achievements === 0) {
+    let achievementRows = await prisma.achievement.findMany({
+        where:  { gameId: app.gameId },
+        select: {
+            id: true, name: true, displayName: true,
+            description: true, icon: true, icongray: true, hidden: true,
+        },
+    });
+
+    if (!schemaStale && achievementRows.length === 0) {
         return "no-achievements";
     }
 
     if (schemaStale) {
         const defs = await fetchGameAchievementSchema(app.appId);
+        const existingByName = new Map(achievementRows.map((a) => [a.name, a]));
 
-        if (defs.length > 0) {
+        const toCreate = defs.filter((def) => !existingByName.has(def.name));
+        const toUpdate = defs.flatMap((def) => {
+            const existing = existingByName.get(def.name);
+            if (!existing) return [];
+
+            const next = {
+                displayName: def.displayName,
+                description: def.description ?? "",
+                icon: def.icon,
+                icongray: def.icongray,
+                hidden: def.hidden === 1,
+            };
+            const changed =
+                existing.displayName !== next.displayName
+                || existing.description !== next.description
+                || existing.icon !== next.icon
+                || existing.icongray !== next.icongray
+                || existing.hidden !== next.hidden;
+
+            return changed ? [{ id: existing.id, data: next }] : [];
+        });
+
+        if (toCreate.length > 0) {
             await prisma.achievement.createMany({
-                data: defs.map((def) => ({
+                data: toCreate.map((def) => ({
                     gameId: app.gameId,
                     name: def.name,
                     displayName: def.displayName,
@@ -70,20 +104,29 @@ async function syncAchievementsForApp(
             });
         }
 
+        for (const update of toUpdate) {
+            await prisma.achievement.update({ where: { id: update.id }, data: update.data });
+        }
+
         await prisma.game.update({
             where: { id: app.gameId },
             data:  { achievementsFetchedAt: new Date() },
         });
 
-        if (defs.length === 0 && game._count.achievements === 0) {
+        if (defs.length === 0 && achievementRows.length === 0) {
             return "no-achievements";
         }
-    }
 
-    const achievementRows = await prisma.achievement.findMany({
-        where:  { gameId: app.gameId },
-        select: { id: true, name: true },
-    });
+        if (toCreate.length > 0) {
+            achievementRows = await prisma.achievement.findMany({
+                where:  { gameId: app.gameId },
+                select: {
+                    id: true, name: true, displayName: true,
+                    description: true, icon: true, icongray: true, hidden: true,
+                },
+            });
+        }
+    }
 
     if (achievementRows.length === 0) {
         return "no-achievements";
@@ -109,22 +152,50 @@ async function syncAchievementsForApp(
     const idByName = new Map(achievementRows.map((a) => [a.name, a.id]));
     const nowSecs = Math.floor(Date.now() / 1_000);
 
-    const unlocks = result.achievements
-        .filter((a) => a.achieved === 1)
-        .flatMap((a) => {
-            const achievementId = idByName.get(a.apiname);
-            if (!achievementId) return [];
-            return [{
+    const existingUnlocks = await prisma.userGameAchievement.findMany({
+        where:  { userGameId: userGame.id },
+        select: { id: true, achievementId: true, achievedAt: true },
+    });
+    const existingByAchievementId = new Map(existingUnlocks.map((u) => [u.achievementId, u]));
+
+    const toInsert: Array<{ userGameId: string; achievementId: string; achievedAt: Date }> = [];
+    const timestampFixes: Array<{ id: string; achievedAt: Date }> = [];
+
+    for (const a of result.achievements) {
+        if (a.achieved !== 1) continue;
+
+        const achievementId = idByName.get(a.apiname);
+        if (!achievementId) continue;
+
+        const existing = existingByAchievementId.get(achievementId);
+
+        if (!existing) {
+            toInsert.push({
                 userGameId: userGame.id,
                 achievementId,
                 achievedAt: new Date((a.unlocktime || nowSecs) * 1_000),
-            }];
-        });
+            });
+        } else if (a.unlocktime > 0) {
+            // Steam's timestamp is authoritative — corrects earlier rows that
+            // were stored with the "now" fallback when unlocktime was 0.
+            const steamTime = new Date(a.unlocktime * 1_000);
+            if (Math.abs(existing.achievedAt.getTime() - steamTime.getTime()) > UNLOCK_TIME_DRIFT_MS) {
+                timestampFixes.push({ id: existing.id, achievedAt: steamTime });
+            }
+        }
+    }
 
-    if (unlocks.length > 0) {
+    if (toInsert.length > 0) {
         await prisma.userGameAchievement.createMany({
-            data: unlocks,
+            data: toInsert,
             skipDuplicates: true,
+        });
+    }
+
+    for (const fix of timestampFixes) {
+        await prisma.userGameAchievement.update({
+            where: { id: fix.id },
+            data:  { achievedAt: fix.achievedAt },
         });
     }
 

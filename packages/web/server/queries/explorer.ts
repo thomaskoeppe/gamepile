@@ -23,11 +23,15 @@ async function expandFilterIdsByName(filters: ExplorerFilters): Promise<Explorer
             where: { id: { in: filters.categoryIds } },
             select: { name: true },
         });
-        const siblings = await prisma.category.findMany({
-            where: { name: { in: selected.map((c) => c.name) } },
-            select: { id: true },
-        });
-        expanded.categoryIds = siblings.map((c) => c.id);
+        // Only expand when at least one id resolved — replacing unresolvable
+        // (stale) ids with [] would drop the filter and widen the results.
+        if (selected.length > 0) {
+            const siblings = await prisma.category.findMany({
+                where: { name: { in: selected.map((c) => c.name) } },
+                select: { id: true },
+            });
+            expanded.categoryIds = siblings.map((c) => c.id);
+        }
     }
 
     if (filters.tagIds?.length) {
@@ -35,11 +39,13 @@ async function expandFilterIdsByName(filters: ExplorerFilters): Promise<Explorer
             where: { id: { in: filters.tagIds } },
             select: { name: true },
         });
-        const siblings = await prisma.tag.findMany({
-            where: { name: { in: selected.map((t) => t.name) } },
-            select: { id: true },
-        });
-        expanded.tagIds = siblings.map((t) => t.id);
+        if (selected.length > 0) {
+            const siblings = await prisma.tag.findMany({
+                where: { name: { in: selected.map((t) => t.name) } },
+                select: { id: true },
+            });
+            expanded.tagIds = siblings.map((t) => t.id);
+        }
     }
 
     return expanded;
@@ -217,10 +223,11 @@ export const getExplorerFilterOptions = queryClientWithAuth
         log.info("Fetching explorer filter options", { userId: ctx.user.id });
 
         // Names are not unique (Steam reuses display names across ids); the
-        // filters match by name, so one entry per name is enough.
+        // filters match by name, so one entry per name is enough. The id
+        // tie-breaker keeps the representative id stable across requests.
         const [categories, tags] = await Promise.all([
-            prisma.category.findMany({ select: { id: true, name: true }, distinct: ["name"], orderBy: { name: "asc" } }),
-            prisma.tag.findMany({ select: { id: true, name: true }, distinct: ["name"], orderBy: { name: "asc" } }),
+            prisma.category.findMany({ select: { id: true, name: true }, distinct: ["name"], orderBy: [{ name: "asc" }, { id: "asc" }] }),
+            prisma.tag.findMany({ select: { id: true, name: true }, distinct: ["name"], orderBy: [{ name: "asc" }, { id: "asc" }] }),
         ]);
 
         return { categories, tags };
