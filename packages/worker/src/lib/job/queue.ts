@@ -11,6 +11,8 @@ export const QUEUE_NAMES = {
     JOBS:         "gamepile.jobs",
     /** Game details queue — handles batched detail-fetch child jobs. */
     GAME_DETAILS: "gamepile.game-details",
+    /** Achievements queue — handles batched per-user achievement fetch child jobs. */
+    ACHIEVEMENTS: "gamepile.achievements",
 } as const;
 
 /**
@@ -42,6 +44,20 @@ export type GameDetailsQueuePayload = {
 };
 
 /**
+ * Payload shape for child jobs on the `gamepile.achievements` queue.
+ */
+export type AchievementsQueuePayload = {
+    /** UUID of the parent IMPORT_USER_ACHIEVEMENTS job that spawned this batch. */
+    parentJobId: string;
+    /** Internal user ID whose achievements are being imported. */
+    userId: string;
+    /** 64-bit Steam ID of the user. */
+    steamId: string;
+    /** Apps in this batch with their pre-resolved internal game IDs. */
+    apps: Array<{ appId: number; gameId: string }>;
+};
+
+/**
  * BullMQ queue instance for the main jobs queue (`gamepile.jobs`).
  *
  * Used for enqueuing top-level jobs and registering scheduled repeatable jobs.
@@ -57,5 +73,15 @@ export const jobsQueue = new Queue<JobsQueuePayload>(QUEUE_NAMES.JOBS, {
  * from the Steam Store API.
  */
 export const gameDetailsQueue = new Queue<GameDetailsQueuePayload>(QUEUE_NAMES.GAME_DETAILS, {
+    connection: redisOptions,
+});
+
+/**
+ * BullMQ queue instance for the achievements queue (`gamepile.achievements`).
+ *
+ * Used for enqueuing batched child jobs that fetch achievement schemas and
+ * per-user unlock data from the Steam Web API.
+ */
+export const achievementsQueue = new Queue<AchievementsQueuePayload>(QUEUE_NAMES.ACHIEVEMENTS, {
     connection: redisOptions,
 });

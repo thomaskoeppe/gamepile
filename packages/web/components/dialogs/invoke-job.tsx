@@ -9,6 +9,7 @@ import {
     Play,
     RefreshCw,
     ShieldAlert,
+    Trophy,
     Users,
 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -65,6 +66,15 @@ const JOB_CONFIGS: Record<string, JobConfig> = {
         icon: <Users className="h-5 w-5" />,
         color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
     },
+    [JobType.IMPORT_USER_ACHIEVEMENTS]: {
+        label: "Import User Achievements",
+        description: "Import a specific user's achievement unlocks for every game in their library.",
+        details:
+            "Fetches achievement schemas and the user's unlock timestamps from the Steam API per owned game. Rate-limited; large libraries can take a while on the first run.",
+        requiresUser: true,
+        icon: <Trophy className="h-5 w-5" />,
+        color: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+    },
     [JobType.REFRESH_GAME_DETAILS]: {
         label: "Refresh Game Details",
         description: "Re-fetch metadata from the Steam store for all stale user-owned games.",
@@ -79,6 +89,7 @@ const JOB_CONFIGS: Record<string, JobConfig> = {
 const INVOKABLE_TYPES = [
     JobType.SYNC_STEAM_GAMES,
     JobType.IMPORT_USER_LIBRARY,
+    JobType.IMPORT_USER_ACHIEVEMENTS,
     JobType.REFRESH_GAME_DETAILS,
 ] as const;
 

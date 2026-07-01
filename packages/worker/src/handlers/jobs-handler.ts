@@ -1,6 +1,7 @@
 import { JobStatus, JobType } from "@/src/prisma/generated/enums.js";
 
 import importSteamLibrary from "@/src/jobs/import-steam-library.js";
+import importUserAchievements from "@/src/jobs/import-user-achievements.js";
 import { runInternalScheduledTask } from "@/src/jobs/internal-scheduled-task.js";
 import refreshGameDetails from "@/src/jobs/refresh-game-details.js";
 import syncSteamCategories from "@/src/jobs/sync-steam-categories.js";
@@ -114,7 +115,12 @@ export async function handleJobByType(payload: {
         }
 
         case JobType.IMPORT_USER_ACHIEVEMENTS: {
-            throw new Error("IMPORT_USER_ACHIEVEMENTS is not implemented yet.");
+            if (!userId) {
+                throw new Error(`IMPORT_USER_ACHIEVEMENTS requires a userId (jobId=${resolvedJobId}).`);
+            }
+
+            await importUserAchievements({ jobId: resolvedJobId, userId });
+            break;
         }
 
         default:

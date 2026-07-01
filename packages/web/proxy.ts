@@ -106,7 +106,7 @@ export async function proxy(request: NextRequest) {
         `default-src 'self'`,
         `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV !== "production" ? "'unsafe-eval' " : ""}https://va.vercel-scripts.com`,
         `style-src 'self' 'unsafe-inline'`,
-        `img-src 'self' data: blob: https://avatars.steamstatic.com https://steamcdn-a.akamaihd.net https://cdn.cloudflare.steamstatic.com https://cdn.akamai.steamstatic.com https://shared.akamai.steamstatic.com https://placehold.co`,
+        `img-src 'self' data: blob: https://avatars.steamstatic.com https://steamcdn-a.akamaihd.net https://cdn.cloudflare.steamstatic.com https://cdn.akamai.steamstatic.com https://shared.akamai.steamstatic.com https://media.steampowered.com https://placehold.co`,
         `connect-src 'self' https://vitals.vercel-insights.com https://video.akamai.steamstatic.com`,
         `media-src 'self' data: blob: https://video.akamai.steamstatic.com`,
         `font-src 'self'`,

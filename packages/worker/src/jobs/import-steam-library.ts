@@ -1,4 +1,4 @@
-import { gameDetailsQueue } from "@/src/lib/job/queue.js";
+import { gameDetailsQueue, jobsQueue } from "@/src/lib/job/queue.js";
 import { isJobCancelled } from "@/src/lib/job/cancel.js";
 import { createLog } from "@/src/lib/job/log.js";
 import { isStaleOrStub, tryCompleteParentJob } from "@/src/lib/job/completion.js";
@@ -8,6 +8,7 @@ import { getWorkerEnv } from "@/src/lib/env.js";
 import { logger } from "@/src/lib/logger.js";
 import prisma from "@/src/lib/prisma.js";
 import { fetchSteamOwnedGames } from "@/src/lib/steam/games.js";
+import { JobStatus, JobType } from "@/src/prisma/generated/enums.js";
 
 /** Number of user-game records to upsert per batch. */
 const UPSERT_BATCH_SIZE = 50;
@@ -220,5 +221,62 @@ export default async function importSteamLibrary(payload: {
 
     await tryCompleteParentJob(jobId);
 
+    await enqueueAchievementsImport(userId, jobId, log);
+
     log.info("Steam library import completed", { durationMs: Date.now() - startMs });
+}
+
+/**
+ * Chains an achievements import after a library import.
+ *
+ * Achievement data only depends on the owned-games list (not on game
+ * details), so the chain fires as soon as ownership records are in place.
+ * Skipped when an achievements import is already queued or running for the
+ * user. Failures are non-fatal — the library import itself has succeeded.
+ *
+ * @param userId - Internal user ID whose achievements should be imported.
+ * @param libraryJobId - The library import job ID (for job-log attribution).
+ * @param log - Contextual logger from the library import.
+ */
+async function enqueueAchievementsImport(
+    userId: string,
+    libraryJobId: string,
+    log: ReturnType<typeof logger.child>,
+): Promise<void> {
+    try {
+        const existing = await prisma.job.findFirst({
+            where: {
+                type: JobType.IMPORT_USER_ACHIEVEMENTS,
+                userId,
+                status: { in: [JobStatus.QUEUED, JobStatus.ACTIVE] },
+            },
+            select: { id: true },
+        });
+
+        if (existing) {
+            log.debug("Achievements import already pending — skipping chain", {
+                achievementsJobId: existing.id,
+            });
+            return;
+        }
+
+        const dbJob = await prisma.job.create({
+            data: { type: JobType.IMPORT_USER_ACHIEVEMENTS, userId },
+        });
+
+        await jobsQueue.add(JobType.IMPORT_USER_ACHIEVEMENTS, {
+            jobId: dbJob.id,
+            type: JobType.IMPORT_USER_ACHIEVEMENTS,
+            userId,
+        });
+
+        await createLog(libraryJobId, "info", "Queued follow-up achievements import.");
+        log.info("Achievements import chained after library import", {
+            achievementsJobId: dbJob.id,
+        });
+    } catch (error) {
+        log.warn("Failed to chain achievements import (non-fatal)", {
+            message: error instanceof Error ? error.message : "Unknown error",
+        });
+    }
 }
