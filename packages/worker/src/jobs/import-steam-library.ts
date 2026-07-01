@@ -120,6 +120,26 @@ export default async function importSteamLibrary(payload: {
 
     log.debug("User games upserted");
 
+    // Prune library entries for games Steam no longer reports as owned
+    // (refunds, revoked keys, family-sharing changes). Runs only after a
+    // successful non-empty fetch — the empty-response early return above
+    // guarantees a flaky or private-profile response can never wipe a
+    // library. Catalog data, collections, and vault keys are unaffected;
+    // per-user achievements cascade with the UserGame row.
+    const { count: prunedCount } = await prisma.userGame.deleteMany({
+        where: {
+            userId,
+            game: { appId: { not: null, notIn: appIds } },
+        },
+    });
+
+    if (prunedCount > 0) {
+        log.info("Pruned user games no longer owned on Steam", { prunedCount });
+        await createLog(jobId, "info",
+            `${prunedCount} game(s) removed from library (no longer owned on Steam).`,
+        );
+    }
+
     if (await isJobCancelled(jobId)) {
         log.info("Import canceled — skipping detail-fetch enqueue", { durationMs: Date.now() - startMs });
         await createLog(jobId, "warn", "Import canceled by admin before queuing game details.");
