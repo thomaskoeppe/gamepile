@@ -297,11 +297,18 @@ function JobCard({
     );
 }
 
-export function JobStatusCard({ jobType }: { jobType: JobType }) {
+export function JobStatusCard({
+    jobType,
+    hideWhenEmpty = false,
+}: {
+    jobType: JobType;
+    /** Render nothing instead of a "no recent job" placeholder card. */
+    hideWhenEmpty?: boolean;
+}) {
     const { snapshot, phase, isReconnecting } = useJobStream(jobType);
 
-    if (phase === "loading")              return <JobStatusSkeleton />;
-    if (phase === "no-job")              return <NoJobCard jobType={jobType} />;
+    if (phase === "loading")              return hideWhenEmpty ? null : <JobStatusSkeleton />;
+    if (phase === "no-job")              return hideWhenEmpty ? null : <NoJobCard jobType={jobType} />;
     if (phase === "error" && !snapshot)  return <ErrorCard />;
     if (!snapshot)                       return null;
 

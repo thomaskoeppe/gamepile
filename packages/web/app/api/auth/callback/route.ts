@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createJob } from "@/lib/actions/jobs";
+import { enqueueJob } from "@/lib/jobs";
 import { getSetting } from "@/lib/app-settings";
 import { sanitizePostAuthRedirect } from "@/lib/auth/redirect";
 import { createUserSession, setSessionCookie } from "@/lib/auth/session";
@@ -218,7 +218,7 @@ export async function GET(request: Request) {
                 },
             });
 
-            await createJob(JobType.IMPORT_USER_LIBRARY, user.id);
+            await enqueueJob(JobType.IMPORT_USER_LIBRARY, user.id);
             log.info("Library import job queued for new user", { userId: user.id });
 
         }
