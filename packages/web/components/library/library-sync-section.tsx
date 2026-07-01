@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { LoaderCircle, RefreshCw } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { JobStatusCard } from "@/components/job-status";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,13 @@ export function LibrarySyncSection({ userId }: { userId: string }) {
         },
     });
 
-    const now = Date.now();
+    // Ticks every 30s so the cooldown state clears without a reload.
+    const [now, setNow] = useState(() => Date.now());
+    useEffect(() => {
+        const id = setInterval(() => setNow(Date.now()), 30_000);
+        return () => clearInterval(id);
+    }, []);
+
     const coolingDown = !!status?.nextAllowedAt && new Date(status.nextAllowedAt).getTime() > now;
     const disabled =
         resyncAction.isPending ||

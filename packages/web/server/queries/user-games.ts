@@ -10,10 +10,10 @@ import {queryClientWithAuth} from "@/server/query";
  * playtime and last-played date from the `UserGame` join table.
  *
  * @returns Array of game objects (including categories and tags) augmented
- *   with `playtime` (minutes), and an `owned` flag always
- *   set to `true`.
+ *   with `playtime` and `playtime2Weeks` (minutes), and an `owned` flag
+ *   always set to `true`.
  */
-export const getGamesForUser = queryClientWithAuth.query<Array<Prisma.GameGetPayload<{ include: { categories: true, tags: true } }> & { playtime?: number; owned: boolean }>>(withLogging(async ({ ctx }, { log }) => {
+export const getGamesForUser = queryClientWithAuth.query<Array<Prisma.GameGetPayload<{ include: { categories: true, tags: true } }> & { playtime?: number; playtime2Weeks?: number; owned: boolean }>>(withLogging(async ({ ctx }, { log }) => {
     log.info("Fetching games for user", {
         userId: ctx.user.id,
     });
@@ -35,6 +35,7 @@ export const getGamesForUser = queryClientWithAuth.query<Array<Prisma.GameGetPay
     return games.map((userGame) => ({
         ...userGame.game,
         playtime: userGame.playtime,
+        playtime2Weeks: userGame.playtime2Weeks,
         owned: true,
     }));
 }, {

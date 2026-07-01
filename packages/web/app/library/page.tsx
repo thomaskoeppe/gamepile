@@ -2,7 +2,9 @@
 
 import {GameList} from "@/components/game/game-list";
 import {Header} from "@/components/header";
+import {LibraryStats} from "@/components/library/library-stats";
 import {LibrarySyncSection} from "@/components/library/library-sync-section";
+import {RecentlyPlayedShelf} from "@/components/library/recently-played";
 import {LoadingIndicator} from "@/components/shared/loading-indicator";
 import {useServerQuery} from "@/lib/hooks/use-server-query";
 import {useSession} from "@/lib/providers/session";
@@ -36,6 +38,9 @@ export default function Home() {
 
             <div className="container-fluid mx-auto px-4 py-6">
                 {user && <LibrarySyncSection userId={user.id} />}
+
+                <LibraryStats games={games} />
+                <RecentlyPlayedShelf games={games} />
 
                 <div className={cn(
                     "relative flex justify-center transition-opacity duration-200"

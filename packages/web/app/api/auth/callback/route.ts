@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { enqueueJob } from "@/lib/jobs";
 import { getSetting } from "@/lib/app-settings";
 import { sanitizePostAuthRedirect } from "@/lib/auth/redirect";
 import { createUserSession, setSessionCookie } from "@/lib/auth/session";
 import { getSteamProfile,verifySteamLogin } from "@/lib/auth/steam";
+import { enqueueJob } from "@/lib/jobs";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import {AppSettingKey, JobType, UserRole} from "@/prisma/generated/enums";
