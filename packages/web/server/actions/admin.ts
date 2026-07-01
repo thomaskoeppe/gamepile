@@ -40,6 +40,8 @@ const SETTING_TYPES: Record<AppSettingKey, "boolean" | "number" | "string"> = {
     [AppSettingKey.MAX_VAULTS_PER_USER]: "number",
     [AppSettingKey.MAX_COLLECTIONS_PER_USER]: "number",
     [AppSettingKey.UI_GAME_LIBRARY_PRERENDERED_ROWS]: "number",
+    [AppSettingKey.LIBRARY_AUTO_RESYNC_INTERVAL_HOURS]: "number",
+    [AppSettingKey.LIBRARY_MANUAL_RESYNC_COOLDOWN_MINUTES]: "number",
 };
 
 const updateSettingSchema = z.object({
@@ -99,6 +101,8 @@ const configurationSchema = z.object({
     [AppSettingKey.MAX_VAULTS_PER_USER]: z.number().int().positive(),
     [AppSettingKey.MAX_COLLECTIONS_PER_USER]: z.number().int().positive(),
     [AppSettingKey.UI_GAME_LIBRARY_PRERENDERED_ROWS]: z.number().int().min(0),
+    [AppSettingKey.LIBRARY_AUTO_RESYNC_INTERVAL_HOURS]: z.number().int().positive(),
+    [AppSettingKey.LIBRARY_MANUAL_RESYNC_COOLDOWN_MINUTES]: z.number().int().min(0),
 });
 
 /**
@@ -264,15 +268,22 @@ export const deleteCollectionAsAdmin = actionClientWithAdmin
         namespace: "server.actions.admin:deleteCollectionAsAdmin",
     }));
 
+/** Job types that operate on a single user and therefore require a target userId. */
+const USER_SCOPED_JOB_TYPES: readonly JobType[] = [
+    JobType.IMPORT_USER_LIBRARY,
+    JobType.IMPORT_USER_ACHIEVEMENTS,
+];
+
 /**
  * Allows an admin to manually queue one of the supported background jobs.
- * User-specific jobs (IMPORT_USER_LIBRARY) require a valid userId.
+ * User-specific jobs (library/achievements imports) require a valid userId.
  */
 export const invokeAdminJob = actionClientWithAdmin
     .inputSchema(z.object({
         type: z.enum([
             JobType.SYNC_STEAM_GAMES,
             JobType.IMPORT_USER_LIBRARY,
+            JobType.IMPORT_USER_ACHIEVEMENTS,
             JobType.REFRESH_GAME_DETAILS,
         ] as const),
         userId: z.string().min(1).optional(),
@@ -280,15 +291,17 @@ export const invokeAdminJob = actionClientWithAdmin
     .action(withLogging(async ({ parsedInput: { type, userId }, ctx }, { log }) => {
         log.info("Invoking admin job", { invokedBy: ctx.user.id, type, targetUserId: userId });
 
-        if (type === JobType.IMPORT_USER_LIBRARY && !userId) {
-            throw new Error("IMPORT_USER_LIBRARY requires a target user to be selected.");
+        const isUserScoped = USER_SCOPED_JOB_TYPES.includes(type);
+
+        if (isUserScoped && !userId) {
+            throw new Error(`${type} requires a target user to be selected.`);
         }
 
         const existingJob = await prisma.job.findFirst({
             where: {
                 type,
                 status: { in: [JobStatus.QUEUED, JobStatus.ACTIVE] },
-                ...(type === JobType.IMPORT_USER_LIBRARY ? { userId: userId ?? null } : {}),
+                ...(isUserScoped ? { userId: userId ?? null } : {}),
             },
             select: { id: true },
         });

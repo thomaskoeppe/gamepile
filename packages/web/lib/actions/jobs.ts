@@ -1,11 +1,8 @@
 "use server";
 
-import {requireAdmin} from "@/lib/auth/admin";
-import { rateLimitAction } from "@/lib/auth/rate-limit";
 import { getCurrentSession } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
-import {jobsQueue} from "@/lib/queue";
 import { JobStatus, JobType } from "@/prisma/generated/enums";
 import { JobSnapshot } from "@/types/job";
 
@@ -92,37 +89,4 @@ export async function getLatestJobByType(
             .reverse()
             .map((l) => ({ ...l, timestamp: l.timestamp.toISOString() })),
     };
-}
-
-/**
- * Creates a new job record in the database and enqueues it via BullMQ.
- *
- * @param type - The type of job to create.
- * @param userId - Optional user to associate the job with.
- */
-export async function createJob(type: JobType, userId?: string): Promise<void> {
-    if (!userId) {
-        const session = await getCurrentSession();
-        await requireAdmin();
-
-        const rateLimitError = await rateLimitAction({ session: session ?? undefined });
-        if (rateLimitError) {
-            throw new Error(rateLimitError.message);
-        }
-    }
-
-    const job = await prisma.job.create({
-        data: {
-            type,
-            user: userId ? { connect: { id: userId } } : undefined,
-        },
-    });
-
-    await jobsQueue.add(type, { jobId: job.id, userId, type });
-
-    log.info("Job created and queued", {
-        jobId: job.id,
-        type,
-        userId,
-    });
 }

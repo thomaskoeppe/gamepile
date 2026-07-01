@@ -2,12 +2,13 @@
 
 import {GameList} from "@/components/game/game-list";
 import {Header} from "@/components/header";
-import {JobStatusCard} from "@/components/job-status";
+import {LibraryStats} from "@/components/library/library-stats";
+import {LibrarySyncSection} from "@/components/library/library-sync-section";
+import {RecentlyPlayedShelf} from "@/components/library/recently-played";
 import {LoadingIndicator} from "@/components/shared/loading-indicator";
 import {useServerQuery} from "@/lib/hooks/use-server-query";
 import {useSession} from "@/lib/providers/session";
 import {cn} from "@/lib/utils";
-import {JobType} from "@/prisma/generated/browser";
 import {getGameCategories, getGameTags} from "@/server/queries/games";
 import {getGamesForUser} from "@/server/queries/user-games";
 
@@ -36,7 +37,10 @@ export default function Home() {
             <Header />
 
             <div className="container-fluid mx-auto px-4 py-6">
-                <JobStatusCard jobType={JobType.IMPORT_USER_LIBRARY} />
+                {user && <LibrarySyncSection userId={user.id} />}
+
+                <LibraryStats games={games} />
+                <RecentlyPlayedShelf games={games} />
 
                 <div className={cn(
                     "relative flex justify-center transition-opacity duration-200"

@@ -15,6 +15,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {useEffect, useRef, useState} from "react";
 
+import { AchievementList } from "@/components/game/achievement-list";
 import { PlatformIcons } from "@/components/shared/platform-icons";
 import {ReviewScoreCircle} from "@/components/shared/review-score-circle";
 import {SafeImage} from "@/components/shared/safe-image";
@@ -169,6 +170,7 @@ export function GameDetailDialog({game, open, onOpenChange}: GameDetailDialogPro
 
     const hasMedia =
         (details?.screenshots?.length ?? 0) > 0 || (details?.videos?.length ?? 0) > 0;
+    const hasAchievements = (details?._count?.achievements ?? 0) > 0;
 
     useEffect(() => {
         if (!open) return;
@@ -259,6 +261,7 @@ export function GameDetailDialog({game, open, onOpenChange}: GameDetailDialogPro
                     <TabsList className="mx-6 mt-4 mb-0 shrink-0 w-auto self-start">
                         <TabsTrigger value="overview">Overview</TabsTrigger>
                         {hasMedia && <TabsTrigger value="media">Media</TabsTrigger>}
+                        {hasAchievements && <TabsTrigger value="achievements">Achievements</TabsTrigger>}
                     </TabsList>
 
                     <TabsContent
@@ -513,6 +516,17 @@ export function GameDetailDialog({game, open, onOpenChange}: GameDetailDialogPro
                                         </div>
                                     )}
                                 </div>
+                            </ScrollArea>
+                        </TabsContent>
+                    )}
+
+                    {hasAchievements && gameId && (
+                        <TabsContent
+                            value="achievements"
+                            className="focus-visible:outline-none"
+                        >
+                            <ScrollArea className="h-120 px-6 pb-2 mt-4">
+                                <AchievementList gameId={gameId}/>
                             </ScrollArea>
                         </TabsContent>
                     )}

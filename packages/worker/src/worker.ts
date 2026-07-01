@@ -15,11 +15,13 @@ import {Worker} from "bullmq";
 import {WORKER_METRICS} from "@gamepile/shared/worker-metrics";
 
 import handleFetchGameDetails from "@/src/jobs/fetch-game-details.js";
+import handleFetchUserAchievements from "@/src/jobs/fetch-user-achievements.js";
 import {handleJobByType} from "@/src/handlers/jobs-handler.js";
 import {getWorkerEnv} from "@/src/lib/env.js";
 import {flagJobCancelled, isJobCancelled} from "@/src/lib/job/cancel.js";
 import {createLog} from "@/src/lib/job/log.js";
 import {
+    type AchievementsQueuePayload,
     gameDetailsQueue,
     type GameDetailsQueuePayload,
     jobsQueue,
@@ -41,12 +43,14 @@ const env = getWorkerEnv();
 
 const JOBS_CONCURRENCY = env.WORKER_JOBS_CONCURRENCY;
 const DETAILS_CONCURRENCY = env.WORKER_DETAILS_CONCURRENCY;
+const ACHIEVEMENTS_CONCURRENCY = env.WORKER_ACHIEVEMENTS_CONCURRENCY;
 const STARTUP_DELAY_MS = env.WORKER_STARTUP_DELAY_MS;
 const STATUS_LOG_INTERVAL_MS = 2 * 60 * 1_000;
 
 let shuttingDown = false;
 let jobsWorker: Worker<JobsQueuePayload> | undefined;
 let detailsWorker: Worker<GameDetailsQueuePayload> | undefined;
+let achievementsWorker: Worker<AchievementsQueuePayload> | undefined;
 let statusInterval: ReturnType<typeof setInterval> | undefined;
 let heartbeatInterval: ReturnType<typeof setInterval> | undefined;
 
@@ -72,6 +76,7 @@ export async function shutdownWorkers(signal: string): Promise<void> {
         await Promise.all([
             jobsWorker?.close(),
             detailsWorker?.close(),
+            achievementsWorker?.close(),
         ]);
 
         await removeWorkerHeartbeat(HOSTNAME, process.pid);
@@ -191,6 +196,7 @@ async function initWorkers(): Promise<void> {
 
     jobsWorker = createJobsWorker();
     detailsWorker = createDetailsWorker();
+    achievementsWorker = createAchievementsWorker();
 
     startStatusInterval();
     startHeartbeatInterval();
@@ -244,7 +250,6 @@ function createJobsWorker(): Worker<JobsQueuePayload> {
                         userId,
                         internalScheduler,
                         resolvedJobId: jobId,
-                        importUserLibraryIntervalMs: env.WORKER_IMPORT_USER_LIBRARY_INTERVAL_MS,
                     });
 
                     span.setStatus({ code: SpanStatusCode.OK });
@@ -360,6 +365,44 @@ function createDetailsWorker(): Worker<GameDetailsQueuePayload> {
     )
         .on("error", (error) => log.error("Details worker encountered an error", error))
         .on("ready", () => log.info("Details worker is ready", {concurrency: DETAILS_CONCURRENCY}));
+}
+
+/**
+ * Creates and returns the BullMQ worker for the `gamepile.achievements` queue.
+ *
+ * Each batch job is wrapped in an OpenTelemetry span with batch metadata attributes.
+ *
+ * @returns A configured BullMQ {@link Worker} instance for the achievements queue.
+ */
+function createAchievementsWorker(): Worker<AchievementsQueuePayload> {
+    return new Worker<AchievementsQueuePayload>(
+        QUEUE_NAMES.ACHIEVEMENTS,
+        async (job) =>
+            tracer.startActiveSpan("job.FETCH_USER_ACHIEVEMENTS_BATCH", async (span) => {
+                span.setAttributes({
+                    "job.type": "FETCH_USER_ACHIEVEMENTS_BATCH",
+                    "job.id": job.id ?? "",
+                    "job.queue": QUEUE_NAMES.ACHIEVEMENTS,
+                    "job.batchSize": job.data.apps.length,
+                    "job.parentJobId": job.data.parentJobId,
+                    "worker.host": HOSTNAME,
+                });
+
+                try {
+                    await handleFetchUserAchievements(job);
+                    span.setStatus({ code: SpanStatusCode.OK });
+                } catch (error) {
+                    span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+                    span.recordException(error as Error);
+                    throw error;
+                } finally {
+                    span.end();
+                }
+            }),
+        {connection: redisOptions, concurrency: ACHIEVEMENTS_CONCURRENCY},
+    )
+        .on("error", (error) => log.error("Achievements worker encountered an error", error))
+        .on("ready", () => log.info("Achievements worker is ready", {concurrency: ACHIEVEMENTS_CONCURRENCY}));
 }
 
 void initWorkers().catch((error) => {

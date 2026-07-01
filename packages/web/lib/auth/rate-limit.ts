@@ -88,18 +88,26 @@ function toResult(
     };
 }
 
+/** How long clients are told to back off when a fail-closed limiter cannot reach Redis. */
+const FAIL_CLOSED_RETRY_AFTER_MS = 30_000;
+
 /**
  * Consume one point from the given limiter.
  *
- * @param limiter   The `RateLimiterRedis` instance to consume from.
- * @param key       The rate-limit key (IP, userId, session token, etc.).
- * @returns         A {@link RateLimitResult} indicating success or rejection.
+ * @param limiter          The `RateLimiterRedis` instance to consume from.
+ * @param key              The rate-limit key (IP, userId, session token, etc.).
+ * @param opts.failClosed  When `true`, a Redis outage rejects the request instead
+ *                         of allowing it — use for abuse-sensitive endpoints
+ *                         (login/callback) where failing open would disable
+ *                         brute-force protection entirely.
+ * @returns                A {@link RateLimitResult} indicating success or rejection.
  */
 const log = logger.child("server.services.auth:rateLimit");
 
 export async function consumeRateLimit(
     limiter: RateLimiterRedis,
     key: string,
+    opts?: { failClosed?: boolean },
 ): Promise<RateLimitResult> {
     try {
         const res = await limiter.consume(key, 1);
@@ -122,7 +130,22 @@ export async function consumeRateLimit(
             return toResult(limiter, err, true);
         }
 
-        log.error("Redis error in rate limiter — failing open", err instanceof Error ? err : new Error(String(err)), {
+        const error = err instanceof Error ? err : new Error(String(err));
+
+        if (opts?.failClosed) {
+            log.error("Redis error in rate limiter — failing closed", error, {
+                key,
+                limiter: limiter.keyPrefix,
+            });
+            return {
+                success: false,
+                limit: limiter.points,
+                remaining: 0,
+                retryAfterMs: FAIL_CLOSED_RETRY_AFTER_MS,
+            };
+        }
+
+        log.error("Redis error in rate limiter — failing open", error, {
             key,
             limiter: limiter.keyPrefix,
         });

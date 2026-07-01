@@ -56,6 +56,10 @@ const nextConfig: NextConfig = {
                 hostname: "shared.akamai.steamstatic.com",
           },
           {
+                protocol: "https",
+                hostname: "media.steampowered.com",
+          },
+          {
               protocol: "https",
               hostname: "placehold.co"
           }

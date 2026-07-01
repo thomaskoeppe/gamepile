@@ -1,5 +1,7 @@
-import {JobStatus, JobType} from "@/src/prisma/generated/enums.js";
+import {AppSettingKey, JobStatus, JobType} from "@/src/prisma/generated/enums.js";
 
+import {getNumberAppSetting} from "@/src/lib/app-settings.js";
+import {getWorkerEnv} from "@/src/lib/env.js";
 import {createLog} from "@/src/lib/job/log.js";
 import {jobsQueue} from "@/src/lib/job/queue.js";
 import {logger} from "@/src/lib/logger.js";
@@ -15,18 +17,30 @@ const KEY_RESOLVE_BATCH_SIZE = 100;
  * 1. Schedules recurring library imports for users who haven't been imported recently.
  * 2. Resolves unmatched game keys in vaults by matching against the game catalog.
  *
+ * The import interval is read from the `LIBRARY_AUTO_RESYNC_INTERVAL_HOURS`
+ * app setting at execution time (admin-configurable), falling back to the
+ * `WORKER_IMPORT_USER_LIBRARY_INTERVAL_MS` environment variable.
+ *
  * @param payload - Task parameters.
  * @param payload.jobId - The database job ID tracking this task.
- * @param payload.importUserLibraryIntervalMs - Minimum interval between library imports per user.
  */
 export async function runInternalScheduledTask(payload: {
     jobId: string;
-    importUserLibraryIntervalMs: number;
 }): Promise<void> {
-    const { jobId, importUserLibraryIntervalMs } = payload;
+    const { jobId } = payload;
     const log = logger.child("worker.jobs:internalScheduledTask", { jobId });
 
-    await scheduleLibraryImports(jobId, importUserLibraryIntervalMs, log);
+    const fallbackHours = getWorkerEnv().WORKER_IMPORT_USER_LIBRARY_INTERVAL_MS / 3_600_000;
+    const intervalHours = await getNumberAppSetting(
+        AppSettingKey.LIBRARY_AUTO_RESYNC_INTERVAL_HOURS,
+        fallbackHours,
+    );
+    const intervalMs = intervalHours * 3_600_000;
+
+    log.info("Resolved library re-sync interval", { intervalHours });
+    await createLog(jobId, "info", `Library re-sync interval: ${intervalHours}h.`);
+
+    await scheduleLibraryImports(jobId, intervalMs, log);
     await resolveUnmatchedGameKeys(jobId, log);
 }
 

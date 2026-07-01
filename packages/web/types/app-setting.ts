@@ -25,4 +25,6 @@ export type AppSettingValueType = {
     [AppSettingKey.ADMIN_CAN_DELETE_ANY_VAULT]: boolean;
     [AppSettingKey.ADMIN_CAN_DELETE_ANY_COLLECTION]: boolean;
     [AppSettingKey.UI_GAME_LIBRARY_PRERENDERED_ROWS]: number;
+    [AppSettingKey.LIBRARY_AUTO_RESYNC_INTERVAL_HOURS]: number;
+    [AppSettingKey.LIBRARY_MANUAL_RESYNC_COOLDOWN_MINUTES]: number;
 }

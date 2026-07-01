@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { requireAdmin } from "@/lib/auth/admin";
 import prisma from "@/lib/prisma";
+import { parseClampedInt } from "@/lib/utils";
 
 const DEFAULT_LOG_LIMIT = 25;
 const DEFAULT_FAILED_LIMIT = 10;
@@ -18,16 +19,14 @@ export async function GET(
 
     const { id: jobId } = await params;
     const { searchParams } = new URL(req.url);
-    const logPage = Math.max(1, parseInt(searchParams.get("logPage") ?? "1", 10));
-    const logLimit = Math.min(
-        100,
-        Math.max(1, parseInt(searchParams.get("logLimit") ?? String(DEFAULT_LOG_LIMIT), 10)),
-    );
-    const failedPage = Math.max(1, parseInt(searchParams.get("failedPage") ?? "1", 10));
-    const failedLimit = Math.min(
-        50,
-        Math.max(1, parseInt(searchParams.get("failedLimit") ?? String(DEFAULT_FAILED_LIMIT), 10)),
-    );
+    const logPage = parseClampedInt(searchParams.get("logPage"), { fallback: 1, min: 1 });
+    const logLimit = parseClampedInt(searchParams.get("logLimit"), {
+        fallback: DEFAULT_LOG_LIMIT, min: 1, max: 100,
+    });
+    const failedPage = parseClampedInt(searchParams.get("failedPage"), { fallback: 1, min: 1 });
+    const failedLimit = parseClampedInt(searchParams.get("failedLimit"), {
+        fallback: DEFAULT_FAILED_LIMIT, min: 1, max: 50,
+    });
 
     const job = await prisma.job.findUnique({
         where: { id: jobId },

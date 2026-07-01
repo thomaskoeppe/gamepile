@@ -227,6 +227,24 @@ export function ConfigurationForm({ settings, onSaved }: ConfigurationFormProps)
             min={1}
           />
 
+          <SectionHeading>Library Sync</SectionHeading>
+
+          <NumberField
+            label="Automatic re-sync interval (hours)"
+            description="How often each user's Steam library is automatically re-imported by the scheduler. Default is 168 hours (weekly); set to 24 for daily."
+            value={num(AppSettingKey.LIBRARY_AUTO_RESYNC_INTERVAL_HOURS)}
+            onChange={(v) => update(AppSettingKey.LIBRARY_AUTO_RESYNC_INTERVAL_HOURS, v)}
+            min={1}
+          />
+          <NumberField
+            label="Manual re-sync cooldown (minutes)"
+            description="Minimum time a user must wait between manual library re-syncs. Set to 0 to disable the cooldown."
+            value={num(AppSettingKey.LIBRARY_MANUAL_RESYNC_COOLDOWN_MINUTES)}
+            onChange={(v) => update(AppSettingKey.LIBRARY_MANUAL_RESYNC_COOLDOWN_MINUTES, v)}
+            min={0}
+            warning="Lower values increase Steam API usage."
+          />
+
           <SectionHeading>Admin Features</SectionHeading>
 
           <SwitchField

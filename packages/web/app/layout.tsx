@@ -5,8 +5,8 @@ import "@/app/globals.css";
 import {Analytics} from '@vercel/analytics/next';
 import type {Metadata} from "next";
 import {Outfit, Space_Grotesk, Space_Mono} from "next/font/google";
-import {ReactNode} from "react";
 import * as React from "react";
+import {ReactNode} from "react";
 
 import { AnimatedBackground } from "@/components/animated-background";
 import { getPublicSettings } from "@/lib/app-settings";
