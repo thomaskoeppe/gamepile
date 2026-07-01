@@ -40,6 +40,8 @@ const SETTING_TYPES: Record<AppSettingKey, "boolean" | "number" | "string"> = {
     [AppSettingKey.MAX_VAULTS_PER_USER]: "number",
     [AppSettingKey.MAX_COLLECTIONS_PER_USER]: "number",
     [AppSettingKey.UI_GAME_LIBRARY_PRERENDERED_ROWS]: "number",
+    [AppSettingKey.LIBRARY_AUTO_RESYNC_INTERVAL_HOURS]: "number",
+    [AppSettingKey.LIBRARY_MANUAL_RESYNC_COOLDOWN_MINUTES]: "number",
 };
 
 const updateSettingSchema = z.object({
@@ -99,6 +101,8 @@ const configurationSchema = z.object({
     [AppSettingKey.MAX_VAULTS_PER_USER]: z.number().int().positive(),
     [AppSettingKey.MAX_COLLECTIONS_PER_USER]: z.number().int().positive(),
     [AppSettingKey.UI_GAME_LIBRARY_PRERENDERED_ROWS]: z.number().int().min(0),
+    [AppSettingKey.LIBRARY_AUTO_RESYNC_INTERVAL_HOURS]: z.number().int().positive(),
+    [AppSettingKey.LIBRARY_MANUAL_RESYNC_COOLDOWN_MINUTES]: z.number().int().min(0),
 });
 
 /**

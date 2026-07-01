@@ -244,7 +244,6 @@ function createJobsWorker(): Worker<JobsQueuePayload> {
                         userId,
                         internalScheduler,
                         resolvedJobId: jobId,
-                        importUserLibraryIntervalMs: env.WORKER_IMPORT_USER_LIBRARY_INTERVAL_MS,
                     });
 
                     span.setStatus({ code: SpanStatusCode.OK });

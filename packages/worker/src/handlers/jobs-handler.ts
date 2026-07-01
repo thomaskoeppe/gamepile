@@ -39,7 +39,6 @@ class UnhandledJobTypeError extends Error {
  * @param payload.userId - Optional user ID for user-scoped jobs.
  * @param payload.internalScheduler - Whether the job was enqueued by the internal scheduler.
  * @param payload.resolvedJobId - The database job ID (guaranteed to exist).
- * @param payload.importUserLibraryIntervalMs - Interval for recurring library imports.
  * @throws {Error} If a required field (e.g., `userId`) is missing for the given job type.
  * @throws {UnhandledJobTypeError} If the job type has no registered handler.
  */
@@ -48,9 +47,8 @@ export async function handleJobByType(payload: {
     userId?: string;
     internalScheduler?: boolean;
     resolvedJobId: string;
-    importUserLibraryIntervalMs: number;
 }): Promise<void> {
-    const { type, userId, internalScheduler, resolvedJobId, importUserLibraryIntervalMs } = payload;
+    const { type, userId, internalScheduler, resolvedJobId } = payload;
     const log = logger.child("worker.handlers.jobs:dispatch", {
         jobId: resolvedJobId,
         type,
@@ -107,10 +105,7 @@ export async function handleJobByType(payload: {
                 throw new Error("INTERNAL_SCHEDULED_TASK may only be enqueued by the scheduler.");
             }
 
-            await runInternalScheduledTask({
-                jobId: resolvedJobId,
-                importUserLibraryIntervalMs,
-            });
+            await runInternalScheduledTask({ jobId: resolvedJobId });
 
             if (await markCompletedIfActive(resolvedJobId)) {
                 await createLog(resolvedJobId, "info", "Internal scheduled task completed successfully.");

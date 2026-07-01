@@ -60,6 +60,8 @@ const DEFAULTS: AppSettingValueType = {
     [AppSettingKey.MAX_VAULTS_PER_USER]: 10,
     [AppSettingKey.MAX_COLLECTIONS_PER_USER]: 10,
     [AppSettingKey.UI_GAME_LIBRARY_PRERENDERED_ROWS]: 2,
+    [AppSettingKey.LIBRARY_AUTO_RESYNC_INTERVAL_HOURS]: 168,
+    [AppSettingKey.LIBRARY_MANUAL_RESYNC_COOLDOWN_MINUTES]: 60,
 };
 
 type SettingsStore = Partial<AppSettingValueType>;
