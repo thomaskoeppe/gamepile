@@ -1,8 +1,8 @@
 "use client";
 
 import { Clock, Flame, Gamepad2, Trophy } from "lucide-react";
-import type { ReactNode } from "react";
 
+import { StatCard } from "@/components/shared/stat-card";
 import { formatMinutesToHoursMinutes } from "@/lib/utils";
 
 type LibraryStatsGame = {
@@ -10,20 +10,6 @@ type LibraryStatsGame = {
     playtime?: number;
     playtime2Weeks?: number;
 };
-
-function StatCard({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
-    return (
-        <div className="flex items-center gap-3 rounded-xl border bg-card px-4 py-3 min-w-0">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                {icon}
-            </div>
-            <div className="min-w-0">
-                <p className="text-xs text-muted-foreground">{label}</p>
-                <p className="text-sm font-semibold truncate">{value}</p>
-            </div>
-        </div>
-    );
-}
 
 /**
  * Small library summary computed client-side from the already-loaded game

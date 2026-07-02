@@ -12,6 +12,7 @@ import { browserLog } from "@/lib/browser-logger";
 const NAV_ITEMS = [
     { href: "/library", label: "Library" },
     { href: "/explore", label: "Explore" },
+    { href: "/achievements", label: "Achievements" },
     { href: "/collections", label: "Collections" },
     { href: "/vaults", label: "Key Vaults" },
     { href: "/settings", label: "Settings" },
