@@ -92,6 +92,7 @@ export function Header() {
                             <nav className="hidden md:flex items-center space-x-6">
                                 <NavLink href="/library" isActive={pathname === "/library"}>Library</NavLink>
                                 <NavLink href="/explore" isActive={pathname === "/explore"}>Explore</NavLink>
+                                <NavLink href="/achievements" isActive={pathname.startsWith("/achievements")}>Achievements</NavLink>
                                 <NavLink href="/collections" isActive={pathname.startsWith("/collections")}>Collections</NavLink>
                                 <NavLink href="/vaults" isActive={pathname.startsWith("/vaults")}>Key Vaults</NavLink>
                             </nav>

@@ -525,7 +525,15 @@ export function GameDetailDialog({game, open, onOpenChange}: GameDetailDialogPro
                             value="achievements"
                             className="focus-visible:outline-none"
                         >
-                            <ScrollArea className="h-120 px-6 pb-2 mt-4">
+                            <div className="flex justify-end px-6 mt-3">
+                                <Button variant="ghost" size="sm" asChild>
+                                    <Link href={`/achievements/${gameId}`}>
+                                        <Trophy className="size-4"/>
+                                        View all
+                                    </Link>
+                                </Button>
+                            </div>
+                            <ScrollArea className="h-110 px-6 pb-2 mt-1">
                                 <AchievementList gameId={gameId}/>
                             </ScrollArea>
                         </TabsContent>

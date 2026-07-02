@@ -1,6 +1,6 @@
 'use client';
 
-import { CircleGauge, ListChecks, Medal, Search, Trophy, TriangleAlert } from "lucide-react";
+import { CircleGauge, ListChecks, Medal, Search, TriangleAlert,Trophy } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { GameCompletionList } from "@/components/achievements/game-completion-list";

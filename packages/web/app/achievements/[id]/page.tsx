@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, Trophy, TriangleAlert } from "lucide-react";
+import { ArrowLeft, TriangleAlert,Trophy } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
