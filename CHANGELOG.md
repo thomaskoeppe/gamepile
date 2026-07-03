@@ -1,3 +1,10 @@
+## [2.3.0](https://github.com/thomaskoeppe/gamepile/compare/v2.2.0...v2.3.0) (2026-07-03)
+
+### Features
+
+* **deploy:** add version pinning and guided upgrade/backup scripts ([ea5aa32](https://github.com/thomaskoeppe/gamepile/commit/ea5aa3277e5344756447ee60d44390b38ebf8cb8))
+* **web:** report the running app version from the heartbeat endpoint ([0bc23ed](https://github.com/thomaskoeppe/gamepile/commit/0bc23edefe4b055a6283fc309a632c7d46decd4a))
+
 ## [2.2.0](https://github.com/thomaskoeppe/gamepile/compare/v2.1.0...v2.2.0) (2026-06-20)
 
 ### Features
