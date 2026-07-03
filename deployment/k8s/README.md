@@ -1,4 +1,4 @@
-# Kubernetes deployment (`docs/k8s`)
+# Kubernetes deployment (`deployment/k8s`)
 
 This folder contains the production-style Kubernetes manifests for Gamepile.
 
@@ -14,14 +14,14 @@ This folder contains the production-style Kubernetes manifests for Gamepile.
 Run manifests in this order to avoid startup races:
 
 ```bash
-kubectl apply -f docs/k8s/namespace.yaml
-kubectl apply -f docs/k8s/configmap.yaml -f docs/k8s/secrets.yaml
-kubectl apply -f docs/k8s/postgres-service.yaml -f docs/k8s/postgres.yaml
-kubectl apply -f docs/k8s/redis-service.yaml -f docs/k8s/redis.yaml
-kubectl apply -f docs/k8s/migrate-job.yaml
-kubectl apply -f docs/k8s/web-service.yaml -f docs/k8s/deployment.yaml
-kubectl apply -f docs/k8s/worker-deployment.yaml
-kubectl apply -f docs/k8s/ingress.yaml
+kubectl apply -f deployment/k8s/namespace.yaml
+kubectl apply -f deployment/k8s/configmap.yaml -f deployment/k8s/secrets.yaml
+kubectl apply -f deployment/k8s/postgres-service.yaml -f deployment/k8s/postgres.yaml
+kubectl apply -f deployment/k8s/redis-service.yaml -f deployment/k8s/redis.yaml
+kubectl apply -f deployment/k8s/migrate-job.yaml
+kubectl apply -f deployment/k8s/web-service.yaml -f deployment/k8s/deployment.yaml
+kubectl apply -f deployment/k8s/worker-deployment.yaml
+kubectl apply -f deployment/k8s/ingress.yaml
 ```
 
 Why this order matters:
@@ -43,11 +43,23 @@ kubectl -n gamepile get ingress
 
 For new application images or schema changes:
 
-1. Update image tags/manifests
-2. Apply `migrate-job.yaml`
-3. Roll out `deployment.yaml` and `worker-deployment.yaml`
+1. Take a database backup (see `documentation/Upgrading.md`)
+2. Update the image tags in `migrate-job.yaml`, `deployment.yaml`, and
+   `worker-deployment.yaml` — pin a released version rather than `latest`
+3. Re-run the migration job (Jobs are immutable — delete, then apply):
 
-Re-running the migration job is expected and safe when there are no pending migrations.
+   ```bash
+   kubectl -n gamepile delete job sql-migrate --ignore-not-found
+   kubectl -n gamepile apply -f deployment/k8s/migrate-job.yaml
+   kubectl -n gamepile wait --for=condition=complete --timeout=300s job/sql-migrate
+   ```
+
+4. Roll out `deployment.yaml` and `worker-deployment.yaml`
+
+Re-running the migration job is expected and safe when there are no pending
+migrations — applied migrations are tracked in `schema_migrations` and
+skipped. The full upgrade guide (backups, rollback, version pinning) lives in
+`documentation/Upgrading.md`.
 
 ## Manifest list
 

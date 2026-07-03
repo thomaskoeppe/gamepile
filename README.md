@@ -64,6 +64,15 @@ The app is available at **http://localhost:8080**.
 - On first startup the worker queues an initial Steam catalog sync automatically.
 - No manual migration commands are ever needed.
 
+### Upgrading an existing deployment
+
+Pin a release via `GAMEPILE_VERSION` in your `.env` and run
+`deployment/docker/upgrade.sh` — it backs up the database, applies pending
+schema migrations while the old version keeps serving, then switches the app
+containers to the new release. See
+[documentation/Upgrading.md](documentation/Upgrading.md) for the full guide,
+including backups, rollback, and the Kubernetes flow.
+
 ---
 
 ## First Login and Admin Assignment
