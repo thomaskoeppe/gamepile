@@ -49,6 +49,55 @@ migration Job runs before rollouts.
 
 ## Upgrading with Docker Compose
 
+### Deployment layouts and the `.env` file
+
+Two layouts are supported (Docker Compose **v2.24+** required):
+
+- **Standalone** (the README quickstart): `docker-compose.yml` and `.env` in
+  the same directory. Compose auto-loads that `.env` for both `${...}`
+  interpolation and container environments.
+- **Repo layout**: the compose file at `deployment/docker/` with `.env` at
+  the repository root. Compose does **not** auto-load a `.env` outside the
+  compose file's directory for interpolation — plain `docker compose`
+  commands must pass it explicitly:
+
+  ```bash
+  docker compose --env-file ../../.env up -d
+  ```
+
+  `upgrade.sh` and `backup.sh` detect the right `.env` and pass it for you.
+
+If variables silently fall back to defaults or you see
+`WARN The "X" variable is not set`, the `.env` was not picked up — this is
+almost always the cause.
+
+The compose file pins the project name (`name: gamepile`) so containers,
+networks, and volumes get stable names (`gamepile_postgres_data`, …)
+regardless of which directory compose runs from.
+
+### Customizing without editing the compose file
+
+The compose file is part of each release — upgrades may replace it. Never
+hand-edit `docker-compose.yml`; put local changes in a
+`docker-compose.override.yml` next to it instead, which Compose merges
+automatically:
+
+```yaml
+# docker-compose.override.yml — survives upgrades untouched
+services:
+  worker:
+    environment:
+      WORKER_DETAILS_CONCURRENCY: "10"
+      WORKER_STEAM_RATE_LIMIT_SCOPE: "distributed"
+```
+
+To refresh the base file after a release:
+
+```bash
+curl -o docker-compose.yml https://raw.githubusercontent.com/thomaskoeppe/gamepile/v2.3.0/deployment/docker/docker-compose.yml
+docker compose config -q   # validate before using it
+```
+
 ### Recommended: the upgrade script
 
 ```bash
@@ -78,10 +127,12 @@ curl http://<host>:8080/api/v1/heartbeat
 
 ```bash
 cd deployment/docker
-docker compose exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB"' | gzip > backups/pre-upgrade.sql.gz
-GAMEPILE_VERSION=2.3.0 docker compose pull migrate web worker
-GAMEPILE_VERSION=2.3.0 docker compose run --rm migrate
-GAMEPILE_VERSION=2.3.0 docker compose up -d --remove-orphans web worker caddy
+# In the repo layout, every command needs --env-file so `${...}` interpolation
+# sees your configuration (standalone layout: drop the flag, .env is adjacent).
+docker compose --env-file ../../.env exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB"' | gzip > backups/pre-upgrade.sql.gz
+GAMEPILE_VERSION=2.3.0 docker compose --env-file ../../.env pull migrate web worker
+GAMEPILE_VERSION=2.3.0 docker compose --env-file ../../.env run --rm migrate
+GAMEPILE_VERSION=2.3.0 docker compose --env-file ../../.env up -d --remove-orphans web worker caddy
 ```
 
 ### Pinning a version
@@ -181,6 +232,32 @@ constraint), and re-run — applied migrations are skipped automatically.
 They gate on the `migrate` service completing successfully. Check
 `docker compose logs migrate` — the app containers start as soon as the
 migrate container exits 0.
+
+**`service "postgres" refers to undefined volume postgres_data`**
+The top-level `volumes:` block is missing from your `docker-compose.yml` —
+usually the result of hand-editing. Restore the release version of the file
+(see "Customizing without editing the compose file" above); named volumes and
+their data are untouched by replacing the compose file.
+
+**`yaml: construct error: mapping key "X" already defined`**
+A duplicate YAML key from manual edits. Restore the release compose file and
+move customizations into `docker-compose.override.yml`. Validate any compose
+change with `docker compose config -q` before deploying it.
+
+**`WARN The "STEAM_API_KEY" variable is not set. Defaulting to a blank string.`**
+Compose did not find your `.env` for `${...}` interpolation (see "Deployment
+layouts" above). Run through `upgrade.sh`, or pass `--env-file` explicitly.
+Do not ignore these warnings — services recreated in this state run with
+blank secrets and default passwords.
+
+**The app starts but the database is empty / first login becomes admin again**
+Compose created fresh volumes under a different project name. Check
+`docker volume ls`: your data lives in `gamepile_postgres_data`. Current
+compose files pin `name: gamepile`; if you overrode the project name (or use
+an old compose file without `name:` from a different directory), compose
+derives another name and attaches new empty volumes. Stop the stack, restore
+the pinned project name, and `docker compose up -d` — the original volumes
+reattach. `upgrade.sh` detects this situation and refuses to continue.
 
 **Which version is running?**
 `curl http://<host>:8080/api/v1/heartbeat` returns the app version, and
