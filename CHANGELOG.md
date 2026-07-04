@@ -1,3 +1,9 @@
+## [2.3.1](https://github.com/thomaskoeppe/gamepile/compare/v2.3.0...v2.3.1) (2026-07-04)
+
+### Bug Fixes
+
+* **deploy:** make compose upgrades robust to layout and env-file pitfalls ([6b5dec7](https://github.com/thomaskoeppe/gamepile/commit/6b5dec7151d2f32813916e082948e983e52c0b8a))
+
 ## [2.3.0](https://github.com/thomaskoeppe/gamepile/compare/v2.2.0...v2.3.0) (2026-07-03)
 
 ### Features
