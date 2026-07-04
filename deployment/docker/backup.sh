@@ -20,7 +20,18 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# Same .env resolution as upgrade.sh: repo root first, then alongside the
+# compose file; passed explicitly because compose only auto-loads the latter.
+if [[ -f "$SCRIPT_DIR/../../.env" ]]; then
+    ENV_FILE="$SCRIPT_DIR/../../.env"
+elif [[ -f "$SCRIPT_DIR/.env" ]]; then
+    ENV_FILE="$SCRIPT_DIR/.env"
+else
+    ENV_FILE=""
+fi
+
 COMPOSE=(docker compose)
+[[ -n "$ENV_FILE" ]] && COMPOSE+=(--env-file "$ENV_FILE")
 BACKUP_DIR="$SCRIPT_DIR/backups"
 RETENTION_DAYS=0
 
