@@ -1,7 +1,27 @@
+# Requires Docker Compose v2.24+ (top-level `name`, optional env_file entries).
+#
+# Pin the project name so container/volume/network names are stable
+# (gamepile_postgres_data etc.) no matter which directory compose runs from.
+# Changing the project name would orphan existing volumes — see
+# documentation/Upgrading.md before overriding it.
+name: gamepile
+
 # ─── Shared environment anchors ──────────────────────
-# Compose reads values from `.env` (or `--env-file`) for interpolation.
-# `env_file` is still kept on app services so extra application variables from
-# the same source file are passed through to the running containers unchanged.
+# Compose reads `.env` NEXT TO THIS FILE (or `--env-file`) for `${...}`
+# interpolation below. In a repo-layout deployment where `.env` lives at the
+# repository root, pass it explicitly (`docker compose --env-file ../../.env`)
+# or use deployment/docker/upgrade.sh, which does so automatically.
+# `env_file` on the app services additionally passes extra application
+# variables through to the running containers unchanged; both known locations
+# are optional so the standalone (compose file + .env in one directory) and
+# repo layouts both work.
+x-env-files: &env-files
+  env_file:
+    - path: ../../.env
+      required: false
+    - path: .env
+      required: false
+
 x-common-env: &common-env
   NODE_ENV: "${NODE_ENV:-production}"
   DOMAIN: "${DOMAIN:-gamepile.example.com}"
@@ -87,8 +107,7 @@ services:
   web:
     image: ghcr.io/thomaskoeppe/gamepile/web:${GAMEPILE_VERSION:-latest}
     restart: unless-stopped
-    env_file:
-      - ../../.env
+    <<: *env-files
     environment:
       <<: *common-env
       # Default to the public HTTP endpoint exposed by the bundled Caddy proxy.
@@ -119,8 +138,7 @@ services:
   worker:
     image: ghcr.io/thomaskoeppe/gamepile/worker:${GAMEPILE_VERSION:-latest}
     restart: unless-stopped
-    env_file:
-      - ../../.env
+    <<: *env-files
     environment:
       <<: *common-env
       # Throughput & recovery — defaults match .env

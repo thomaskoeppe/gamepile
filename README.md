@@ -31,13 +31,14 @@ Official images are published to the GitHub Container Registry and updated on ev
 | `ghcr.io/thomaskoeppe/gamepile/worker`  | `latest` |
 | `ghcr.io/thomaskoeppe/gamepile/migrate` | `latest` |
 
-**1. Download the Compose file:**
+**1. Download the Compose file** (Docker Compose v2.24+ required):
 
 ```bash
 curl -O https://raw.githubusercontent.com/thomaskoeppe/gamepile/main/deployment/docker/docker-compose.yml
 ```
 
-**2. Create `.env`:**
+**2. Create `.env` in the same directory** (Compose auto-loads it from there —
+keep the two files together):
 
 ```env
 STEAM_API_KEY=<your-32-char-steam-api-key>
