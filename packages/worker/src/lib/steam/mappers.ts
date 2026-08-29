@@ -185,10 +185,14 @@ export function extractScreenshots(item: StoreBrowseItem): string[] {
 
     if (!screenshots?.length) return [];
 
-    return [...new Map(screenshots.map((screenshot) => [screenshot.filename, screenshot])).values()]
-        .sort((a, b) => a.ordinal - b.ordinal)
-        .map((ss) => resolveSteamMediaUrl(ss.filename, fmt))
-        .filter((url): url is string => url !== null);
+    return (
+        [...new Map(screenshots.map((screenshot) => [screenshot.filename, screenshot])).values()]
+            // Steam sometimes omits `ordinal`; treating it as 0 keeps the comparator
+            // from returning NaN, which leaves the sort order implementation-defined.
+            .sort((a, b) => (Number(a.ordinal) || 0) - (Number(b.ordinal) || 0))
+            .map((ss) => resolveSteamMediaUrl(ss.filename, fmt))
+            .filter((url): url is string => url !== null)
+    );
 }
 
 /**
@@ -217,6 +221,10 @@ export function extractTrailers(item: StoreBrowseItem): Array<{
 
         const hlsEntry = trailer.adaptive_trailers?.find((t) => t.encoding === "hls_h264");
         if (!hlsEntry) continue;
+
+        // Without this guard an absent cdn_path interpolated the literal string
+        // "undefined" into the URL, which was then persisted as a valid trailer.
+        if (!hlsEntry.cdn_path) continue;
 
         const hlsUrl = resolveSteamMediaUrl(fmt.replace("${FILENAME}", hlsEntry.cdn_path));
         if (!hlsUrl) continue;

@@ -1,5 +1,6 @@
 import { logger } from "@/src/lib/logger.js";
-import { steamRateLimiter } from "@/src/lib/steam/ratelimiter.js";
+import { fetchSteamJson } from "@/src/lib/steam/api/fetch-json.js";
+import { extractEnvelopeArray, parseItems, readEnvelopeField, steamAppSchema } from "@/src/lib/steam/api/schemas.js";
 
 const log = logger.child("worker.lib.steam:getAppList");
 
@@ -64,8 +65,6 @@ const STORE_SERVICE_URL = "https://api.steampowered.com/IStoreService/GetAppList
  * @throws {Error} If the HTTP response status indicates a failure.
  */
 export async function getAppList(opts: GetAppListOptions): Promise<GetAppListResponse> {
-    await steamRateLimiter.acquire();
-
     const params = new URLSearchParams({
         key: opts.key,
         include_games: opts.includeGames.toString(),
@@ -81,33 +80,39 @@ export async function getAppList(opts: GetAppListOptions): Promise<GetAppListRes
         cursor: opts.lastAppId ?? 0,
     });
 
-    const response = await fetch(`${STORE_SERVICE_URL}?${params}`, { headers: { Accept: "application/json" } });
+    const payload = await fetchSteamJson(`${STORE_SERVICE_URL}?${params}`, {
+        endpoint: "IStoreService/GetAppList",
+    });
 
-    if (!response.ok) {
-        throw new Error(
-            `Failed to fetch app list (cursor=${opts.lastAppId}): ${response.status} ${response.statusText}`,
-        );
+    // Steam returns `{}` and `{"response": null}` under load. Dereferencing
+    // `data.response.apps` directly used to throw a TypeError and abort the
+    // whole catalog sync.
+    const rawApps = extractEnvelopeArray(payload, "response", "apps");
+    const { valid, invalid } = parseItems(rawApps, steamAppSchema);
+
+    if (invalid.length > 0) {
+        log.warn("Discarded malformed app list entries", {
+            cursor: opts.lastAppId ?? 0,
+            returned: rawApps.length,
+            discarded: invalid.length,
+            reasons: invalid.slice(0, 5).map((entry) => entry.reason),
+        });
     }
 
-    const data = (await response.json()) as {
-        response: {
-            apps: SteamApp[];
-            have_more_results?: boolean;
-            last_appid?: number;
-        };
-    };
-
-    const apps = data.response.apps ?? [];
+    const haveMoreResults = readEnvelopeField(payload, "response", "have_more_results") === true;
+    const lastAppIdRaw = Number(readEnvelopeField(payload, "response", "last_appid"));
+    const lastAppId = Number.isFinite(lastAppIdRaw) ? lastAppIdRaw : 0;
 
     log.debug("Received Steam API app list page", {
         cursor: opts.lastAppId ?? 0,
-        batchSize: apps.length,
-        haveMoreResults: data.response.have_more_results ?? false,
+        batchSize: valid.length,
+        discarded: invalid.length,
+        haveMoreResults,
     });
 
     return {
-        apps,
-        haveMoreResults: data.response.have_more_results ?? false,
-        lastAppId: data.response.last_appid ?? 0,
+        apps: valid as SteamApp[],
+        haveMoreResults,
+        lastAppId,
     };
 }
