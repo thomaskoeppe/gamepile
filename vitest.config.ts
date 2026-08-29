@@ -118,6 +118,32 @@ export default defineConfig({
                     functions: 90,
                     lines: 90,
                 },
+                // Auth and authorization boundaries: a hole in any of these is a
+                // hole in every query, mutation or vault unlock built on them.
+                "packages/web/lib/auth/{session,vault/token,vault/lockout}.ts": {
+                    statements: 85,
+                    branches: 75,
+                    functions: 85,
+                    lines: 85,
+                },
+                "packages/web/server/{query,actions}.ts": {
+                    statements: 85,
+                    branches: 75,
+                    functions: 85,
+                    lines: 85,
+                },
+                "packages/web/lib/with-logging.ts": {
+                    statements: 85,
+                    branches: 75,
+                    functions: 85,
+                    lines: 85,
+                },
+                "packages/worker/src/{handlers,lib/job}/**": {
+                    statements: 80,
+                    branches: 70,
+                    functions: 80,
+                    lines: 80,
+                },
                 "packages/worker/src/lib/steam/api/**": {
                     statements: 90,
                     branches: 85,
