@@ -1,7 +1,7 @@
 import { getCurrentSession } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
-import { sseEvent, ssePing } from "@/lib/sse";
+import { createPollingSseStream, SSE_HEADERS,sseEvent } from "@/lib/sse";
 import { isTerminal,JobSnapshot } from "@/types/job";
 
 const POLL_INTERVAL_MS     = 2_000;
@@ -71,79 +71,41 @@ export async function GET(
     }
 
     const userId  = session.user.id;
-    const encoder = new TextEncoder();
 
-    let pollId:      ReturnType<typeof setInterval> | null = null;
-    let keepAliveId: ReturnType<typeof setInterval> | null = null;
-    let closed = false;
+    const stream = createPollingSseStream({
+        signal:              req.signal,
+        pollIntervalMs:      POLL_INTERVAL_MS,
+        keepAliveIntervalMs: KEEPALIVE_INTERVAL_MS,
+        async poll({ send, close }) {
+            let snapshot: JobSnapshot | null;
 
-    function cleanup() {
-        closed = true;
-        if (pollId)      { clearInterval(pollId);      pollId      = null; }
-        if (keepAliveId) { clearInterval(keepAliveId); keepAliveId = null; }
-    }
-
-    const stream = new ReadableStream({
-        async start(controller) {
-            function send(raw: string): void {
-                if (closed) return;
-                try {
-                    controller.enqueue(encoder.encode(raw));
-                } catch {
-                    cleanup();
-                }
+            try {
+                snapshot = await fetchSnapshot(jobId, userId);
+            } catch {
+                log.error("SSE snapshot poll failed", undefined, {
+                    jobId,
+                    userId,
+                });
+                return;
             }
 
-            async function poll(): Promise<void> {
-                if (closed) return;
-
-                let snapshot: JobSnapshot | null;
-                try {
-                    snapshot = await fetchSnapshot(jobId, userId);
-                } catch {
-                    log.error("SSE snapshot poll failed", undefined, {
-                        jobId,
-                        userId,
-                    });
-                    return;
-                }
-
-                if (!snapshot) {
-                    send(sseEvent("error", { message: "Job not found or access denied" }));
-                    cleanup();
-                    controller.close();
-                    return;
-                }
-
-                send(sseEvent("snapshot", snapshot));
-
-                if (isTerminal(snapshot.status)) {
-                    send(sseEvent("done", { status: snapshot.status }));
-                    cleanup();
-                    controller.close();
-                }
+            if (!snapshot) {
+                send(sseEvent("error", { message: "Job not found or access denied" }));
+                close();
+                return;
             }
 
-            await poll();
+            send(sseEvent("snapshot", snapshot));
 
-            if (!closed) {
-                pollId = setInterval(() => void poll(), POLL_INTERVAL_MS);
-
-                keepAliveId = setInterval(() => send(ssePing()), KEEPALIVE_INTERVAL_MS);
+            if (isTerminal(snapshot.status)) {
+                send(sseEvent("done", { status: snapshot.status }));
+                close();
             }
         },
-
-        cancel() {
-            cleanup();
+        onClose(reason) {
+            log.debug("Job status stream closed", { jobId, userId, reason });
         },
     });
 
-    return new Response(stream, {
-        headers: {
-            "Content-Type":    "text/event-stream",
-            "Cache-Control":   "no-cache, no-transform",
-            "Connection":      "keep-alive",
-            "X-Accel-Buffering": "no",
-        },
-    });
+    return new Response(stream, { headers: SSE_HEADERS });
 }
