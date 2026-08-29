@@ -23,7 +23,15 @@
     "unused:worker": "npx dotenv-cli -e .env.example -- knip --workspace packages/worker",
     "unused:web": "npx dotenv-cli -e .env.example -- knip --workspace packages/web",
     "lint:web": "npm run lint --workspace=packages/web",
-    "lint:fix:web": "npm run lint:fix --workspace=packages/web"
+    "lint:fix:web": "npm run lint:fix --workspace=packages/web",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "npm run lint --workspace=packages/web",
+    "typecheck": "tsc --noEmit -p packages/web/tsconfig.json && tsc --noEmit -p packages/shared/tsconfig.json && npm run typecheck --workspace=packages/worker",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "knip": "dotenv -e .env.example -- knip"
   },
   "overrides": {
     "prisma": {
@@ -41,10 +49,13 @@
     "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^10.0.1",
     "@types/node": "^26.0.0",
+    "@vitest/coverage-v8": "^3.2.7",
     "conventional-changelog-conventionalcommits": "^9.3.1",
     "dotenv-cli": "^11.0.0",
     "knip": "^6.17.1",
+    "prettier": "^3.9.6",
     "semantic-release": "^25.0.5",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^3.2.7"
   }
 }

@@ -101,6 +101,17 @@ const nextConfig: NextConfig = {
         ];
     },
     serverExternalPackages: ['pino', 'pino-pretty'],
+    // @gamepile/shared is authored as ESM TypeScript and consumed by the worker
+    // under NodeNext, which requires explicit ".js" specifiers on relative
+    // imports. Teach webpack to resolve those back to the ".ts" sources so the
+    // same files build here without duplicating them per consumer.
+    webpack(config) {
+        config.resolve.extensionAlias = {
+            ...config.resolve.extensionAlias,
+            ".js": [".ts", ".tsx", ".js"],
+        };
+        return config;
+    },
     crossOrigin: "anonymous",
     logging: false,
     experimental: {
