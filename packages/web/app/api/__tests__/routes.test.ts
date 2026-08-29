@@ -11,10 +11,32 @@ import { makeRequest, routeContext } from "../../../../../test/helpers";
 const getCurrentSession = vi.fn();
 const consumeRateLimit = vi.fn();
 const requireAdmin = vi.fn();
+const createUserSession = vi.fn();
+const setSessionCookie = vi.fn();
+const invalidateSession = vi.fn();
+const verifySteamLogin = vi.fn();
+const getSteamProfile = vi.fn();
+const getSetting = vi.fn();
+const enqueueJob = vi.fn();
 
 vi.mock("@/lib/auth/session", () => ({
     getCurrentSession: () => getCurrentSession(),
     formatSessionForClient: (session: unknown) => session,
+    createUserSession: (...args: unknown[]) => createUserSession(...args),
+    setSessionCookie: (...args: unknown[]) => setSessionCookie(...args),
+    invalidateSession: () => invalidateSession(),
+}));
+
+vi.mock("@/lib/auth/steam", () => ({
+    verifySteamLogin: (...args: unknown[]) => verifySteamLogin(...args),
+    getSteamProfile: (...args: unknown[]) => getSteamProfile(...args),
+    getSteamLoginUrl: (returnUrl: string) =>
+        `https://steamcommunity.com/openid/login?openid.return_to=${encodeURIComponent(returnUrl)}`,
+}));
+
+vi.mock("@/lib/app-settings", () => ({
+    getSetting: (key: string) => getSetting(key),
+    areSettingsLoaded: () => true,
 }));
 
 vi.mock("@/lib/auth/admin", () => ({
@@ -46,6 +68,9 @@ const prismaMock = {
 vi.mock("@/lib/prisma", () => ({ default: prismaMock }));
 vi.mock("@/lib/redis", () => ({ redis: { ping: vi.fn() }, redisOptions: {} }));
 vi.mock("@/lib/search-query", () => ({ searchGamesRanked: vi.fn().mockResolvedValue([]) }));
+// lib/jobs builds a BullMQ queue at import time, which opens a real Redis socket.
+vi.mock("@/lib/jobs", () => ({ enqueueJob: (...args: unknown[]) => enqueueJob(...args) }));
+vi.mock("@/lib/queue", () => ({ jobsQueue: { add: vi.fn().mockResolvedValue({ id: "bull-1" }) } }));
 
 vi.mock("@/lib/logger", () => {
     const child = () => ({
@@ -76,6 +101,18 @@ beforeEach(() => {
     getCurrentSession.mockReset().mockResolvedValue(SESSION);
     requireAdmin.mockReset().mockResolvedValue({ id: "admin-1" });
     consumeRateLimit.mockReset().mockResolvedValue({ success: true, limit: 40, remaining: 39, retryAfterMs: 0 });
+    createUserSession.mockReset().mockResolvedValue({ token: "raw-token", session: { id: "s1" } });
+    setSessionCookie.mockReset().mockResolvedValue(undefined);
+    invalidateSession.mockReset().mockResolvedValue(undefined);
+    verifySteamLogin.mockReset().mockResolvedValue("76561198012345678");
+    getSteamProfile.mockReset().mockResolvedValue({
+        steamId: "76561198012345678",
+        username: "tester",
+        avatarUrl: "https://cdn/a.jpg",
+        profileUrl: "https://steamcommunity.com/id/tester",
+    });
+    getSetting.mockReset().mockReturnValue(true);
+    enqueueJob.mockReset().mockResolvedValue("job-1");
     Object.values(prismaMock).forEach((model) => {
         if (typeof model === "function") return;
         Object.values(model).forEach((fn) => (fn as ReturnType<typeof vi.fn>).mockReset());
@@ -258,5 +295,108 @@ describe("GET /api/admin/jobs/[id]/stream", () => {
 
         controller.abort();
         await response.body?.cancel().catch(() => undefined);
+    });
+});
+
+describe("GET /api/auth/signin", () => {
+    async function callSignin(url: string) {
+        const { GET } = await import("@/app/api/auth/signin/route");
+        return GET(makeRequest(url));
+    }
+
+    it("redirects to Steam with a callback pointing back at this app", async () => {
+        vi.stubEnv("WEB_APP_URL", "https://gamepile.example.com");
+
+        const response = await callSignin("http://localhost:3000/api/auth/signin");
+        const location = new URL(response.headers.get("location")!);
+        const returnTo = new URL(location.searchParams.get("openid.return_to")!);
+
+        expect(response.status).toBe(307);
+        expect(location.host).toBe("steamcommunity.com");
+        expect(returnTo.origin).toBe("https://gamepile.example.com");
+        expect(returnTo.pathname).toBe("/api/auth/callback");
+        vi.unstubAllEnvs();
+    });
+
+    it("carries an allowed redirect target through to the callback", async () => {
+        const response = await callSignin("http://localhost:3000/api/auth/signin?redirect=/vaults/abc");
+        const location = new URL(response.headers.get("location")!);
+        const returnTo = new URL(location.searchParams.get("openid.return_to")!);
+
+        expect(returnTo.searchParams.get("redirect")).toBe("/vaults/abc");
+    });
+
+    it("refuses to carry an off-site redirect target", async () => {
+        const response = await callSignin("http://localhost:3000/api/auth/signin?redirect=//evil.com");
+        const location = new URL(response.headers.get("location")!);
+        const returnTo = new URL(location.searchParams.get("openid.return_to")!);
+
+        // The open-redirect guard has to hold at the route, not only in the helper.
+        expect(returnTo.searchParams.get("redirect")).toBe("/library");
+    });
+});
+
+describe("/api/auth/signout", () => {
+    it("clears the session and redirects home on GET", async () => {
+        const { GET } = await import("@/app/api/auth/signout/route");
+
+        const response = await GET(makeRequest("http://localhost:3000/api/auth/signout"));
+
+        expect(invalidateSession).toHaveBeenCalled();
+        expect(new URL(response.headers.get("location")!).pathname).toBe("/");
+    });
+
+    it("returns JSON success on POST", async () => {
+        const { POST } = await import("@/app/api/auth/signout/route");
+
+        const response = await POST();
+
+        expect(response.status).toBe(200);
+        expect(await response.json()).toEqual({ success: true });
+        expect(invalidateSession).toHaveBeenCalled();
+    });
+
+    it("still redirects home when clearing the session throws", async () => {
+        invalidateSession.mockRejectedValue(new Error("redis down"));
+        const { GET } = await import("@/app/api/auth/signout/route");
+
+        const response = await GET(makeRequest("http://localhost:3000/api/auth/signout"));
+
+        // A failed signout must never trap the user in a signed-in state loop.
+        expect(new URL(response.headers.get("location")!).pathname).toBe("/");
+    });
+
+    it("reports a 500 on POST when clearing the session throws", async () => {
+        invalidateSession.mockRejectedValue(new Error("redis down"));
+        const { POST } = await import("@/app/api/auth/signout/route");
+
+        expect((await POST()).status).toBe(500);
+    });
+});
+
+describe("GET /api/auth/callback", () => {
+    async function callCallback(query = "") {
+        const { GET } = await import("@/app/api/auth/callback/route");
+        return GET(makeRequest(`http://localhost:3000/api/auth/callback${query}`) as never);
+    }
+
+    it("rejects a callback Steam does not verify", async () => {
+        verifySteamLogin.mockResolvedValue(null);
+
+        const response = await callCallback("?openid.mode=id_res");
+
+        // The security-critical path: no verification, no session.
+        expect(new URL(response.headers.get("location")!).search).toContain("verification_failed");
+        expect(createUserSession).not.toHaveBeenCalled();
+        expect(setSessionCookie).not.toHaveBeenCalled();
+    });
+
+    it("rejects when the Steam profile cannot be resolved", async () => {
+        getSteamProfile.mockResolvedValue(null);
+
+        const response = await callCallback("?openid.mode=id_res");
+
+        expect(new URL(response.headers.get("location")!).search).toContain("profile_fetch_failed");
+        expect(createUserSession).not.toHaveBeenCalled();
     });
 });
