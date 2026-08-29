@@ -21,6 +21,16 @@ const PUBLIC_ROUTES = [
 ];
 
 /**
+ * Health and readiness endpoints. These bypass authentication and rate limiting
+ * entirely: a probe that gets redirected to the login page or throttled to 429
+ * would mark a perfectly healthy container as failing.
+ */
+const HEALTH_ROUTES = [
+    "/api/health/ready",
+    "/api/v1/heartbeat",
+];
+
+/**
  * Route prefixes that allow unauthenticated access.
  * Access control is handled at the page / action level
  * (e.g. only PUBLIC collections are readable by anonymous users).
@@ -51,6 +61,10 @@ export async function proxy(request: NextRequest) {
             request.headers.get("x-forwarded-for"),
             request.headers.get("x-real-ip"),
     ]});
+
+    if (HEALTH_ROUTES.some((route) => pathname === route)) {
+        return NextResponse.next();
+    }
 
     const sessionCookieName = process.env.WEB_SESSION_COOKIE_NAME || "__session";
     const sessionToken = request.cookies.get(sessionCookieName)?.value;

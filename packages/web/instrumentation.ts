@@ -20,7 +20,15 @@ export async function register() {
         const { initializeLogsExporter } = await import("@/lib/logs-exporter");
         initializeLogsExporter();
 
-        const { loadSettings } = await import("@/lib/app-settings");
-        await loadSettings();
+        // Opens the rotating log file now, so a misconfigured LOG_FILE_DIR surfaces
+        // at boot rather than silently disabling the sink on the first log line.
+        const { logSinks } = await import("@/lib/logger");
+        logSinks.initialize?.();
+
+        const { ensureSettingsLoaded } = await import("@/lib/app-settings");
+
+        // Best-effort: a cold settings store degrades to defaults and repairs itself
+        // on a later request. Failing here must never leave the process serving 500s.
+        await ensureSettingsLoaded();
     }
 }

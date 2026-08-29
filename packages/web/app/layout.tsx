@@ -9,7 +9,7 @@ import * as React from "react";
 import {ReactNode} from "react";
 
 import { AnimatedBackground } from "@/components/animated-background";
-import { getPublicSettings } from "@/lib/app-settings";
+import { ensureSettingsLoaded, getPublicSettings } from "@/lib/app-settings";
 import { AppSettingsProvider } from "@/lib/providers/app-settings";
 import {SessionProvider} from "@/lib/providers/session";
 
@@ -76,6 +76,11 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+    // Repairs a cold settings store (failed boot load, transient database outage)
+    // without needing a container restart. Never rejects — a still-cold store
+    // renders with defaults rather than failing the whole tree.
+    await ensureSettingsLoaded();
+
     return (
         <html lang="en" className="dark" suppressHydrationWarning>
             <body

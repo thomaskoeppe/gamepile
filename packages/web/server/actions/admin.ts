@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 
-import { getSetting, invalidateSettingsCache, loadSettings, upsertSetting, upsertSettings } from "@/lib/app-settings";
+import { getSetting, loadSettings, upsertSetting, upsertSettings } from "@/lib/app-settings";
 import prisma from "@/lib/prisma";
 import {jobsQueue} from "@/lib/queue";
 import { redis } from "@/lib/redis";
@@ -124,7 +124,7 @@ export const saveConfiguration = actionClientWithAdmin
     }));
 
 /**
- * Invalidates the in-memory settings cache and reloads settings from the database.
+ * Reloads settings from the database, swapping the in-memory store atomically.
  *
  * @returns Success flag and a confirmation message.
  */
@@ -132,8 +132,9 @@ export const reloadSettings = actionClientWithAdmin
     .action(withLogging(async ({ ctx }, { log }) => {
         log.info("Reloading app settings", { userId: ctx.user.id });
 
-        invalidateSettingsCache();
-        await loadSettings();
+        // Load-then-swap: a failed read leaves the currently loaded settings in
+        // place instead of emptying the cache for every subsequent request.
+        await loadSettings({ force: true });
 
         return { success: true, message: "Settings reloaded from database." };
     }, {
