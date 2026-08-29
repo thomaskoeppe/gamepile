@@ -31,16 +31,8 @@ export default defineConfig({
     test: {
         globals: true,
         environment: "node",
-        include: [
-            "packages/*/**/*.test.ts",
-            "test/**/*.test.ts",
-        ],
-        exclude: [
-            "**/node_modules/**",
-            "**/dist/**",
-            "**/.next/**",
-            "**/prisma/generated/**",
-        ],
+        include: ["packages/*/**/*.test.ts", "test/**/*.test.ts"],
+        exclude: ["**/node_modules/**", "**/dist/**", "**/.next/**", "**/prisma/generated/**"],
         setupFiles: [fileURLToPath(new URL("./test/setup.ts", import.meta.url))],
         // Log sinks and settings caches live on globalThis, so tests must not
         // share a process or they will observe each other's state.

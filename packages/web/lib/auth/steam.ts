@@ -3,10 +3,10 @@ import { logger } from "@/lib/logger";
 const log = logger.child("server.services.auth:steam");
 
 export interface SteamProfile {
-    steamId: string
-    username: string
-    avatarUrl: string
-    profileUrl: string
+    steamId: string;
+    username: string;
+    avatarUrl: string;
+    profileUrl: string;
 }
 
 /**
@@ -68,9 +68,7 @@ export async function verifySteamLogin(searchParams: URLSearchParams): Promise<s
             return null;
         }
 
-        const steamIdMatch = claimedId.match(
-            /https:\/\/steamcommunity\.com\/openid\/id\/(\d+)/
-        );
+        const steamIdMatch = claimedId.match(/https:\/\/steamcommunity\.com\/openid\/id\/(\d+)/);
         if (!steamIdMatch) {
             log.warn("Steam verification succeeded but claimed_id format invalid", { claimedId });
             return null;
@@ -96,11 +94,15 @@ export async function getSteamProfile(steamId: string): Promise<SteamProfile | n
         const response = await fetch(url);
 
         if (!response.ok) {
-            log.error("Failed to fetch Steam profile — HTTP error", new Error(`Steam API returned ${response.status} ${response.statusText}`), {
-                steamId,
-                status: response.status,
-                statusText: response.statusText,
-            });
+            log.error(
+                "Failed to fetch Steam profile — HTTP error",
+                new Error(`Steam API returned ${response.status} ${response.statusText}`),
+                {
+                    steamId,
+                    status: response.status,
+                    statusText: response.statusText,
+                },
+            );
 
             return {
                 steamId,

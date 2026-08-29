@@ -1,11 +1,6 @@
 "use client";
 
-import {
-    createContext,
-    type ReactNode,
-    useCallback,
-    useContext,
-} from "react";
+import { createContext, type ReactNode, useCallback, useContext } from "react";
 
 import type { PublicAppSettings } from "@/lib/app-settings";
 import { browserLog } from "@/lib/browser-logger";
@@ -78,5 +73,3 @@ export function useAppSettings(): AppSettingsContextType {
 }
 
 export { AppSettingKey };
-
-

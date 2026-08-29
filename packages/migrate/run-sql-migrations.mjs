@@ -184,8 +184,7 @@ async function run() {
 }
 
 run().catch((error) => {
-    const message = error instanceof Error ? error.stack ?? error.message : String(error);
+    const message = error instanceof Error ? (error.stack ?? error.message) : String(error);
     writeErr(message);
     process.exitCode = 1;
 });
-

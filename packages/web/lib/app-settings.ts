@@ -1,6 +1,6 @@
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
-import {AppSettingKey, KeyVaultAuthType} from "@/prisma/generated/enums";
+import { AppSettingKey, KeyVaultAuthType } from "@/prisma/generated/enums";
 import type { AppSettingValueType } from "@/types/app-setting";
 
 /**
@@ -27,7 +27,7 @@ export const PUBLIC_SETTING_KEYS = [
     AppSettingKey.VAULT_DEFAULT_AUTH_TYPE,
     AppSettingKey.VAULT_ALLOW_PASSWORD_CHANGE,
     AppSettingKey.ALLOW_INVITE_CODE_GENERATION,
-    AppSettingKey.ALLOW_USER_ACCOUNT_DELETION
+    AppSettingKey.ALLOW_USER_ACCOUNT_DELETION,
 ] as const satisfies readonly AppSettingKey[];
 
 /** The type of settings that are safe to expose client-side. */
@@ -127,8 +127,7 @@ export async function loadSettings(options?: { force?: boolean }): Promise<void>
 
         for (const row of rows) {
             const key = row.key as AppSettingKey;
-            (hydrated as Record<string, unknown>)[key] =
-                row.value as unknown as AppSettingValueType[typeof key];
+            (hydrated as Record<string, unknown>)[key] = row.value as unknown as AppSettingValueType[typeof key];
         }
 
         g.__appSettings = hydrated;
@@ -137,7 +136,7 @@ export async function loadSettings(options?: { force?: boolean }): Promise<void>
 
         log.info("App settings loaded into memory", {
             count: rows.length,
-            keys: rows.map(r => r.key),
+            keys: rows.map((r) => r.key),
         });
     } catch (error) {
         // Deliberately does NOT clear the store. Wiping it here is what used to
@@ -218,9 +217,7 @@ export function getAllSettings(): AppSettingValueType {
  */
 export function getPublicSettings(): PublicAppSettings {
     const all = getAllSettings();
-    return Object.fromEntries(
-        PUBLIC_SETTING_KEYS.map((key) => [key, all[key]]),
-    ) as PublicAppSettings;
+    return Object.fromEntries(PUBLIC_SETTING_KEYS.map((key) => [key, all[key]])) as PublicAppSettings;
 }
 
 /**
@@ -233,10 +230,7 @@ export function getPublicSettings(): PublicAppSettings {
  * @returns A promise that resolves when the upsert and memory update are complete.
  * @throws {Error} If the Prisma upsert fails (e.g. database unreachable).
  */
-export async function upsertSetting<K extends AppSettingKey>(
-    key: K,
-    value: AppSettingValueType[K],
-): Promise<void> {
+export async function upsertSetting<K extends AppSettingKey>(key: K, value: AppSettingValueType[K]): Promise<void> {
     log.info("Upserting app setting", { key, value });
 
     await prisma.appSetting.upsert({
@@ -259,13 +253,8 @@ export async function upsertSetting<K extends AppSettingKey>(
  * @returns A promise that resolves when all upserts and memory updates are complete.
  * @throws {Error} If the Prisma transaction fails (e.g. database unreachable).
  */
-export async function upsertSettings(
-    entries: Partial<AppSettingValueType>,
-): Promise<void> {
-    const pairs = Object.entries(entries) as [
-        AppSettingKey,
-        AppSettingValueType[AppSettingKey],
-    ][];
+export async function upsertSettings(entries: Partial<AppSettingValueType>): Promise<void> {
+    const pairs = Object.entries(entries) as [AppSettingKey, AppSettingValueType[AppSettingKey]][];
 
     log.info("Upserting multiple app settings in a transaction", {
         keys: pairs.map(([key]) => key),

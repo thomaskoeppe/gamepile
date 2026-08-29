@@ -1,29 +1,16 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "tags": [
-    "-lintignore"
-  ],
+  "tags": ["-lintignore"],
   "workspaces": {
     ".": {
-      "entry": [
-        "prisma/**"
-      ],
-      "ignore": [
-        ".github/**",
-        "docs/**",
-        "coverage/**"
-      ]
+      "entry": ["prisma/**"],
+      "ignore": [".github/**", "docs/**", "coverage/**"]
     },
     "packages/web": {
-      "ignore": [
-        ".next/**",
-        "public/**"
-      ]
+      "ignore": [".next/**", "public/**"]
     },
     "packages/worker": {
-      "entry": [
-        "src/index.ts"
-      ]
+      "entry": ["src/index.ts"]
     }
   }
 }

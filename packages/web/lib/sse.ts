@@ -10,7 +10,7 @@ export function ssePing(): string {
 export const SSE_HEADERS = {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache, no-transform",
-    "Connection": "keep-alive",
+    Connection: "keep-alive",
     "X-Accel-Buffering": "no",
 } as const;
 
@@ -73,10 +73,22 @@ export function createPollingSseStream(options: PollingSseOptions): ReadableStre
                 if (closed) return;
                 closed = true;
 
-                if (pollId) { clearInterval(pollId); pollId = null; }
-                if (keepAliveId) { clearInterval(keepAliveId); keepAliveId = null; }
-                if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
-                if (onAbort && signal) { signal.removeEventListener("abort", onAbort); onAbort = null; }
+                if (pollId) {
+                    clearInterval(pollId);
+                    pollId = null;
+                }
+                if (keepAliveId) {
+                    clearInterval(keepAliveId);
+                    keepAliveId = null;
+                }
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                    timeoutId = null;
+                }
+                if (onAbort && signal) {
+                    signal.removeEventListener("abort", onAbort);
+                    onAbort = null;
+                }
 
                 onClose?.(reason);
             }
@@ -138,10 +150,22 @@ export function createPollingSseStream(options: PollingSseOptions): ReadableStre
             if (closed) return;
             closed = true;
 
-            if (pollId) { clearInterval(pollId); pollId = null; }
-            if (keepAliveId) { clearInterval(keepAliveId); keepAliveId = null; }
-            if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
-            if (onAbort && signal) { signal.removeEventListener("abort", onAbort); onAbort = null; }
+            if (pollId) {
+                clearInterval(pollId);
+                pollId = null;
+            }
+            if (keepAliveId) {
+                clearInterval(keepAliveId);
+                keepAliveId = null;
+            }
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+            if (onAbort && signal) {
+                signal.removeEventListener("abort", onAbort);
+                onAbort = null;
+            }
 
             onClose?.("client");
         },

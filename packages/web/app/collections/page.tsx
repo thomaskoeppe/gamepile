@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
     ArrowRight,
@@ -14,21 +14,21 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import {CreateCollectionDialog} from "@/components/dialogs/create-collection";
+import { CreateCollectionDialog } from "@/components/dialogs/create-collection";
 import { Header } from "@/components/header";
 import { LoadingIndicator } from "@/components/shared/loading-indicator";
 import { Shimmer } from "@/components/shared/shimmer";
-import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
-import {Badge} from "@/components/ui/badge";
-import {Button} from "@/components/ui/button";
-import {Card, CardContent, CardDescription,CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
-import {useServerQuery} from "@/lib/hooks/use-server-query";
-import {useAppSettings} from "@/lib/providers/app-settings";
-import {useSession} from "@/lib/providers/session";
-import {cn} from "@/lib/utils";
-import type {Prisma} from "@/prisma/generated/browser";
-import {getCollections} from "@/server/queries/collections";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useServerQuery } from "@/lib/hooks/use-server-query";
+import { useAppSettings } from "@/lib/providers/app-settings";
+import { useSession } from "@/lib/providers/session";
+import { cn } from "@/lib/utils";
+import type { Prisma } from "@/prisma/generated/browser";
+import { getCollections } from "@/server/queries/collections";
 
 type CollectionUserPreview = { id: string; username: string; avatarUrl: string | null };
 
@@ -56,9 +56,7 @@ function UserAvatarStack({
 }) {
     const allUsers = [
         { user: creator, isOwner: true },
-        ...users
-            .filter((u) => u.user.id !== creator.id)
-            .map((u) => ({ user: u.user, isOwner: false })),
+        ...users.filter((u) => u.user.id !== creator.id).map((u) => ({ user: u.user, isOwner: false })),
     ];
 
     const visible = allUsers.slice(0, 4);
@@ -85,9 +83,7 @@ function UserAvatarStack({
                         <TooltipContent side="bottom" className="text-xs">
                             <span className="flex items-center gap-1">
                                 {user.username}
-                                {isOwner && (
-                                    <Crown className="size-3 text-yellow-400 fill-yellow-400" />
-                                )}
+                                {isOwner && <Crown className="size-3 text-yellow-400 fill-yellow-400" />}
                             </span>
                         </TooltipContent>
                     </Tooltip>
@@ -122,26 +118,15 @@ function CollectionCard({ collection }: { collection: CollectionCardData }) {
                 <CardHeader>
                     <div className="flex items-start justify-between gap-2">
                         <div className="space-y-1.5 min-w-0">
-                            <CardTitle className="text-base truncate">
-                                {collection.name}
-                            </CardTitle>
+                            <CardTitle className="text-base truncate">{collection.name}</CardTitle>
                             {collection.description ? (
-                                <CardDescription className="line-clamp-1">
-                                    {collection.description}
-                                </CardDescription>
+                                <CardDescription className="line-clamp-1">{collection.description}</CardDescription>
                             ) : (
                                 <CardDescription>No description</CardDescription>
                             )}
                         </div>
-                        <Badge
-                            variant="outline"
-                            className="shrink-0 text-xs capitalize gap-1"
-                        >
-                            {collection.type === "PRIVATE" ? (
-                                <Lock className="size-3" />
-                            ) : (
-                                <Globe className="size-3" />
-                            )}
+                        <Badge variant="outline" className="shrink-0 text-xs capitalize gap-1">
+                            {collection.type === "PRIVATE" ? <Lock className="size-3" /> : <Globe className="size-3" />}
                             {collection.type === "PRIVATE" ? "Private" : "Public"}
                         </Badge>
                     </div>
@@ -149,15 +134,11 @@ function CollectionCard({ collection }: { collection: CollectionCardData }) {
 
                 <CardContent>
                     <div className="flex items-center justify-between">
-                        <UserAvatarStack
-                            creator={collection.createdBy}
-                            users={collection.users}
-                        />
+                        <UserAvatarStack creator={collection.createdBy} users={collection.users} />
                         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                             <Gamepad2 className="size-4" />
                             <span>
-                                {collection._count.games}{" "}
-                                {collection._count.games === 1 ? "game" : "games"}
+                                {collection._count.games} {collection._count.games === 1 ? "game" : "games"}
                             </span>
                         </div>
                     </div>
@@ -191,10 +172,7 @@ export default function CollectionsPage() {
         isValidating,
         isRevalidating,
         mutate,
-    } = useServerQuery(
-        user ? ["collections", user.id] : null,
-        getCollections
-    );
+    } = useServerQuery(user ? ["collections", user.id] : null, getCollections);
 
     const isLoading = sessionLoading || collectionsLoading || result === undefined;
     const collections = result?.success ? result.data : null;
@@ -209,14 +187,15 @@ export default function CollectionsPage() {
                 <div className="flex items-center justify-between mb-8">
                     <div className="space-y-1">
                         <h1 className="text-2xl font-semibold tracking-tight">Collections</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Browse and manage your game collections
-                        </p>
+                        <p className="text-sm text-muted-foreground">Browse and manage your game collections</p>
                     </div>
 
                     <div className="flex items-center gap-2">
                         <CreateCollectionDialog onReload={() => mutate()}>
-                            <Button variant="outline" disabled={isLoading || getSetting("MAX_COLLECTIONS_PER_USER") <= ownedCollectionCount}>
+                            <Button
+                                variant="outline"
+                                disabled={isLoading || getSetting("MAX_COLLECTIONS_PER_USER") <= ownedCollectionCount}
+                            >
                                 {!isLoading ? (
                                     <>
                                         <Plus className="size-4 mr-1.5" />
@@ -237,10 +216,11 @@ export default function CollectionsPage() {
                             onClick={() => mutate()}
                             disabled={isValidating || isLoading}
                         >
-                            {isValidating || isLoading
-                                ? <LoaderCircle className="size-4 animate-spin" />
-                                : <RefreshCcw className="size-4" />
-                            }
+                            {isValidating || isLoading ? (
+                                <LoaderCircle className="size-4 animate-spin" />
+                            ) : (
+                                <RefreshCcw className="size-4" />
+                            )}
                         </Button>
                     </div>
                 </div>
@@ -297,9 +277,11 @@ export default function CollectionsPage() {
                 )}
 
                 {!isLoading && !error && collections && collections.length > 0 && (
-                    <div className={cn(
-                        "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 relative transition-opacity duration-200",
-                    )}>
+                    <div
+                        className={cn(
+                            "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 relative transition-opacity duration-200",
+                        )}
+                    >
                         {collections.map((collection) => (
                             <CollectionCard key={collection.id} collection={collection} />
                         ))}

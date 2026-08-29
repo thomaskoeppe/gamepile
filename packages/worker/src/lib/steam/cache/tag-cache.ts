@@ -1,7 +1,7 @@
-import type {SteamTag, TagListResponse} from "@/src/lib/steam/api/types.js";
-import {getWorkerEnv} from "@/src/lib/env.js";
-import {logger} from "@/src/lib/logger.js";
-import {steamRateLimiter, SteamRateLimitError} from "@/src/lib/steam/ratelimiter.js";
+import type { SteamTag, TagListResponse } from "@/src/lib/steam/api/types.js";
+import { getWorkerEnv } from "@/src/lib/env.js";
+import { logger } from "@/src/lib/logger.js";
+import { steamRateLimiter, SteamRateLimitError } from "@/src/lib/steam/ratelimiter.js";
 
 const log = logger.child("worker.lib.steam:tagCache");
 
@@ -36,7 +36,7 @@ async function loadTagCache(): Promise<Map<number, string>> {
 
     log.debug("Loading Steam tag list");
 
-    const response = await fetch(url, {headers: {Accept: "application/json"}});
+    const response = await fetch(url, { headers: { Accept: "application/json" } });
 
     if (response.status === 429 || response.status === 403) {
         steamRateLimiter.reportRateLimit();
@@ -53,7 +53,7 @@ async function loadTagCache(): Promise<Map<number, string>> {
     tagCache = new Map(tags.map((t) => [t.tagid, t.name]));
     tagCacheLoadedAt = now;
 
-    log.debug("Steam tag list loaded", {tagCount: tagCache.size});
+    log.debug("Steam tag list loaded", { tagCount: tagCache.size });
 
     return tagCache;
 }
@@ -68,7 +68,7 @@ async function loadTagCache(): Promise<Map<number, string>> {
  */
 export async function getAllTags(): Promise<SteamTag[]> {
     const cache = await loadTagCache();
-    return Array.from(cache.entries()).map(([tagid, name]) => ({tagid, name}));
+    return Array.from(cache.entries()).map(([tagid, name]) => ({ tagid, name }));
 }
 
 /**
@@ -84,7 +84,5 @@ export async function resolveTagNames(tagIds: number[]): Promise<string[]> {
     if (tagIds.length === 0) return [];
 
     const cache = await loadTagCache();
-    return tagIds
-        .map((id) => cache.get(id))
-        .filter((name): name is string => name !== undefined);
+    return tagIds.map((id) => cache.get(id)).filter((name): name is string => name !== undefined);
 }

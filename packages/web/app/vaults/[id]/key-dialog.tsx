@@ -1,15 +1,27 @@
 "use client";
 
 import {
-    AlertCircle, Check, ClipboardCopy, ExternalLink, Eye, EyeOff,
-    LoaderCircle, Lock, TicketCheck, Undo2,
+    AlertCircle,
+    Check,
+    ClipboardCopy,
+    ExternalLink,
+    Eye,
+    EyeOff,
+    LoaderCircle,
+    Lock,
+    TicketCheck,
+    Undo2,
 } from "lucide-react";
 import { SubmitEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
-    Dialog, DialogContent, DialogDescription,
-    DialogFooter, DialogHeader, DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
@@ -52,14 +64,19 @@ export function KeyDialog({
     handleRedeemOnSteam,
     handleMarkRedeemed,
     handleMarkUnredeemed,
-    handleAuthRetry
+    handleAuthRetry,
 }: KeyDialogComponentProps) {
     const dialogOpen = keyDialog.phase !== "closed";
     const dialogGame = keyDialog.phase !== "closed" ? keyDialog.game : null;
     const gameName = dialogGame?.game?.name ?? dialogGame?.originalName ?? "Unknown Game";
 
     return (
-        <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) closeKeyDialog(); }}>
+        <Dialog
+            open={dialogOpen}
+            onOpenChange={(open) => {
+                if (!open) closeKeyDialog();
+            }}
+        >
             <DialogContent className="sm:max-w-md outline-none">
                 <DialogHeader>
                     <DialogTitle>
@@ -118,7 +135,9 @@ export function KeyDialog({
                             )}
                         </div>
                         <DialogFooter>
-                            <Button type="button" variant="outline" onClick={closeKeyDialog}>Cancel</Button>
+                            <Button type="button" variant="outline" onClick={closeKeyDialog}>
+                                Cancel
+                            </Button>
                             <Button type="submit" disabled={secret.length === 0}>
                                 <Lock className="size-4" /> Decrypt Key
                             </Button>
@@ -153,7 +172,15 @@ export function KeyDialog({
 
                         <div className="flex flex-wrap gap-2">
                             <Button variant="outline" size="sm" onClick={handleCopyKey} className="flex-1">
-                                {copied ? <><Check className="size-4" /> Copied!</> : <><ClipboardCopy className="size-4" /> Copy Key</>}
+                                {copied ? (
+                                    <>
+                                        <Check className="size-4" /> Copied!
+                                    </>
+                                ) : (
+                                    <>
+                                        <ClipboardCopy className="size-4" /> Copy Key
+                                    </>
+                                )}
                             </Button>
                             <Button variant="outline" size="sm" onClick={handleRedeemOnSteam} className="flex-1">
                                 <ExternalLink className="size-4" /> Redeem on Steam
@@ -163,16 +190,31 @@ export function KeyDialog({
                         <DialogFooter className="gap-2 sm:gap-0">
                             {!dialogGame?.redeemed ? (
                                 <Button size="sm" onClick={handleMarkRedeemed} disabled={redeemAction.isPending}>
-                                    {redeemAction.isPending ? <LoaderCircle className="size-4 animate-spin" /> : <TicketCheck className="size-4" />}
+                                    {redeemAction.isPending ? (
+                                        <LoaderCircle className="size-4 animate-spin" />
+                                    ) : (
+                                        <TicketCheck className="size-4" />
+                                    )}
                                     Mark as Redeemed
                                 </Button>
                             ) : (
-                                <Button variant="outline" size="sm" onClick={handleMarkUnredeemed} disabled={unredeemAction.isPending}>
-                                    {unredeemAction.isPending ? <LoaderCircle className="size-4 animate-spin" /> : <Undo2 className="size-4" />}
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleMarkUnredeemed}
+                                    disabled={unredeemAction.isPending}
+                                >
+                                    {unredeemAction.isPending ? (
+                                        <LoaderCircle className="size-4 animate-spin" />
+                                    ) : (
+                                        <Undo2 className="size-4" />
+                                    )}
                                     Mark as Unredeemed
                                 </Button>
                             )}
-                            <Button variant="ghost" size="sm" onClick={closeKeyDialog}>Close</Button>
+                            <Button variant="ghost" size="sm" onClick={closeKeyDialog}>
+                                Close
+                            </Button>
                         </DialogFooter>
                     </div>
                 )}
@@ -191,7 +233,9 @@ export function KeyDialog({
                                     Try Again
                                 </Button>
                             )}
-                            <Button variant="ghost" onClick={closeKeyDialog}>Close</Button>
+                            <Button variant="ghost" onClick={closeKeyDialog}>
+                                Close
+                            </Button>
                         </DialogFooter>
                     </div>
                 )}

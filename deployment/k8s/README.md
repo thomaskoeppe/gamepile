@@ -75,5 +75,3 @@ skipped. The full upgrade guide (backups, rollback, version pinning) lives in
 - `deployment.yaml` (web)
 - `worker-deployment.yaml`
 - `ingress.yaml`
-
-

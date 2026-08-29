@@ -1,13 +1,13 @@
-import {useVirtualizer} from '@tanstack/react-virtual';
-import React, {Fragment, useEffect, useMemo, useRef, useState} from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
 
-import {GameTile} from "@/components/game/game-tile";
-import {MultiSelectCombobox} from "@/components/shared/multi-select-combobox";
-import {Shimmer} from "@/components/shared/shimmer";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {browserLog} from "@/lib/browser-logger";
-import {AppSettingKey, useAppSettings} from "@/lib/providers/app-settings";
-import {Prisma} from "@/prisma/generated/client";
+import { GameTile } from "@/components/game/game-tile";
+import { MultiSelectCombobox } from "@/components/shared/multi-select-combobox";
+import { Shimmer } from "@/components/shared/shimmer";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { browserLog } from "@/lib/browser-logger";
+import { AppSettingKey, useAppSettings } from "@/lib/providers/app-settings";
+import { Prisma } from "@/prisma/generated/client";
 
 function GameTileSkeleton({ width, height }: { width: number; height: number }) {
     return (
@@ -18,14 +18,16 @@ function GameTileSkeleton({ width, height }: { width: number; height: number }) 
 }
 
 export function GameList({
-     games,
-     categories,
-     tags,
-     showOwnedFilter,
-     isLoading = false,
-     onRevalidate,
- }: {
-    games: Array<Prisma.GameGetPayload<{ include: { categories: true, tags: true } }> & { playtime?: number; owned: boolean }>;
+    games,
+    categories,
+    tags,
+    showOwnedFilter,
+    isLoading = false,
+    onRevalidate,
+}: {
+    games: Array<
+        Prisma.GameGetPayload<{ include: { categories: true; tags: true } }> & { playtime?: number; owned: boolean }
+    >;
     categories: string[];
     tags: string[];
     showOwnedFilter?: boolean;
@@ -41,17 +43,17 @@ export function GameList({
     const [containerWidth, setContainerWidth] = useState<number | null>(null);
 
     const handleTagsChange = (tags: string[]) => {
-        browserLog.info('Game list filter changed', { count: tags.length, tags });
+        browserLog.info("Game list filter changed", { count: tags.length, tags });
         setSelectedTags(tags);
     };
 
     const handleSortChange = (value: string) => {
-        browserLog.info('Game list sort changed', { sortBy: value });
+        browserLog.info("Game list sort changed", { sortBy: value });
         setSortOption(value);
     };
 
     const handleOwnershipChange = (value: string) => {
-        browserLog.info('Game list ownership filter changed', { ownership: value });
+        browserLog.info("Game list ownership filter changed", { ownership: value });
         setShowOnlyOwnedState(value as "owned" | "unowned" | "all");
     };
 
@@ -81,14 +83,14 @@ export function GameList({
 
     const visibleGames = useMemo(() => {
         const filteredGames = games.filter((ug) => {
-            const gameCategories = ug.categories.map(c => `category_${c.name}`);
-            const gameTags = ug.tags.map(t => `tag_${t.name}`);
+            const gameCategories = ug.categories.map((c) => `category_${c.name}`);
+            const gameTags = ug.tags.map((t) => `tag_${t.name}`);
             const tagList = [...gameCategories, ...gameTags];
 
             if (showOnlyOwnedState === "owned" && !ug.owned) return false;
             if (showOnlyOwnedState === "unowned" && ug.owned) return false;
 
-            return selectedTags.every(tag => tagList.includes(tag));
+            return selectedTags.every((tag) => tagList.includes(tag));
         });
 
         return filteredGames.sort((a, b) => {
@@ -129,7 +131,7 @@ export function GameList({
     }, [visibleGames.length, columnVirtualizer, rowVirtualizer]);
 
     return (
-        <div ref={ref} style={{ height: '100%', width: '100%', overflow: 'auto' }}>
+        <div ref={ref} style={{ height: "100%", width: "100%", overflow: "auto" }}>
             <div className="flex justify-end items-center flex-wrap gap-4">
                 {isLoading || !adjustedTileSize ? (
                     <>
@@ -141,8 +143,12 @@ export function GameList({
                     <>
                         <MultiSelectCombobox
                             options={[
-                                ...categories.map(category => ({ label: category, value: `category_${category}`, category: "category" })),
-                                ...tags.map(tag => ({ label: tag, value: `tag_${tag}`, category: "tag" })),
+                                ...categories.map((category) => ({
+                                    label: category,
+                                    value: `category_${category}`,
+                                    category: "category",
+                                })),
+                                ...tags.map((tag) => ({ label: tag, value: `tag_${tag}`, category: "tag" })),
                             ]}
                             placeholder="Filter games..."
                             className="w-full max-w-3xl my-4"
@@ -196,7 +202,7 @@ export function GameList({
                     style={{
                         height: `${rowVirtualizer.getTotalSize()}px`,
                         width: `${columnVirtualizer.getTotalSize()}px`,
-                        position: 'relative',
+                        position: "relative",
                     }}
                 >
                     {rowVirtualizer.getVirtualItems().map((virtualRow) => (
@@ -208,7 +214,7 @@ export function GameList({
                                     <div
                                         key={virtualColumn.key}
                                         style={{
-                                            position: 'absolute',
+                                            position: "absolute",
                                             top: 0,
                                             left: 0,
                                             width: `${virtualColumn.size}px`,
@@ -230,8 +236,7 @@ export function GameList({
             <div className="text-sm text-muted-foreground pt-2">
                 {games.length > 0 && (
                     <>
-                        Showing {visibleGames.length} of{" "}
-                        {visibleGames.length} games
+                        Showing {visibleGames.length} of {visibleGames.length} games
                     </>
                 )}
             </div>

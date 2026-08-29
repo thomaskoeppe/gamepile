@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
     createColumnHelper,
@@ -6,41 +6,28 @@ import {
     getCoreRowModel,
     getPaginationRowModel,
     useReactTable,
-} from '@tanstack/react-table';
-import { ExternalLink, LoaderCircle } from 'lucide-react';
-import { useAction } from 'next-safe-action/hooks';
-import { useCallback, useMemo, useState } from 'react';
+} from "@tanstack/react-table";
+import { ExternalLink, LoaderCircle } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { useCallback, useMemo, useState } from "react";
 
-import { TablePagination } from '@/components/table-pagination';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { useSession } from '@/lib/providers/session';
-import { UserRole } from '@/prisma/generated/browser';
-import { changeUserRole } from '@/server/actions/admin';
-import type { AdminUserListItem } from '@/server/queries/admin';
+import { TablePagination } from "@/components/table-pagination";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useSession } from "@/lib/providers/session";
+import { UserRole } from "@/prisma/generated/browser";
+import { changeUserRole } from "@/server/actions/admin";
+import type { AdminUserListItem } from "@/server/queries/admin";
 
 const PAGE_SIZE = 10;
 
 function getInitials(username: string): string {
     return username
-        .split(' ')
-        .map((part) => part[0] ?? '')
-        .join('')
+        .split(" ")
+        .map((part) => part[0] ?? "")
+        .join("")
         .slice(0, 2)
         .toUpperCase();
 }
@@ -51,8 +38,8 @@ function formatDate(value: string): string {
 
 function PrivacyBadge({ enabled, label }: { enabled: boolean; label: string }) {
     return (
-        <Badge variant={enabled ? 'secondary' : 'outline'}>
-            {label}: {enabled ? 'On' : 'Off'}
+        <Badge variant={enabled ? "secondary" : "outline"}>
+            {label}: {enabled ? "On" : "Off"}
         </Badge>
     );
 }
@@ -68,7 +55,7 @@ function RoleCell({ user, onRoleChange }: { user: AdminUserListItem; onRoleChang
             onRoleChange();
         },
         onError: () => {
-            setError('Failed to update role');
+            setError("Failed to update role");
         },
     });
 
@@ -80,7 +67,7 @@ function RoleCell({ user, onRoleChange }: { user: AdminUserListItem; onRoleChang
                 role: newRole as typeof UserRole.ADMIN | typeof UserRole.USER,
             });
         },
-        [execute, user.id]
+        [execute, user.id],
     );
 
     return (
@@ -116,8 +103,8 @@ export function UsersDataTable({ data, onDataChangeAction }: UsersTableProps) {
 
     const columns = useMemo(
         () => [
-            columnHelper.accessor('username', {
-                header: 'User',
+            columnHelper.accessor("username", {
+                header: "User",
                 cell: (info) => {
                     const user = info.row.original;
                     return (
@@ -130,7 +117,7 @@ export function UsersDataTable({ data, onDataChangeAction }: UsersTableProps) {
                                 <div className="flex flex-wrap items-center gap-2">
                                     <p className="font-medium text-foreground">{user.username}</p>
                                     <Badge
-                                        variant={user.role === UserRole.ADMIN ? 'default' : 'secondary'}
+                                        variant={user.role === UserRole.ADMIN ? "default" : "secondary"}
                                         className="text-xs"
                                     >
                                         {user.role}
@@ -151,14 +138,12 @@ export function UsersDataTable({ data, onDataChangeAction }: UsersTableProps) {
                     );
                 },
             }),
-            columnHelper.accessor('role', {
-                header: 'Role',
-                cell: (info) => (
-                    <RoleCell user={info.row.original} onRoleChange={() => onDataChangeAction?.()} />
-                ),
+            columnHelper.accessor("role", {
+                header: "Role",
+                cell: (info) => <RoleCell user={info.row.original} onRoleChange={() => onDataChangeAction?.()} />,
             }),
-            columnHelper.accessor('activeSessionCount', {
-                header: 'Access',
+            columnHelper.accessor("activeSessionCount", {
+                header: "Access",
                 cell: (info) => {
                     const user = info.row.original;
                     return (
@@ -171,21 +156,23 @@ export function UsersDataTable({ data, onDataChangeAction }: UsersTableProps) {
                 },
             }),
             columnHelper.accessor((row) => row.counts.jobs, {
-                id: 'activity',
-                header: 'Activity',
+                id: "activity",
+                header: "Activity",
                 cell: (info) => {
                     const user = info.row.original;
                     return (
                         <div className="space-y-1 text-sm text-muted-foreground">
                             <p>{user.counts.jobs} background job(s)</p>
-                            <p>{user.counts.vaultMemberships + user.counts.collectionMemberships} shared membership(s)</p>
+                            <p>
+                                {user.counts.vaultMemberships + user.counts.collectionMemberships} shared membership(s)
+                            </p>
                         </div>
                     );
                 },
             }),
             columnHelper.accessor((row) => row.counts.vaultsOwned, {
-                id: 'resources',
-                header: 'Resources',
+                id: "resources",
+                header: "Resources",
                 cell: (info) => {
                     const user = info.row.original;
                     return (
@@ -199,8 +186,8 @@ export function UsersDataTable({ data, onDataChangeAction }: UsersTableProps) {
                 },
             }),
             columnHelper.accessor((row) => row.counts.inviteCodesCreated, {
-                id: 'inviteCodes',
-                header: 'Invite codes',
+                id: "inviteCodes",
+                header: "Invite codes",
                 cell: (info) => {
                     const user = info.row.original;
                     return (
@@ -209,7 +196,8 @@ export function UsersDataTable({ data, onDataChangeAction }: UsersTableProps) {
                             <p>{user.counts.inviteCodesUsed} code(s) redeemed</p>
                             {user.inviteCodeUsage ? (
                                 <p>
-                                    Latest: <span className="font-mono text-foreground">{user.inviteCodeUsage.code}</span>
+                                    Latest:{" "}
+                                    <span className="font-mono text-foreground">{user.inviteCodeUsage.code}</span>
                                     <br />
                                     <span className="text-xs">{formatDate(user.inviteCodeUsage.usedAt)}</span>
                                 </p>
@@ -221,8 +209,8 @@ export function UsersDataTable({ data, onDataChangeAction }: UsersTableProps) {
                 },
             }),
             columnHelper.accessor((row) => row.privacy.allowVaultInvites, {
-                id: 'privacy',
-                header: 'Privacy',
+                id: "privacy",
+                header: "Privacy",
                 cell: (info) => {
                     const user = info.row.original;
                     return (
@@ -235,7 +223,7 @@ export function UsersDataTable({ data, onDataChangeAction }: UsersTableProps) {
                 },
             }),
         ],
-        [columnHelper, onDataChangeAction]
+        [columnHelper, onDataChangeAction],
     );
 
     const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));

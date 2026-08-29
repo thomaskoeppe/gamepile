@@ -25,7 +25,11 @@ vi.mock("@/lib/app-settings", () => ({
 
 vi.mock("@/lib/logger", () => {
     const child = () => ({
-        info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn(), child: () => child(),
+        info: vi.fn(),
+        debug: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        child: () => child(),
     });
     return { logger: { child } };
 });

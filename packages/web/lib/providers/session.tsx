@@ -1,13 +1,6 @@
 "use client";
 
-import {
-    createContext,
-    type ReactNode,
-    useCallback,
-    useContext,
-    useEffect,
-    useState,
-} from "react";
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import useSWR from "swr";
 
 import { browserLog } from "@/lib/browser-logger";
@@ -16,39 +9,39 @@ type SessionResponse = {
     authenticated: boolean;
     user: SessionUser | null;
     session: SessionInfo | null;
-}
+};
 
 interface SessionUser {
-    id: string
-    steamId: string
-    username: string
-    avatarUrl?: string
-    profileUrl: string | null
-    createdAt: string
-    role: string
+    id: string;
+    steamId: string;
+    username: string;
+    avatarUrl?: string;
+    profileUrl: string | null;
+    createdAt: string;
+    role: string;
 }
 
 interface SessionInfo {
-    id: string
-    expiresAt: string
-    ipAddress: string | null
-    userAgent: string | null
-    createdAt: string
-    lastAccessedAt: string
+    id: string;
+    expiresAt: string;
+    ipAddress: string | null;
+    userAgent: string | null;
+    createdAt: string;
+    lastAccessedAt: string;
 }
 
 interface SessionState {
-    authenticated: boolean
-    user: SessionUser | null
-    session: SessionInfo | null
-    isLoading: boolean
-    error: Error | null
+    authenticated: boolean;
+    user: SessionUser | null;
+    session: SessionInfo | null;
+    isLoading: boolean;
+    error: Error | null;
 }
 
 interface SessionContextType extends SessionState {
-    login: (redirectPath?: string, inviteCode?: string) => void
-    logout: () => Promise<void>
-    refreshSession: () => Promise<void>
+    login: (redirectPath?: string, inviteCode?: string) => void;
+    logout: () => Promise<void>;
+    refreshSession: () => Promise<void>;
 }
 
 const defaultContext: SessionContextType = {
@@ -83,7 +76,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     });
 
     const login = useCallback((redirectPath: string = "/library", inviteCode?: string) => {
-        browserLog.info('Login initiated', { redirectPath, hasInviteCode: !!inviteCode });
+        browserLog.info("Login initiated", { redirectPath, hasInviteCode: !!inviteCode });
         const loginUrl = new URL("/api/auth/signin", window.location.origin);
         loginUrl.searchParams.set("redirect", redirectPath);
         if (inviteCode) loginUrl.searchParams.set("invite_code", inviteCode);
@@ -91,7 +84,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const logout = useCallback(async () => {
-        browserLog.info('Logout initiated', { userId: data?.user?.id });
+        browserLog.info("Logout initiated", { userId: data?.user?.id });
         setIsLoggingOut(true);
         try {
             await fetch("/api/auth/signout", {
@@ -99,7 +92,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
                 credentials: "include",
             });
 
-            browserLog.info('Logout succeeded');
+            browserLog.info("Logout succeeded");
             await mutate({ authenticated: false, user: null, session: null }, false);
             window.location.href = "/";
         } catch (err) {
@@ -111,7 +104,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     }, [mutate, data?.user?.id]);
 
     const refreshSession = useCallback(async () => {
-        browserLog.debug('Session refresh triggered');
+        browserLog.debug("Session refresh triggered");
         await mutate();
     }, [mutate]);
 
@@ -126,11 +119,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         refreshSession,
     };
 
-    return (
-        <SessionContext.Provider value={contextValue}>
-            {children}
-        </SessionContext.Provider>
-    );
+    return <SessionContext.Provider value={contextValue}>{children}</SessionContext.Provider>;
 }
 
 export function useSession() {

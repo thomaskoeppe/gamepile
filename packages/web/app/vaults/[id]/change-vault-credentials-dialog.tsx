@@ -41,7 +41,11 @@ const schema = z
         }
 
         if (!data.currentSecret && !data.recoveryKey) {
-            ctx.addIssue({ path: ["currentSecret"], message: "Provide current secret or recovery key.", code: "custom" });
+            ctx.addIssue({
+                path: ["currentSecret"],
+                message: "Provide current secret or recovery key.",
+                code: "custom",
+            });
         }
     });
 
@@ -110,7 +114,8 @@ export function ChangeVaultCredentialsDialog({
                         Change Vault Credentials
                     </DialogTitle>
                     <DialogDescription>
-                        Rotate your vault PIN/password without re-encrypting all keys. You can authenticate using the current secret or the recovery key.
+                        Rotate your vault PIN/password without re-encrypting all keys. You can authenticate using the
+                        current secret or the recovery key.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -199,11 +204,7 @@ export function ChangeVaultCredentialsDialog({
                             render={({ field }) => (
                                 <Field>
                                     <FieldLabel>Recovery Key (optional)</FieldLabel>
-                                    <Input
-                                        {...field}
-                                        value={field.value ?? ""}
-                                        placeholder="Paste your recovery key"
-                                    />
+                                    <Input {...field} value={field.value ?? ""} placeholder="Paste your recovery key" />
                                 </Field>
                             )}
                         />
@@ -220,7 +221,11 @@ export function ChangeVaultCredentialsDialog({
                             Cancel
                         </Button>
                         <Button type="submit" disabled={isPending}>
-                            {isPending ? <LoaderCircle className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
+                            {isPending ? (
+                                <LoaderCircle className="size-4 animate-spin" />
+                            ) : (
+                                <ShieldCheck className="size-4" />
+                            )}
                             Save
                         </Button>
                     </DialogFooter>

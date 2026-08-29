@@ -37,4 +37,3 @@ export function sanitizePostAuthRedirect(redirectPath: string | null | undefined
 
     return url.search ? `${url.pathname}${url.search}` : url.pathname;
 }
-

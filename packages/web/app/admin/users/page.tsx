@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { RefreshCw, TriangleAlert } from 'lucide-react';
+import { RefreshCw, TriangleAlert } from "lucide-react";
 
-import { AdminUsersTable } from '@/components/admin/users-table';
-import { LoadingIndicator } from '@/components/shared/loading-indicator';
-import { Shimmer } from '@/components/shared/shimmer';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { useServerQuery } from '@/lib/hooks/use-server-query';
-import { cn } from '@/lib/utils';
-import { getAdminUsers } from '@/server/queries/admin';
+import { AdminUsersTable } from "@/components/admin/users-table";
+import { LoadingIndicator } from "@/components/shared/loading-indicator";
+import { Shimmer } from "@/components/shared/shimmer";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useServerQuery } from "@/lib/hooks/use-server-query";
+import { cn } from "@/lib/utils";
+import { getAdminUsers } from "@/server/queries/admin";
 
 function UsersSkeleton() {
     return (
@@ -36,7 +36,7 @@ export default function AdminUsersPage() {
         isRevalidating,
         isValidating,
         mutate,
-    } = useServerQuery(['admin-users-detail'], () => getAdminUsers());
+    } = useServerQuery(["admin-users-detail"], () => getAdminUsers());
 
     const error = usersResult?.success === false ? usersResult.error : null;
     const data = usersResult?.success ? usersResult.data : null;
@@ -88,12 +88,7 @@ export default function AdminUsersPage() {
                         </CardContent>
                     </Card>
                 ) : data ? (
-                    <div
-                        className={cn(
-                            'relative transition-opacity duration-200',
-                            isRevalidating && 'opacity-80'
-                        )}
-                    >
+                    <div className={cn("relative transition-opacity duration-200", isRevalidating && "opacity-80")}>
                         <AdminUsersTable data={data} onMutate={() => mutate()} />
                     </div>
                 ) : null}

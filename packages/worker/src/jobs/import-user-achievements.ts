@@ -20,17 +20,14 @@ import prisma from "@/src/lib/prisma.js";
  * @param payload.userId - The internal user ID whose achievements are imported.
  * @throws {Error} If the user is not found or has no Steam ID.
  */
-export default async function importUserAchievements(payload: {
-    jobId: string;
-    userId: string;
-}): Promise<void> {
+export default async function importUserAchievements(payload: { jobId: string; userId: string }): Promise<void> {
     const { jobId, userId } = payload;
     const log = logger.child("worker.jobs:importUserAchievements", { jobId, userId });
     const startMs = Date.now();
     const batchSize = getWorkerEnv().WORKER_ACHIEVEMENTS_BATCH_SIZE;
 
     const user = await prisma.user.findUnique({
-        where:  { id: userId },
+        where: { id: userId },
         select: { id: true, steamId: true },
     });
 

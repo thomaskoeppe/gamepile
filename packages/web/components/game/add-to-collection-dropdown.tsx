@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
 import { browserLog } from "@/lib/browser-logger";
-import {useServerQuery} from "@/lib/hooks/use-server-query";
+import { useServerQuery } from "@/lib/hooks/use-server-query";
 import { cn } from "@/lib/utils";
-import {toggleGameInCollection} from "@/server/actions/collection-games";
-import {getCollectionsForGame} from "@/server/queries/collection-games";
+import { toggleGameInCollection } from "@/server/actions/collection-games";
+import { getCollectionsForGame } from "@/server/queries/collection-games";
 
 export function AddToCollectionDropdown({
     gameId,
@@ -20,7 +20,7 @@ export function AddToCollectionDropdown({
     side = "bottom",
     align = "end",
     onOpenChange,
-    onRevalidate
+    onRevalidate,
 }: {
     gameId: string;
     children?: ReactNode;
@@ -36,41 +36,47 @@ export function AddToCollectionDropdown({
         data: collectionsResult,
         isLoading,
         mutate,
-    } = useServerQuery(
-        open ? ["collections-for-game", gameId] : null,
-        () => getCollectionsForGame({ gameId })
-    );
+    } = useServerQuery(open ? ["collections-for-game", gameId] : null, () => getCollectionsForGame({ gameId }));
 
-    const serverCollections: Array<{ id: string; name: string; isMember: boolean; }> =
-        collectionsResult?.success ? collectionsResult.data : [];
+    const serverCollections: Array<{ id: string; name: string; isMember: boolean }> = collectionsResult?.success
+        ? collectionsResult.data
+        : [];
 
-    const { execute: toggleCollection, optimisticState: collections, isPending, input } = useOptimisticAction(
-        toggleGameInCollection,
-        {
-            currentState: serverCollections,
-            updateFn: (state, { collectionId }) =>
-                state.map((c) => c.id === collectionId ? { ...c, isMember: !c.isMember } : c),
-            onSuccess: ({ input }) => {
-                browserLog.info(input.isMember ? 'Game removed from collection' : 'Game added to collection', { gameId, collectionId: input.collectionId });
-                void mutate();
-                onRevalidate?.();
-            },
-            onError: () => {
-                browserLog.error('Collection toggle failed', new Error('Toggle game in collection failed'), { gameId });
-                void mutate();
-            },
-        }
-    );
+    const {
+        execute: toggleCollection,
+        optimisticState: collections,
+        isPending,
+        input,
+    } = useOptimisticAction(toggleGameInCollection, {
+        currentState: serverCollections,
+        updateFn: (state, { collectionId }) =>
+            state.map((c) => (c.id === collectionId ? { ...c, isMember: !c.isMember } : c)),
+        onSuccess: ({ input }) => {
+            browserLog.info(input.isMember ? "Game removed from collection" : "Game added to collection", {
+                gameId,
+                collectionId: input.collectionId,
+            });
+            void mutate();
+            onRevalidate?.();
+        },
+        onError: () => {
+            browserLog.error("Collection toggle failed", new Error("Toggle game in collection failed"), { gameId });
+            void mutate();
+        },
+    });
 
     const handlePrefetch = useCallback(() => {
         preload(["collections-for-game", gameId], () => getCollectionsForGame({ gameId }));
     }, [gameId]);
 
-    const handleOpenChange = useCallback((nextOpen: boolean) => {
-        setOpen(nextOpen);
-        if (nextOpen) void mutate();
-        onOpenChange?.(nextOpen);
-    }, [mutate, onOpenChange]);
+    const handleOpenChange = useCallback(
+        (nextOpen: boolean) => {
+            setOpen(nextOpen);
+            if (nextOpen) void mutate();
+            onOpenChange?.(nextOpen);
+        },
+        [mutate, onOpenChange],
+    );
 
     const handleNewCollection = useCallback(() => {
         void mutate();
@@ -78,11 +84,7 @@ export function AddToCollectionDropdown({
 
     return (
         <Popover open={open} onOpenChange={handleOpenChange}>
-            <PopoverTrigger
-                asChild
-                onMouseEnter={handlePrefetch}
-                onFocus={handlePrefetch}
-            >
+            <PopoverTrigger asChild onMouseEnter={handlePrefetch} onFocus={handlePrefetch}>
                 {children ?? (
                     <Button
                         size="icon"
@@ -90,7 +92,7 @@ export function AddToCollectionDropdown({
                         aria-label="Add game to collection"
                         className={cn(
                             "size-8 text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-                            className
+                            className,
                         )}
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -135,7 +137,7 @@ export function AddToCollectionDropdown({
                                             className={cn(
                                                 "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all",
                                                 "border focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2 focus:ring-offset-card",
-                                                "bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:border-border"
+                                                "bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:border-border",
                                             )}
                                         >
                                             <Spinner className="size-3 text-muted-foreground" />
@@ -143,11 +145,13 @@ export function AddToCollectionDropdown({
                                         </button>
                                     ) : (
                                         <button
-                                            onClick={() => toggleCollection({
-                                                collectionId: collection.id,
-                                                gameId,
-                                                isMember: collection.isMember,
-                                            })}
+                                            onClick={() =>
+                                                toggleCollection({
+                                                    collectionId: collection.id,
+                                                    gameId,
+                                                    isMember: collection.isMember,
+                                                })
+                                            }
                                             className={cn(
                                                 "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all",
                                                 "border focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2 focus:ring-offset-card",
@@ -168,7 +172,11 @@ export function AddToCollectionDropdown({
 
                 <div className="border-t border-border p-2">
                     <CreateCollectionDialog onSuccess={handleNewCollection}>
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs text-muted-foreground hover:text-foreground">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full justify-start gap-2 text-xs text-muted-foreground hover:text-foreground"
+                        >
                             <FolderPlus className="size-4" />
                             <span>Create new collection</span>
                         </Button>

@@ -5,7 +5,7 @@
  * namespaced logger as a second argument.
  */
 
-import { type ILogger, type LogContext,logger } from '@/lib/logger';
+import { type ILogger, type LogContext, logger } from "@/lib/logger";
 
 /** Options accepted by withLogging. */
 export interface WithLoggingOptions {
@@ -16,19 +16,19 @@ export interface WithLoggingOptions {
      * Convention: `"<runtime>.<layer>.<module>:<action>"`
      * e.g. `"server.actions.admin:saveConfiguration"`
      */
-    namespace: string
+    namespace: string;
 
     /**
      * Optional extra fields merged into every log record alongside the namespace.
      * Useful for static metadata that applies to all calls (e.g. { version: 2 }).
      */
-    baseContext?: LogContext
+    baseContext?: LogContext;
 }
 
 /** The helpers object injected as the second argument of the wrapped handler. */
 interface LoggingHelpers {
     /** A logger pre-scoped to the action's namespace. */
-    log: ILogger
+    log: ILogger;
 }
 
 /**
@@ -37,21 +37,19 @@ interface LoggingHelpers {
  * the concrete `parsedInput` / `ctx` types flow through from the call site.
  */
 type ActionArgs<TInput, TCtx> = {
-    parsedInput: TInput
-    ctx: TCtx
-    [key: string]: unknown
-}
+    parsedInput: TInput;
+    ctx: TCtx;
+    [key: string]: unknown;
+};
 
 /** The handler signature that next-safe-action expects. */
-type ActionHandler<TInput, TCtx, TReturn> = (
-    args: ActionArgs<TInput, TCtx>,
-) => Promise<TReturn>
+type ActionHandler<TInput, TCtx, TReturn> = (args: ActionArgs<TInput, TCtx>) => Promise<TReturn>;
 
 /** The inner handler signature that you write — receives the injected helpers. */
 type WrappedHandler<TInput, TCtx, TReturn> = (
     args: ActionArgs<TInput, TCtx>,
     helpers: LoggingHelpers,
-) => Promise<TReturn>
+) => Promise<TReturn>;
 
 /**
  * Wrap a next-safe-action handler with automatic namespace-scoped logging.
@@ -79,19 +77,13 @@ export function withLogging<TInput, TCtx, TReturn>(
 
     const log = logger.child(namespace, baseContext);
 
-    return async function wrappedAction(
-        args: ActionArgs<TInput, TCtx>,
-    ): Promise<TReturn> {
+    return async function wrappedAction(args: ActionArgs<TInput, TCtx>): Promise<TReturn> {
         try {
             return await handler(args, { log });
         } catch (err) {
             const error = err instanceof Error ? err : new Error(String(err));
 
-            log.error(
-                `Unhandled error in action [${namespace}]`,
-                error,
-                { input: args.parsedInput as LogContext },
-            );
+            log.error(`Unhandled error in action [${namespace}]`, error, { input: args.parsedInput as LogContext });
 
             throw err;
         }

@@ -1,39 +1,21 @@
 "use client";
 
-import {
-    ExternalLink,
-    LoaderCircle,
-    ShieldCheck,
-    Trash2,
-    UserRound,
-} from "lucide-react";
+import { ExternalLink, LoaderCircle, ShieldCheck, Trash2, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { browserLog } from "@/lib/browser-logger";
 import { useServerQuery } from "@/lib/hooks/use-server-query";
 import { useSession } from "@/lib/providers/session";
 import { cn } from "@/lib/utils";
-import { deleteAccount,updatePrivacySettings } from "@/server/actions/user-settings";
+import { deleteAccount, updatePrivacySettings } from "@/server/actions/user-settings";
 import { getUserSettings } from "@/server/queries/user-settings";
 
 function PrivacySelectField({
@@ -129,10 +111,7 @@ export function AccountSettingsPanels() {
         isLoading,
         isValidating,
         mutate,
-    } = useServerQuery(
-        user ? ["user-settings", user.id] : null,
-        () => getUserSettings()
-    );
+    } = useServerQuery(user ? ["user-settings", user.id] : null, () => getUserSettings());
 
     const settings = settingsResult?.success ? settingsResult.data : null;
 
@@ -148,7 +127,7 @@ export function AccountSettingsPanels() {
 
     const privacyAction = useAction(updatePrivacySettings, {
         onSuccess: () => {
-            browserLog.info('Privacy settings saved', { userId: user?.id });
+            browserLog.info("Privacy settings saved", { userId: user?.id });
             setPrivacySuccess(true);
             void mutate();
             setTimeout(() => setPrivacySuccess(false), 3000);
@@ -157,7 +136,7 @@ export function AccountSettingsPanels() {
 
     const deleteAction = useAction(deleteAccount, {
         onSuccess: () => {
-            browserLog.info('Account deleted', { userId: user?.id });
+            browserLog.info("Account deleted", { userId: user?.id });
             window.location.href = "/";
         },
     });
@@ -167,7 +146,12 @@ export function AccountSettingsPanels() {
     }
 
     const handlePrivacySave = () => {
-        browserLog.info('Privacy settings save clicked', { userId: user?.id, vaultInvites, collectionInvites, profileView });
+        browserLog.info("Privacy settings save clicked", {
+            userId: user?.id,
+            vaultInvites,
+            collectionInvites,
+            profileView,
+        });
         privacyAction.execute({
             privacyAllowVaultInvites: vaultInvites === "allow",
             privacyAllowCollectionInvites: collectionInvites === "allow",
@@ -176,15 +160,17 @@ export function AccountSettingsPanels() {
     };
 
     const handleDeleteAccount = () => {
-        browserLog.warn('Account deletion initiated', { userId: user?.id });
+        browserLog.warn("Account deletion initiated", { userId: user?.id });
         deleteAction.execute({ confirmation: deleteConfirmation });
     };
 
     return (
-        <div className={cn(
-            "grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)] transition-opacity duration-200",
-            isValidating && !isLoading && "opacity-80",
-        )}>
+        <div
+            className={cn(
+                "grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)] transition-opacity duration-200",
+                isValidating && !isLoading && "opacity-80",
+            )}
+        >
             <div className="space-y-6">
                 <Card className="border-border/70 bg-card/95">
                     <CardHeader className="flex flex-col gap-4 border-b border-border/60 sm:flex-row sm:items-center sm:justify-between">
@@ -198,9 +184,7 @@ export function AccountSettingsPanels() {
 
                             <div className="space-y-1">
                                 <CardTitle className="text-2xl">Account Settings</CardTitle>
-                                <CardDescription>
-                                    Manage your Gamepile account privacy and preferences.
-                                </CardDescription>
+                                <CardDescription>Manage your Gamepile account privacy and preferences.</CardDescription>
                             </div>
                         </div>
 
@@ -277,9 +261,7 @@ export function AccountSettingsPanels() {
 
                         <div className="flex justify-end">
                             <Button onClick={handlePrivacySave} disabled={privacyAction.isPending}>
-                                {privacyAction.isPending ? (
-                                    <LoaderCircle className="size-4 animate-spin" />
-                                ) : null}
+                                {privacyAction.isPending ? <LoaderCircle className="size-4 animate-spin" /> : null}
                                 Save privacy settings
                             </Button>
                         </div>
@@ -293,9 +275,7 @@ export function AccountSettingsPanels() {
                         <Trash2 className="size-5 text-primary" />
                         Delete Account
                     </CardTitle>
-                    <CardDescription>
-                        Permanently delete your Gamepile account and all associated data.
-                    </CardDescription>
+                    <CardDescription>Permanently delete your Gamepile account and all associated data.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {deleteAction.result?.serverError && (

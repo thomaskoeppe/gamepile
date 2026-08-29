@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { ArrowLeft, TriangleAlert,Trophy } from "lucide-react";
+import { ArrowLeft, TriangleAlert, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -19,9 +19,13 @@ export default function GameAchievementsPage() {
     const { id } = useParams<{ id: string }>();
     const { user, isLoading: sessionLoading } = useSession();
 
-    const { data: result, isLoading: queryLoading, isRevalidating, mutate } = useServerQuery(
-        user && id ? ["game-achievements-page", id, user.id] : null,
-        () => getGameAchievementsForUser({ gameId: id }),
+    const {
+        data: result,
+        isLoading: queryLoading,
+        isRevalidating,
+        mutate,
+    } = useServerQuery(user && id ? ["game-achievements-page", id, user.id] : null, () =>
+        getGameAchievementsForUser({ gameId: id }),
     );
 
     const isLoading = sessionLoading || queryLoading || result === undefined;
@@ -29,9 +33,7 @@ export default function GameAchievementsPage() {
     const loadFailed = result !== undefined && !result?.success;
     const notFound = data !== null && (data.game === null || data.total === 0);
 
-    const percent = data && data.total > 0
-        ? Math.round((data.unlockedCount / data.total) * 100)
-        : 0;
+    const percent = data && data.total > 0 ? Math.round((data.unlockedCount / data.total) * 100) : 0;
 
     return (
         <>

@@ -11,13 +11,7 @@ import { browserLog } from "@/lib/browser-logger";
  * below the root layout so the user gets a recoverable page instead of a bare
  * `Internal Server Error` response body.
  */
-export default function Error({
-    error,
-    reset,
-}: {
-    error: Error & { digest?: string };
-    reset: () => void;
-}) {
+export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
     useEffect(() => {
         browserLog.error("Unhandled render error", error, {
             digest: error.digest,
@@ -32,8 +26,8 @@ export default function Error({
             <div className="space-y-2">
                 <h1 className="font-heading text-2xl font-semibold">Something went wrong</h1>
                 <p className="max-w-md text-sm text-muted-foreground">
-                    This page failed to load. The error has been logged — you can retry, and if it
-                    keeps happening the server logs will have the details.
+                    This page failed to load. The error has been logged — you can retry, and if it keeps happening the
+                    server logs will have the details.
                 </p>
                 {error.digest ? (
                     <p className="font-mono text-xs text-muted-foreground">Reference: {error.digest}</p>
@@ -42,7 +36,12 @@ export default function Error({
 
             <div className="flex gap-3">
                 <Button onClick={reset}>Try again</Button>
-                <Button variant="outline" onClick={() => { window.location.href = "/library"; }}>
+                <Button
+                    variant="outline"
+                    onClick={() => {
+                        window.location.href = "/library";
+                    }}
+                >
                     Back to library
                 </Button>
             </div>

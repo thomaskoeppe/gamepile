@@ -81,10 +81,7 @@ export async function getAppList(opts: GetAppListOptions): Promise<GetAppListRes
         cursor: opts.lastAppId ?? 0,
     });
 
-    const response = await fetch(
-        `${STORE_SERVICE_URL}?${params}`,
-        { headers: { Accept: "application/json" } },
-    );
+    const response = await fetch(`${STORE_SERVICE_URL}?${params}`, { headers: { Accept: "application/json" } });
 
     if (!response.ok) {
         throw new Error(

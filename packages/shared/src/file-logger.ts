@@ -82,12 +82,8 @@ function parsePositiveInt(value: string | undefined, fallback: number): number {
  * @param serviceName - Service identifier used for the default log filename.
  * @param env - Environment source; defaults to `process.env`.
  */
-export function fileLoggerOptionsFromEnv(
-    serviceName: string,
-    env?: FileLoggerEnvVars,
-): CreateFileLoggerOptions {
-    const resolvedEnv =
-        env ?? (globalThis as { process?: { env?: FileLoggerEnvVars } }).process?.env ?? {};
+export function fileLoggerOptionsFromEnv(serviceName: string, env?: FileLoggerEnvVars): CreateFileLoggerOptions {
+    const resolvedEnv = env ?? (globalThis as { process?: { env?: FileLoggerEnvVars } }).process?.env ?? {};
 
     const compressRaw = resolvedEnv.LOG_FILE_COMPRESS?.trim().toLowerCase();
 
@@ -137,8 +133,7 @@ function formatJsonLine(entry: LogEntry, serviceName: string): string {
 
 /** Serialises an entry in the same human-readable shape used for stdout. */
 function formatTextLine(entry: LogEntry, serviceName: string): string {
-    const contextSuffix =
-        Object.keys(entry.context).length > 0 ? ` ${safeStringify(entry.context)}` : "";
+    const contextSuffix = Object.keys(entry.context).length > 0 ? ` ${safeStringify(entry.context)}` : "";
     const errorSuffix = entry.error
         ? ` | ${sanitizeForConsole(entry.error.name)}: ${sanitizeForConsole(entry.error.message)}`
         : "";
@@ -226,7 +221,11 @@ export function createFileLogger(options: CreateFileLoggerOptions) {
         if (!stream || stream.destroyed) return;
 
         try {
-            stream.write(format === "text" ? formatTextLine(entry, options.serviceName) : formatJsonLine(entry, options.serviceName));
+            stream.write(
+                format === "text"
+                    ? formatTextLine(entry, options.serviceName)
+                    : formatJsonLine(entry, options.serviceName),
+            );
         } catch (error) {
             disable("write failed", error);
         }

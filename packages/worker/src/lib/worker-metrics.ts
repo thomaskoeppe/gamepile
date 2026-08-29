@@ -117,4 +117,3 @@ export async function publishSteamAppsFetched(count: number): Promise<void> {
             });
         });
 }
-

@@ -9,13 +9,10 @@ describe("normalizeSlug", () => {
 });
 
 describe("valid slugs", () => {
-    it.each(["abc", "my-vault", "vault-123", "a1b2c3", "a".repeat(SLUG_MAX_LENGTH)])(
-        "accepts %s",
-        (slug) => {
-            expect(isValidSlug(slug)).toBe(true);
-            expect(getSlugError(slug)).toBeNull();
-        },
-    );
+    it.each(["abc", "my-vault", "vault-123", "a1b2c3", "a".repeat(SLUG_MAX_LENGTH)])("accepts %s", (slug) => {
+        expect(isValidSlug(slug)).toBe(true);
+        expect(getSlugError(slug)).toBeNull();
+    });
 });
 
 describe("invalid slugs", () => {
@@ -41,12 +38,9 @@ describe("invalid slugs", () => {
         expect(getSlugError(cuid)).toBe("That URL is not allowed.");
     });
 
-    it.each([...RESERVED_SLUGS].filter((s) => s.length >= SLUG_MIN_LENGTH))(
-        "reserves the route segment %s",
-        (slug) => {
-            expect(getSlugError(slug)).toBe("That URL is reserved.");
-        },
-    );
+    it.each([...RESERVED_SLUGS].filter((s) => s.length >= SLUG_MIN_LENGTH))("reserves the route segment %s", (slug) => {
+        expect(getSlugError(slug)).toBe("That URL is reserved.");
+    });
 
     it("reports the length rule before the character rule", () => {
         expect(getSlugError("A")).toContain("between");

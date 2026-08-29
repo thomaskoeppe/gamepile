@@ -53,8 +53,7 @@ type PlayerAchievementsResponse = {
  * errors so callers can count them as processed rather than failed.
  */
 export type PlayerAchievementsResult =
-    | { ok: true; achievements: SteamPlayerAchievement[] }
-    | { ok: false; reason: "no-stats" | "profile-private" };
+    { ok: true; achievements: SteamPlayerAchievement[] } | { ok: false; reason: "no-stats" | "profile-private" };
 
 /**
  * Fetches the achievement schema (definitions) for a game from
@@ -102,10 +101,7 @@ export async function fetchGameAchievementSchema(appId: number): Promise<SteamAc
  * @throws {SteamRateLimitError} If Steam responds with HTTP 429, or 403 without a private-profile body.
  * @throws {Error} If the HTTP request fails for any other reason.
  */
-export async function fetchPlayerAchievements(
-    steamId: string,
-    appId: number,
-): Promise<PlayerAchievementsResult> {
+export async function fetchPlayerAchievements(steamId: string, appId: number): Promise<PlayerAchievementsResult> {
     await steamRateLimiter.acquire();
     const steamApiKey = getWorkerEnv().STEAM_API_KEY;
 
@@ -115,7 +111,7 @@ export async function fetchPlayerAchievements(
     );
 
     if (!response.ok) {
-        const body = await response.json().catch(() => null) as PlayerAchievementsResponse | null;
+        const body = (await response.json().catch(() => null)) as PlayerAchievementsResponse | null;
         const errorText = body?.playerstats?.error;
 
         if (errorText?.includes("no stats")) {
@@ -132,7 +128,7 @@ export async function fetchPlayerAchievements(
 
         throw new Error(
             `Failed to fetch player achievements for appId ${appId}: HTTP ${response.status}` +
-            (errorText ? ` (${errorText})` : ""),
+                (errorText ? ` (${errorText})` : ""),
         );
     }
 

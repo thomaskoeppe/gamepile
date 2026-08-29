@@ -2,13 +2,7 @@
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import {
-    Eye,
-    Gauge,
-    RefreshCw,
-    Server,
-    TriangleAlert,
-} from "lucide-react";
+import { Eye, Gauge, RefreshCw, Server, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -21,13 +15,7 @@ import { TablePagination } from "@/components/table-pagination";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useServerQuery } from "@/lib/hooks/use-server-query";
 import { cn } from "@/lib/utils";
 import { JobStatus, JobType } from "@/prisma/generated/browser";
@@ -68,15 +56,22 @@ export default function AdminJobsPage() {
     const [statusFilter, setStatusFilter] = useState<string>("all");
     const [typeFilter, setTypeFilter] = useState<string>("all");
 
-    const { data: result, isLoading, isRevalidating, isValidating, mutate } = useServerQuery(
+    const {
+        data: result,
+        isLoading,
+        isRevalidating,
+        isValidating,
+        mutate,
+    } = useServerQuery(
         ["admin-jobs", page, statusFilter, typeFilter],
-        () => getAdminJobs({
-            page,
-            limit: 20,
-            status: statusFilter !== "all" ? statusFilter : undefined,
-            type: typeFilter !== "all" ? typeFilter : undefined,
-        }),
-        { refreshInterval: 5000 }
+        () =>
+            getAdminJobs({
+                page,
+                limit: 20,
+                status: statusFilter !== "all" ? statusFilter : undefined,
+                type: typeFilter !== "all" ? typeFilter : undefined,
+            }),
+        { refreshInterval: 5000 },
     );
 
     const jobsData = result?.success ? result.data : null;
@@ -122,7 +117,13 @@ export default function AdminJobsPage() {
                 </div>
 
                 <div className="flex gap-3">
-                    <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+                    <Select
+                        value={statusFilter}
+                        onValueChange={(v) => {
+                            setStatusFilter(v);
+                            setPage(1);
+                        }}
+                    >
                         <SelectTrigger className="w-44 bg-card border-border text-foreground">
                             <SelectValue placeholder="All Statuses" />
                         </SelectTrigger>
@@ -130,12 +131,20 @@ export default function AdminJobsPage() {
                         <SelectContent>
                             <SelectItem value="all">All Statuses</SelectItem>
                             {Object.values(JobStatus).map((s) => (
-                                <SelectItem key={s} value={s}>{getStatusConfig(s).label}</SelectItem>
+                                <SelectItem key={s} value={s}>
+                                    {getStatusConfig(s).label}
+                                </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
 
-                    <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPage(1); }}>
+                    <Select
+                        value={typeFilter}
+                        onValueChange={(v) => {
+                            setTypeFilter(v);
+                            setPage(1);
+                        }}
+                    >
                         <SelectTrigger className="w-56 bg-card border-border text-foreground">
                             <SelectValue placeholder="All Types" />
                         </SelectTrigger>
@@ -143,7 +152,9 @@ export default function AdminJobsPage() {
                         <SelectContent>
                             <SelectItem value="all">All Types</SelectItem>
                             {Object.values(JobType).map((t) => (
-                                <SelectItem key={t} value={t}>{JOB_TYPE_LABEL[t]}</SelectItem>
+                                <SelectItem key={t} value={t}>
+                                    {JOB_TYPE_LABEL[t]}
+                                </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
@@ -163,7 +174,9 @@ export default function AdminJobsPage() {
                     <Card className="border-border bg-card py-0">
                         <CardContent className="space-y-1 p-4">
                             <div className="flex items-center justify-between gap-3">
-                                <p className="text-xs uppercase tracking-wide text-muted-foreground">Job Completion Throughput</p>
+                                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                                    Job Completion Throughput
+                                </p>
                                 <Gauge className="size-5 text-muted-foreground" />
                             </div>
                             <p className="text-sm text-foreground">
@@ -176,16 +189,20 @@ export default function AdminJobsPage() {
                                 {formatRate(metrics?.appsFetchedPerMinute)} apps fetched/min
                             </p>
                             <p className="text-xs text-muted-foreground">
-                                based on last {apiCallsPerSecondWindowSeconds ?? "-"}s API-call window, {apiCallsFiveMinutesWindowSeconds ?? "-"}s API-call window, and {appsFetchedPerMinuteWindowSeconds ?? "-"}s app-fetch window
+                                based on last {apiCallsPerSecondWindowSeconds ?? "-"}s API-call window,{" "}
+                                {apiCallsFiveMinutesWindowSeconds ?? "-"}s API-call window, and{" "}
+                                {appsFetchedPerMinuteWindowSeconds ?? "-"}s app-fetch window
                             </p>
                         </CardContent>
                     </Card>
                 </div>
 
-                <div className={cn(
-                    "relative rounded-lg border border-border bg-card overflow-hidden transition-opacity duration-200",
-                    isRevalidating && !isLoading && "opacity-80",
-                )}>
+                <div
+                    className={cn(
+                        "relative rounded-lg border border-border bg-card overflow-hidden transition-opacity duration-200",
+                        isRevalidating && !isLoading && "opacity-80",
+                    )}
+                >
                     {isLoading ? (
                         <div className="space-y-px p-4">
                             {Array.from({ length: 8 }).map((_, i) => (
@@ -221,18 +238,27 @@ export default function AdminJobsPage() {
                             </thead>
                             <tbody>
                                 {jobs.map((job) => {
-                                    const pct = job.totalItems > 0
-                                        ? Math.min(100, Math.round(((job.processedItems + job.failedItems) / job.totalItems) * 100))
-                                        : job.status === JobStatus.COMPLETED ? 100 : 0;
+                                    const pct =
+                                        job.totalItems > 0
+                                            ? Math.min(
+                                                  100,
+                                                  Math.round(
+                                                      ((job.processedItems + job.failedItems) / job.totalItems) * 100,
+                                                  ),
+                                              )
+                                            : job.status === JobStatus.COMPLETED
+                                              ? 100
+                                              : 0;
 
                                     return (
-                                        <tr key={job.id} className="border-b border-border/60 hover:bg-muted/30 transition-colors">
+                                        <tr
+                                            key={job.id}
+                                            className="border-b border-border/60 hover:bg-muted/30 transition-colors"
+                                        >
                                             <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
                                                 {job.id.slice(0, 12)}…
                                             </td>
-                                            <td className="px-4 py-3 text-foreground">
-                                                {JOB_TYPE_LABEL[job.type]}
-                                            </td>
+                                            <td className="px-4 py-3 text-foreground">{JOB_TYPE_LABEL[job.type]}</td>
                                             <td className="px-4 py-3">
                                                 <StatusBadge status={job.status} />
                                             </td>
@@ -242,9 +268,13 @@ export default function AdminJobsPage() {
                                                         <div
                                                             className={cn(
                                                                 "h-full rounded-full transition-all duration-500",
-                                                                job.status === JobStatus.ACTIVE ? "bg-blue-500" :
-                                                                job.status === JobStatus.COMPLETED ? "bg-primary" :
-                                                                job.status === JobStatus.FAILED ? "bg-red-500" : "bg-muted-foreground/30"
+                                                                job.status === JobStatus.ACTIVE
+                                                                    ? "bg-blue-500"
+                                                                    : job.status === JobStatus.COMPLETED
+                                                                      ? "bg-primary"
+                                                                      : job.status === JobStatus.FAILED
+                                                                        ? "bg-red-500"
+                                                                        : "bg-muted-foreground/30",
                                                             )}
                                                             style={{ width: `${pct}%` }}
                                                         />
@@ -257,9 +287,13 @@ export default function AdminJobsPage() {
                                                     <div className="flex items-center gap-2">
                                                         <Avatar className="h-6 w-6">
                                                             <AvatarImage src={job.user.avatarUrl ?? undefined} />
-                                                            <AvatarFallback className="text-[10px]">{job.user.username[0].toUpperCase()}</AvatarFallback>
+                                                            <AvatarFallback className="text-[10px]">
+                                                                {job.user.username[0].toUpperCase()}
+                                                            </AvatarFallback>
                                                         </Avatar>
-                                                        <span className="text-foreground text-xs">{job.user.username}</span>
+                                                        <span className="text-foreground text-xs">
+                                                            {job.user.username}
+                                                        </span>
                                                     </div>
                                                 ) : (
                                                     <span className="text-muted-foreground text-xs">System</span>
@@ -274,12 +308,21 @@ export default function AdminJobsPage() {
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-1">
                                                     <Link href={`/admin/jobs/${job.id}`}>
-                                                        <Button variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground hover:text-foreground hover:bg-muted">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-7 px-2 text-muted-foreground hover:text-foreground hover:bg-muted"
+                                                        >
                                                             <Eye className="h-3.5 w-3.5" />
                                                         </Button>
                                                     </Link>
-                                                    {(job.status === JobStatus.QUEUED || job.status === JobStatus.ACTIVE) && (
-                                                        <CancelJobButton jobId={job.id} compact onCanceledAction={() => mutate()} />
+                                                    {(job.status === JobStatus.QUEUED ||
+                                                        job.status === JobStatus.ACTIVE) && (
+                                                        <CancelJobButton
+                                                            jobId={job.id}
+                                                            compact
+                                                            onCanceledAction={() => mutate()}
+                                                        />
                                                     )}
                                                 </div>
                                             </td>
@@ -300,7 +343,6 @@ export default function AdminJobsPage() {
                         onPageChange={setPage}
                     />
                 )}
-
             </div>
 
             <LoadingIndicator show={isRevalidating} />

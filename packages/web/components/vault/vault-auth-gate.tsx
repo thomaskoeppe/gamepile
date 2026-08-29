@@ -1,11 +1,11 @@
 "use client";
 
-import { Eye, EyeOff, Loader2,Lock } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import {SubmitEvent,useState} from "react";
+import { SubmitEvent, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import {Card, CardContent} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { KeyVaultAuthType } from "@/prisma/generated/browser";
 import { authenticateVault } from "@/server/actions/vaults/auth";
@@ -58,23 +58,23 @@ export function VaultAuthGate({ vaultId, vaultName, authType, onSuccess }: Vault
                     <form onSubmit={handleSubmit} className="w-full space-y-4">
                         <div className="relative">
                             {isPin ? (
-                                    <div className="relative">
-                                        <Input
-                                            name="pin"
-                                            autoComplete={"one-time-code"}
-                                            type={"text"}
-                                            inputMode="numeric"
-                                            maxLength={6}
-                                            pattern="[0-9]*"
-                                            placeholder="Enter PIN"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value.replace(/\D/g, ""))}
-                                            className="w-full bg-muted border-border text-center text-xl tracking-widest focus-visible:border-primary focus-visible:ring-ring"
-                                            disabled={isPending}
-                                            aria-invalid={!!serverError}
-                                            autoFocus
-                                        />
-                                    </div>
+                                <div className="relative">
+                                    <Input
+                                        name="pin"
+                                        autoComplete={"one-time-code"}
+                                        type={"text"}
+                                        inputMode="numeric"
+                                        maxLength={6}
+                                        pattern="[0-9]*"
+                                        placeholder="Enter PIN"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value.replace(/\D/g, ""))}
+                                        className="w-full bg-muted border-border text-center text-xl tracking-widest focus-visible:border-primary focus-visible:ring-ring"
+                                        disabled={isPending}
+                                        aria-invalid={!!serverError}
+                                        autoFocus
+                                    />
+                                </div>
                             ) : (
                                 <div className="relative">
                                     <Input
@@ -101,15 +101,9 @@ export function VaultAuthGate({ vaultId, vaultName, authType, onSuccess }: Vault
                             )}
                         </div>
 
-                        {serverError && (
-                            <p className="text-xs text-destructive text-center">{serverError}</p>
-                        )}
+                        {serverError && <p className="text-xs text-destructive text-center">{serverError}</p>}
 
-                        <Button
-                            type="submit"
-                            className="w-full"
-                            disabled={isPending || password.length === 0}
-                        >
+                        <Button type="submit" className="w-full" disabled={isPending || password.length === 0}>
                             {isPending ? (
                                 <>
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />

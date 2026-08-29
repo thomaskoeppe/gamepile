@@ -43,19 +43,19 @@ const fileLogger = createFileLogger({
  * isolated, so a failing destination (a full disk, an unreachable collector)
  * cannot throw into a request path.
  */
-export const logSinks = composeLogSinks([
-    { name: "otlp", exportLogEntry },
-    fileLogger.toLogSink(),
-]);
+export const logSinks = composeLogSinks([{ name: "otlp", exportLogEntry }, fileLogger.toLogSink()]);
 
-export const logger = createLogger({
-    exportLogEntry: logSinks.exportLogEntry,
-    skipInBrowser: true,
-    mirrorToStdout: true,
-}, {
-    hostname: HOSTNAME,
-    ips: IPS,
-    env: process.env.NODE_ENV,
-    domain: process.env.DOMAIN,
-    web_app_url: process.env.WEB_APP_URL,
-});
+export const logger = createLogger(
+    {
+        exportLogEntry: logSinks.exportLogEntry,
+        skipInBrowser: true,
+        mirrorToStdout: true,
+    },
+    {
+        hostname: HOSTNAME,
+        ips: IPS,
+        env: process.env.NODE_ENV,
+        domain: process.env.DOMAIN,
+        web_app_url: process.env.WEB_APP_URL,
+    },
+);

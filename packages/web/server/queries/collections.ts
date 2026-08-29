@@ -1,50 +1,61 @@
 "use server";
 
-import {z} from "zod";
+import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { withLogging } from "@/lib/with-logging";
-import {CollectionVisibility, Prisma} from "@/prisma/generated/client";
-import {queryClientWithAuth} from "@/server/query";
+import { CollectionVisibility, Prisma } from "@/prisma/generated/client";
+import { queryClientWithAuth } from "@/server/query";
 
-export const checkCollectionAccess = queryClientWithAuth.inputSchema(z.object({ collectionId: z.string().min(1) })).query<{ id: string; hasAccess: boolean }>(withLogging(async ({ parsedInput: { collectionId }, ctx }, { log }) => {
-    log.info("Checking collection access for user", {
-        userId: ctx.user.id,
-        collectionId
-    });
+export const checkCollectionAccess = queryClientWithAuth
+    .inputSchema(z.object({ collectionId: z.string().min(1) }))
+    .query<{ id: string; hasAccess: boolean }>(
+        withLogging(
+            async ({ parsedInput: { collectionId }, ctx }, { log }) => {
+                log.info("Checking collection access for user", {
+                    userId: ctx.user.id,
+                    collectionId,
+                });
 
-    // The identifier may be a custom slug; return the canonical id so the page
-    // can thread a real cuid to every downstream collection query.
-    const collection = await prisma.collection.findFirst({
-        where: {
-            AND: [
-                { OR: [{ id: collectionId }, { slug: collectionId }] },
-                {
-                    OR: [{
-                        type: CollectionVisibility.PUBLIC
-                    }, {
-                        users: {
-                            some: {
-                                userId: ctx.user.id
-                            }
-                        }
-                    }, {
-                        createdBy: {
-                            id: ctx.user.id
-                        }
-                    }]
-                }
-            ]
-        },
-        select: {
-            id: true
-        }
-    });
+                // The identifier may be a custom slug; return the canonical id so the page
+                // can thread a real cuid to every downstream collection query.
+                const collection = await prisma.collection.findFirst({
+                    where: {
+                        AND: [
+                            { OR: [{ id: collectionId }, { slug: collectionId }] },
+                            {
+                                OR: [
+                                    {
+                                        type: CollectionVisibility.PUBLIC,
+                                    },
+                                    {
+                                        users: {
+                                            some: {
+                                                userId: ctx.user.id,
+                                            },
+                                        },
+                                    },
+                                    {
+                                        createdBy: {
+                                            id: ctx.user.id,
+                                        },
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    select: {
+                        id: true,
+                    },
+                });
 
-    return { id: collection?.id ?? "", hasAccess: collection !== null };
-}, {
-    namespace: "server.queries.collections:checkCollectionAccess"
-}));
+                return { id: collection?.id ?? "", hasAccess: collection !== null };
+            },
+            {
+                namespace: "server.queries.collections:checkCollectionAccess",
+            },
+        ),
+    );
 
 /**
  * Fetches all collections visible to the authenticated user.
@@ -54,62 +65,79 @@ export const checkCollectionAccess = queryClientWithAuth.inputSchema(z.object({ 
  * @returns Array of collection objects, each including the creator, members,
  *   the first 5 games (ordered by `addedAt` ascending), and a total game count.
  */
-export const getCollections = queryClientWithAuth.query<Prisma.CollectionGetPayload<{
-    include: {
-        _count: { select: { games: true } },
-        createdBy: { select: { id: true, username: true, avatarUrl: true } },
-        users: { include: { user: { select: { id: true, username: true, avatarUrl: true } }, }, },
-        games: { take: 5, orderBy: { addedAt: 'asc', }, include: { game: { select: { appId: true, }, }, }, },
-    }
-}>[]>(withLogging(async ({ ctx }, { log }) => {
-    log.info("Fetching collections for user", {
-        userId: ctx.user.id,
-    });
-
-    return prisma.collection.findMany({
+export const getCollections = queryClientWithAuth.query<
+    Prisma.CollectionGetPayload<{
         include: {
-            createdBy: {
-                select: { id: true, username: true, avatarUrl: true },
-            }, users: {
+            _count: { select: { games: true } };
+            createdBy: { select: { id: true; username: true; avatarUrl: true } };
+            users: { include: { user: { select: { id: true; username: true; avatarUrl: true } } } };
+            games: { take: 5; orderBy: { addedAt: "asc" }; include: { game: { select: { appId: true } } } };
+        };
+    }>[]
+>(
+    withLogging(
+        async ({ ctx }, { log }) => {
+            log.info("Fetching collections for user", {
+                userId: ctx.user.id,
+            });
+
+            return prisma.collection.findMany({
                 include: {
-                    user: {
+                    createdBy: {
                         select: { id: true, username: true, avatarUrl: true },
                     },
-                },
-            }, games: {
-                take: 5, orderBy: {
-                    addedAt: 'asc' as const,
-                }, include: {
-                    game: {
+                    users: {
+                        include: {
+                            user: {
+                                select: { id: true, username: true, avatarUrl: true },
+                            },
+                        },
+                    },
+                    games: {
+                        take: 5,
+                        orderBy: {
+                            addedAt: "asc" as const,
+                        },
+                        include: {
+                            game: {
+                                select: {
+                                    appId: true,
+                                },
+                            },
+                        },
+                    },
+                    _count: {
                         select: {
-                            appId: true,
+                            games: true,
                         },
                     },
                 },
-            }, _count: {
-                select: {
-                    games: true
-                }
-            }
-        }, where: {
-            OR: [{
-                type: CollectionVisibility.PUBLIC
-            }, {
-                users: {
-                    some: {
-                        userId: ctx.user.id
-                    }
-                }
-            }, {
-                createdBy: {
-                    id: ctx.user.id
-                }
-            }]
-        }
-    });
-}, {
-    namespace: "server.queries.collections:getCollections"
-}));
+                where: {
+                    OR: [
+                        {
+                            type: CollectionVisibility.PUBLIC,
+                        },
+                        {
+                            users: {
+                                some: {
+                                    userId: ctx.user.id,
+                                },
+                            },
+                        },
+                        {
+                            createdBy: {
+                                id: ctx.user.id,
+                            },
+                        },
+                    ],
+                },
+            });
+        },
+        {
+            namespace: "server.queries.collections:getCollections",
+        },
+    ),
+);
 
 /**
  * Fetches a single collection by ID that is accessible to the authenticated user.
@@ -120,49 +148,62 @@ export const getCollections = queryClientWithAuth.query<Prisma.CollectionGetPayl
  * @returns The collection object including the creator and members, or `null` if
  *   the collection does not exist or the user does not have access.
  */
-export const getCollection = queryClientWithAuth.inputSchema(z.object({ collectionId: z.string().min(1) })).query<Prisma.CollectionGetPayload<{
-    include: {
-        createdBy: { select: { id: true, username: true, avatarUrl: true } },
-        users: { include: { user: { select: { id: true, username: true, avatarUrl: true } } } },
-    }
-}> | null>(withLogging(async ({ parsedInput: { collectionId }, ctx }, { log }) => {
-    log.info("Fetching collection for user", {
-        userId: ctx.user.id,
-        collectionId
-    });
+export const getCollection = queryClientWithAuth
+    .inputSchema(z.object({ collectionId: z.string().min(1) }))
+    .query<Prisma.CollectionGetPayload<{
+        include: {
+            createdBy: { select: { id: true; username: true; avatarUrl: true } };
+            users: { include: { user: { select: { id: true; username: true; avatarUrl: true } } } };
+        };
+    }> | null>(
+        withLogging(
+            async ({ parsedInput: { collectionId }, ctx }, { log }) => {
+                log.info("Fetching collection for user", {
+                    userId: ctx.user.id,
+                    collectionId,
+                });
 
-    return prisma.collection.findFirst({
-        where: {
-            AND: [
-                { OR: [{ id: collectionId }, { slug: collectionId }] },
-                {
-                    OR: [{
-                        type: CollectionVisibility.PUBLIC
-                    }, {
-                        users: {
-                            some: {
-                                userId: ctx.user.id
-                            }
-                        }
-                    }, {
-                        createdBy: {
-                            id: ctx.user.id
-                        }
-                    }]
-                }
-            ]
-        }, include: {
-            createdBy: {
-                select: { id: true, username: true, avatarUrl: true },
-            }, users: {
-                include: {
-                    user: {
-                        select: { id: true, username: true, avatarUrl: true },
+                return prisma.collection.findFirst({
+                    where: {
+                        AND: [
+                            { OR: [{ id: collectionId }, { slug: collectionId }] },
+                            {
+                                OR: [
+                                    {
+                                        type: CollectionVisibility.PUBLIC,
+                                    },
+                                    {
+                                        users: {
+                                            some: {
+                                                userId: ctx.user.id,
+                                            },
+                                        },
+                                    },
+                                    {
+                                        createdBy: {
+                                            id: ctx.user.id,
+                                        },
+                                    },
+                                ],
+                            },
+                        ],
                     },
-                },
-            }
-        }
-    });
-}, {
-    namespace: "server.queries.collections:getCollection"
-}));
+                    include: {
+                        createdBy: {
+                            select: { id: true, username: true, avatarUrl: true },
+                        },
+                        users: {
+                            include: {
+                                user: {
+                                    select: { id: true, username: true, avatarUrl: true },
+                                },
+                            },
+                        },
+                    },
+                });
+            },
+            {
+                namespace: "server.queries.collections:getCollection",
+            },
+        ),
+    );

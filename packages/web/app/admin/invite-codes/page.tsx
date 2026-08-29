@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { RefreshCw, TriangleAlert } from 'lucide-react';
+import { RefreshCw, TriangleAlert } from "lucide-react";
 
-import { AdminInviteCodesPanel } from '@/components/admin/invite-codes/panel';
-import { LoadingIndicator } from '@/components/shared/loading-indicator';
-import { Shimmer } from '@/components/shared/shimmer';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { useServerQuery } from '@/lib/hooks/use-server-query';
-import { cn } from '@/lib/utils';
-import { getInviteCodes } from '@/server/queries/invite-codes';
+import { AdminInviteCodesPanel } from "@/components/admin/invite-codes/panel";
+import { LoadingIndicator } from "@/components/shared/loading-indicator";
+import { Shimmer } from "@/components/shared/shimmer";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useServerQuery } from "@/lib/hooks/use-server-query";
+import { cn } from "@/lib/utils";
+import { getInviteCodes } from "@/server/queries/invite-codes";
 
 function InviteCodesSkeleton() {
     return (
@@ -37,7 +37,7 @@ export default function AdminInviteCodesPage() {
         isRevalidating,
         isValidating,
         mutate,
-    } = useServerQuery(['admin-invite-codes'], () => getInviteCodes());
+    } = useServerQuery(["admin-invite-codes"], () => getInviteCodes());
 
     const error = inviteCodesResult?.success === false ? inviteCodesResult.error : null;
     const data = inviteCodesResult?.success ? inviteCodesResult.data : null;
@@ -48,9 +48,7 @@ export default function AdminInviteCodesPage() {
                 <div className="flex items-center justify-between">
                     <div className="space-y-1">
                         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Invite Codes</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Create and manage registration invite codes
-                        </p>
+                        <p className="text-sm text-muted-foreground">Create and manage registration invite codes</p>
                     </div>
 
                     <Button
@@ -89,12 +87,7 @@ export default function AdminInviteCodesPage() {
                         </CardContent>
                     </Card>
                 ) : data ? (
-                    <div
-                        className={cn(
-                            'relative transition-opacity duration-200',
-                            isRevalidating && 'opacity-80'
-                        )}
-                    >
+                    <div className={cn("relative transition-opacity duration-200", isRevalidating && "opacity-80")}>
                         <AdminInviteCodesPanel data={data} onMutate={() => mutate()} />
                     </div>
                 ) : null}

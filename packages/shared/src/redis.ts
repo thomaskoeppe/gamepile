@@ -24,4 +24,3 @@ export function createRedisOptions(env?: RedisEnvVars): SharedRedisOptions {
         maxRetriesPerRequest: null,
     };
 }
-

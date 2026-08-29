@@ -83,20 +83,15 @@ export function CancelJobButton({
                     <AlertDialogHeader>
                         <AlertDialogTitle>Cancel this job?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            The job will stop at its next checkpoint and be marked as canceled.
-                            Work already completed is kept; remaining items are not processed.
-                            This cannot be undone.
+                            The job will stop at its next checkpoint and be marked as canceled. Work already completed
+                            is kept; remaining items are not processed. This cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
 
-                    {error && (
-                        <p className="text-sm text-destructive">{error}</p>
-                    )}
+                    {error && <p className="text-sm text-destructive">{error}</p>}
 
                     <AlertDialogFooter>
-                        <AlertDialogCancel disabled={cancelAction.isPending}>
-                            Keep running
-                        </AlertDialogCancel>
+                        <AlertDialogCancel disabled={cancelAction.isPending}>Keep running</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={(event) => {
                                 event.preventDefault();
@@ -104,9 +99,7 @@ export function CancelJobButton({
                                 cancelAction.execute({ jobId });
                             }}
                             disabled={cancelAction.isPending}
-                            className={cn(
-                                "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-                            )}
+                            className={cn("bg-destructive text-destructive-foreground hover:bg-destructive/90")}
                         >
                             {cancelAction.isPending ? (
                                 <>

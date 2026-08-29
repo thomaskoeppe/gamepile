@@ -1,11 +1,11 @@
 "use server";
 
-import {getCurrentSession} from "@/lib/auth/session";
+import { getCurrentSession } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
-import {redis} from "@/lib/redis";
-import {RankedGameResult,searchGamesRanked} from "@/lib/search-query";
-import {Category, Prisma, Tag} from "@/prisma/generated/client";
+import { redis } from "@/lib/redis";
+import { RankedGameResult, searchGamesRanked } from "@/lib/search-query";
+import { Category, Prisma, Tag } from "@/prisma/generated/client";
 
 const log = logger.child("server.actions.search");
 
@@ -82,7 +82,7 @@ function collectionToSearchResult(collection: CollectionWithCount): SearchResult
         id: collection.id,
         name: collection.name,
         description: collection.description ?? undefined,
-        metadata: {gameCount: collection._count.games},
+        metadata: { gameCount: collection._count.games },
     };
 }
 
@@ -92,16 +92,16 @@ function vaultToSearchResult(vault: VaultWithCount): SearchResult {
         id: vault.id,
         name: vault.name,
         icon: "archive",
-        metadata: {itemCount: vault._count.games},
+        metadata: { itemCount: vault._count.games },
     };
 }
 
 function categoryToSearchResult(category: Category): SearchResult {
-    return {type: "category", id: category.id, name: category.name};
+    return { type: "category", id: category.id, name: category.name };
 }
 
 function tagToSearchResult(tag: Tag): SearchResult {
-    return {type: "tag", id: tag.id, name: tag.name};
+    return { type: "tag", id: tag.id, name: tag.name };
 }
 
 /** Retrieves the authenticated user's recent search queries from Redis. */
@@ -114,12 +114,14 @@ export async function getRecentSearches(): Promise<RecentSearch[]> {
         "+inf",
         "-inf",
         "WITHSCORES",
-        "LIMIT", 0, MAX_RECENT,
+        "LIMIT",
+        0,
+        MAX_RECENT,
     );
 
     const searches: RecentSearch[] = [];
     for (let i = 0; i < raw.length; i += 2) {
-        searches.push({query: raw[i], searchedAt: Number(raw[i + 1])});
+        searches.push({ query: raw[i], searchedAt: Number(raw[i + 1]) });
     }
     return searches;
 }
@@ -158,9 +160,7 @@ async function incrementTrending(query: string): Promise<void> {
 }
 
 export async function getTrendingSearches(lookbackHours = 24): Promise<string[]> {
-    const bucketKeys = Array.from({length: lookbackHours}, (_, i) =>
-        rk.trendingBucket(hourBucket(i)),
-    );
+    const bucketKeys = Array.from({ length: lookbackHours }, (_, i) => rk.trendingBucket(hourBucket(i)));
 
     const tempKey = rk.trendingTemp();
 
@@ -185,7 +185,7 @@ function rankedGameToSearchResult(game: RankedGameResult): SearchResult {
         metadata: {
             reviewScore: game.reviewScore ?? 0,
             isFree: game.isFree,
-            ...(game.releaseDate ? {releaseDate: game.releaseDate} : {}),
+            ...(game.releaseDate ? { releaseDate: game.releaseDate } : {}),
         },
     };
 }
@@ -195,13 +195,13 @@ function buildSearchQueries(q: string) {
 
     const gameNameOrId = {
         OR: [
-            {name: {contains: q, mode: "insensitive" as const}},
-            ...(numericId !== null ? [{appId: numericId}] : []),
+            { name: { contains: q, mode: "insensitive" as const } },
+            ...(numericId !== null ? [{ appId: numericId }] : []),
         ],
     };
 
     const containsMatchingGame = {
-        some: {game: gameNameOrId},
+        some: { game: gameNameOrId },
     };
 
     return {
@@ -209,33 +209,27 @@ function buildSearchQueries(q: string) {
 
         collections: prisma.collection.findMany({
             where: {
-                OR: [
-                    {name: {contains: q, mode: "insensitive"}},
-                    {games: containsMatchingGame},
-                ],
+                OR: [{ name: { contains: q, mode: "insensitive" } }, { games: containsMatchingGame }],
             },
-            include: {_count: {select: {games: true}}},
+            include: { _count: { select: { games: true } } },
             take: RESULT_LIMIT,
         }),
 
         vaults: prisma.keyVault.findMany({
             where: {
-                OR: [
-                    {name: {contains: q, mode: "insensitive"}},
-                    {games: containsMatchingGame},
-                ],
+                OR: [{ name: { contains: q, mode: "insensitive" } }, { games: containsMatchingGame }],
             },
-            include: {_count: {select: {games: true}}},
+            include: { _count: { select: { games: true } } },
             take: RESULT_LIMIT,
         }),
 
         categories: prisma.category.findMany({
-            where: {name: {contains: q, mode: "insensitive"}},
+            where: { name: { contains: q, mode: "insensitive" } },
             take: RESULT_LIMIT,
         }),
 
         tags: prisma.tag.findMany({
-            where: {name: {contains: q, mode: "insensitive"}},
+            where: { name: { contains: q, mode: "insensitive" } },
             take: RESULT_LIMIT,
         }),
     };
@@ -248,7 +242,7 @@ export async function search(query: string): Promise<SearchResults | null> {
     const q = normalizeQuery(query);
 
     if (!q) {
-        return {games: [], collections: [], vaults: [], categories: [], tags: [], totalCount: 0};
+        return { games: [], collections: [], vaults: [], categories: [], tags: [], totalCount: 0 };
     }
 
     const cached = await redis.get(rk.results(q));
@@ -276,9 +270,7 @@ export async function search(query: string): Promise<SearchResults | null> {
         vaults: vaults.map(vaultToSearchResult),
         categories: categories.map(categoryToSearchResult),
         tags: tags.map(tagToSearchResult),
-        totalCount:
-            games.length + collections.length + vaults.length +
-            categories.length + tags.length,
+        totalCount: games.length + collections.length + vaults.length + categories.length + tags.length,
     };
 
     fireAndForget(redis.set(rk.results(q), JSON.stringify(results), "EX", SEARCH_CACHE_TTL), "cacheSet");

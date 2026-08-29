@@ -1,13 +1,13 @@
-import type {Job} from "bullmq";
+import type { Job } from "bullmq";
 
-import {createGameStub, persistGameDetails, recordChildFailure,} from "@/src/jobs/game-persistence.js";
-import {isJobCancelled} from "@/src/lib/job/cancel.js";
-import {isStaleOrStub, tryCompleteParentJob} from "@/src/lib/job/completion.js";
-import {createLog} from "@/src/lib/job/log.js";
-import {type GameDetailsQueuePayload} from "@/src/lib/job/queue.js";
-import {logger} from "@/src/lib/logger.js";
-import {fetchStoreBrowseDetailsBatch} from "@/src/lib/steam/api/store-browse.js";
-import {publishDetailJobCompletion} from "@/src/lib/worker-metrics.js";
+import { createGameStub, persistGameDetails, recordChildFailure } from "@/src/jobs/game-persistence.js";
+import { isJobCancelled } from "@/src/lib/job/cancel.js";
+import { isStaleOrStub, tryCompleteParentJob } from "@/src/lib/job/completion.js";
+import { createLog } from "@/src/lib/job/log.js";
+import { type GameDetailsQueuePayload } from "@/src/lib/job/queue.js";
+import { logger } from "@/src/lib/logger.js";
+import { fetchStoreBrowseDetailsBatch } from "@/src/lib/steam/api/store-browse.js";
+import { publishDetailJobCompletion } from "@/src/lib/worker-metrics.js";
 import prisma from "@/src/lib/prisma.js";
 
 /**
@@ -18,8 +18,8 @@ import prisma from "@/src/lib/prisma.js";
  */
 async function incrementProcessedItems(parentJobId: string, count: number): Promise<void> {
     await prisma.job.update({
-        where: {id: parentJobId},
-        data: {processedItems: {increment: count}},
+        where: { id: parentJobId },
+        data: { processedItems: { increment: count } },
     });
 }
 
@@ -39,9 +39,9 @@ async function incrementProcessedItems(parentJobId: string, count: number): Prom
  * @throws {Error} On non-final attempts if the batch fetch fails (triggers BullMQ retry).
  */
 export default async function handleFetchGameDetails(job: Job<GameDetailsQueuePayload>): Promise<void> {
-    const {parentJobId, appIds, gameIdMap} = job.data;
+    const { parentJobId, appIds, gameIdMap } = job.data;
     const batchSize = appIds.length;
-    const log = logger.child("worker.jobs:fetchGameDetails", {parentJobId, batchSize});
+    const log = logger.child("worker.jobs:fetchGameDetails", { parentJobId, batchSize });
     const startMs = Date.now();
 
     let shouldTryCompleteParent = true;
@@ -55,8 +55,8 @@ export default async function handleFetchGameDetails(job: Job<GameDetailsQueuePa
     const isLastAttempt = job.attemptsMade >= maxAttempts - 1;
 
     const existingGames = await prisma.game.findMany({
-        where: {appId: {in: appIds}},
-        select: {appId: true, createdAt: true, detailsFetchedAt: true},
+        where: { appId: { in: appIds } },
+        select: { appId: true, createdAt: true, detailsFetchedAt: true },
     });
 
     const existingByAppId = new Map(existingGames.map((g) => [g.appId!, g]));
@@ -75,9 +75,7 @@ export default async function handleFetchGameDetails(job: Job<GameDetailsQueuePa
 
     if (freshCount > 0) {
         await incrementProcessedItems(parentJobId, freshCount);
-        await createLog(parentJobId, "info",
-            `Batch: ${freshCount} app(s) skipped — details already fresh`,
-        );
+        await createLog(parentJobId, "info", `Batch: ${freshCount} app(s) skipped — details already fresh`);
         for (const appId of appIds) {
             const game = existingByAppId.get(appId);
             if (game && !isStaleOrStub(game)) {

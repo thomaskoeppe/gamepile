@@ -5,9 +5,9 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { searchGameIds } from "@/lib/search-query";
 import { withLogging } from "@/lib/with-logging";
-import { GameType,Platform, Prisma } from "@/prisma/generated/client";
+import { GameType, Platform, Prisma } from "@/prisma/generated/client";
 import { queryClientWithAuth } from "@/server/query";
-import type { ExplorerFilterOptions,ExplorerFilters, ExplorerGameRow, ExplorerSort } from "@/types/explorer";
+import type { ExplorerFilterOptions, ExplorerFilters, ExplorerGameRow, ExplorerSort } from "@/types/explorer";
 
 /**
  * Expands category/tag id selections to every id sharing the same display
@@ -51,11 +51,7 @@ async function expandFilterIdsByName(filters: ExplorerFilters): Promise<Explorer
     return expanded;
 }
 
-function buildWhere(
-    filters: ExplorerFilters,
-    userId: string,
-    searchIds?: string[],
-): Prisma.GameWhereInput {
+function buildWhere(filters: ExplorerFilters, userId: string, searchIds?: string[]): Prisma.GameWhereInput {
     const conditions: Prisma.GameWhereInput[] = [];
 
     const toExclusiveDate = (isoDate: string): Date => {
@@ -84,11 +80,16 @@ function buildWhere(
 
 function buildOrderBy(sort: ExplorerSort): Prisma.GameOrderByWithRelationInput {
     switch (sort.field) {
-        case "name": return { name: sort.direction };
-        case "releaseDate": return { releaseDate: { sort: sort.direction, nulls: "last" } };
-        case "reviewScore": return { reviewPercentage: { sort: sort.direction, nulls: "last" } };
-        case "type": return { type: sort.direction };
-        default: return { name: "asc" };
+        case "name":
+            return { name: sort.direction };
+        case "releaseDate":
+            return { releaseDate: { sort: sort.direction, nulls: "last" } };
+        case "reviewScore":
+            return { reviewPercentage: { sort: sort.direction, nulls: "last" } };
+        case "type":
+            return { type: sort.direction };
+        default:
+            return { name: "asc" };
     }
 }
 
@@ -99,7 +100,7 @@ function mapGame(
             tags: { select: { id: true; name: true } };
             userGames: { select: { id: true } };
         };
-    }>
+    }>,
 ): ExplorerGameRow {
     return {
         id: g.id,
@@ -145,90 +146,115 @@ type ExplorerGamesResult = {
 };
 
 export const getExplorerGames = queryClientWithAuth
-    .inputSchema(z.object({
-        filters: filtersSchema,
-        sort: z.object({
-            field: z.enum(["name", "releaseDate", "reviewScore", "type"]),
-            direction: z.enum(["asc", "desc"]),
-        }),
-        pagination: z.object({
-            page: z.number().int().positive(),
-            pageSize: z.number().int().positive(),
-        }),
-    }))
-    .query<ExplorerGamesResult>(withLogging(async ({ parsedInput: { filters: rawFilters, sort, pagination }, ctx }, { log }) => {
-        log.info("Fetching explorer games", { filters: rawFilters, sort, pagination, userId: ctx.user.id });
-
-        const filters = await expandFilterIdsByName(rawFilters);
-
-        if (filters.search.trim().length >= 2) {
-            const { ids: pageIds, total } = await searchGameIds(filters.search, {
-                limit: pagination.pageSize,
-                offset: (pagination.page - 1) * pagination.pageSize,
-            });
-
-            if (total === 0) {
-                return { data: [], total: 0, page: pagination.page, pageSize: pagination.pageSize, totalPages: 0 };
-            }
-
-            const rawGames = await prisma.game.findMany({
-                where: buildWhere(filters, ctx.user.id, pageIds),
-                include: {
-                    categories: { select: { id: true, name: true } },
-                    tags: { select: { id: true, name: true } },
-                    userGames: { where: { userId: ctx.user.id }, select: { id: true }, take: 1 },
-                },
-            });
-
-            const idOrder = new Map(pageIds.map((id, i) => [id, i]));
-            rawGames.sort((a, b) => (idOrder.get(a.id) ?? 0) - (idOrder.get(b.id) ?? 0));
-
-            return {
-                data: rawGames.map(mapGame),
-                total,
-                page: pagination.page,
-                pageSize: pagination.pageSize,
-                totalPages: Math.ceil(total / pagination.pageSize),
-            };
-        }
-
-        const where = buildWhere(filters, ctx.user.id);
-
-        const [rawGames, total] = await Promise.all([
-            prisma.game.findMany({
-                where,
-                include: {
-                    categories: { select: { id: true, name: true } },
-                    tags: { select: { id: true, name: true } },
-                    userGames: { where: { userId: ctx.user.id }, select: { id: true }, take: 1 },
-                },
-                orderBy: buildOrderBy(sort),
-                skip: (pagination.page - 1) * pagination.pageSize,
-                take: pagination.pageSize,
+    .inputSchema(
+        z.object({
+            filters: filtersSchema,
+            sort: z.object({
+                field: z.enum(["name", "releaseDate", "reviewScore", "type"]),
+                direction: z.enum(["asc", "desc"]),
             }),
-            prisma.game.count({ where }),
-        ]);
+            pagination: z.object({
+                page: z.number().int().positive(),
+                pageSize: z.number().int().positive(),
+            }),
+        }),
+    )
+    .query<ExplorerGamesResult>(
+        withLogging(
+            async ({ parsedInput: { filters: rawFilters, sort, pagination }, ctx }, { log }) => {
+                log.info("Fetching explorer games", { filters: rawFilters, sort, pagination, userId: ctx.user.id });
 
-        return {
-            data: rawGames.map(mapGame),
-            total,
-            page: pagination.page,
-            pageSize: pagination.pageSize,
-            totalPages: Math.ceil(total / pagination.pageSize),
-        };
-    }, { namespace: "server.queries.explorer:getExplorerGames" }));
+                const filters = await expandFilterIdsByName(rawFilters);
 
-export const getExplorerFilterOptions = queryClientWithAuth
-    .query<ExplorerFilterOptions>(withLogging(async ({ ctx }, { log }) => {
-        log.info("Fetching explorer filter options", { userId: ctx.user.id });
+                if (filters.search.trim().length >= 2) {
+                    const { ids: pageIds, total } = await searchGameIds(filters.search, {
+                        limit: pagination.pageSize,
+                        offset: (pagination.page - 1) * pagination.pageSize,
+                    });
 
-        // Names are not unique (Steam reuses display names across ids); the
-        // filters match by name, so one entry per name is enough. The id
-        // tie-breaker keeps the representative id stable across requests.
-        const [categories, tags] = await Promise.all([
-            prisma.category.findMany({ select: { id: true, name: true }, distinct: ["name"], orderBy: [{ name: "asc" }, { id: "asc" }] }),
-            prisma.tag.findMany({ select: { id: true, name: true }, distinct: ["name"], orderBy: [{ name: "asc" }, { id: "asc" }] }),
-        ]);
+                    if (total === 0) {
+                        return {
+                            data: [],
+                            total: 0,
+                            page: pagination.page,
+                            pageSize: pagination.pageSize,
+                            totalPages: 0,
+                        };
+                    }
 
-        return { categories, tags };
-    }, { namespace: "server.queries.explorer:getExplorerFilterOptions" }));
+                    const rawGames = await prisma.game.findMany({
+                        where: buildWhere(filters, ctx.user.id, pageIds),
+                        include: {
+                            categories: { select: { id: true, name: true } },
+                            tags: { select: { id: true, name: true } },
+                            userGames: { where: { userId: ctx.user.id }, select: { id: true }, take: 1 },
+                        },
+                    });
+
+                    const idOrder = new Map(pageIds.map((id, i) => [id, i]));
+                    rawGames.sort((a, b) => (idOrder.get(a.id) ?? 0) - (idOrder.get(b.id) ?? 0));
+
+                    return {
+                        data: rawGames.map(mapGame),
+                        total,
+                        page: pagination.page,
+                        pageSize: pagination.pageSize,
+                        totalPages: Math.ceil(total / pagination.pageSize),
+                    };
+                }
+
+                const where = buildWhere(filters, ctx.user.id);
+
+                const [rawGames, total] = await Promise.all([
+                    prisma.game.findMany({
+                        where,
+                        include: {
+                            categories: { select: { id: true, name: true } },
+                            tags: { select: { id: true, name: true } },
+                            userGames: { where: { userId: ctx.user.id }, select: { id: true }, take: 1 },
+                        },
+                        orderBy: buildOrderBy(sort),
+                        skip: (pagination.page - 1) * pagination.pageSize,
+                        take: pagination.pageSize,
+                    }),
+                    prisma.game.count({ where }),
+                ]);
+
+                return {
+                    data: rawGames.map(mapGame),
+                    total,
+                    page: pagination.page,
+                    pageSize: pagination.pageSize,
+                    totalPages: Math.ceil(total / pagination.pageSize),
+                };
+            },
+            { namespace: "server.queries.explorer:getExplorerGames" },
+        ),
+    );
+
+export const getExplorerFilterOptions = queryClientWithAuth.query<ExplorerFilterOptions>(
+    withLogging(
+        async ({ ctx }, { log }) => {
+            log.info("Fetching explorer filter options", { userId: ctx.user.id });
+
+            // Names are not unique (Steam reuses display names across ids); the
+            // filters match by name, so one entry per name is enough. The id
+            // tie-breaker keeps the representative id stable across requests.
+            const [categories, tags] = await Promise.all([
+                prisma.category.findMany({
+                    select: { id: true, name: true },
+                    distinct: ["name"],
+                    orderBy: [{ name: "asc" }, { id: "asc" }],
+                }),
+                prisma.tag.findMany({
+                    select: { id: true, name: true },
+                    distinct: ["name"],
+                    orderBy: [{ name: "asc" }, { id: "asc" }],
+                }),
+            ]);
+
+            return { categories, tags };
+        },
+        { namespace: "server.queries.explorer:getExplorerFilterOptions" },
+    ),
+);

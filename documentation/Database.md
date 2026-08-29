@@ -24,7 +24,7 @@ This document describes the PostgreSQL database schema defined in `schema.prisma
 ## Enums
 
 | Enum                   | Values                                                                                        | Used By             |
-|------------------------|-----------------------------------------------------------------------------------------------|---------------------|
+| ---------------------- | --------------------------------------------------------------------------------------------- | ------------------- |
 | `Platform`             | `WINDOWS`, `LINUX`, `MAC`                                                                     | `Game.platforms`    |
 | `CollectionVisibility` | `PRIVATE`, `PUBLIC`                                                                           | `Collection.type`   |
 | `GameType`             | `GAME`, `DLC`, `DEMO`, `MOD`, `ADVERTISING`, `UNKNOWN`                                        | `Game.type`         |

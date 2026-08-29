@@ -26,7 +26,7 @@
 Official images are published to the GitHub Container Registry and updated on every release:
 
 | Image                                   | Tag      |
-|-----------------------------------------|----------|
+| --------------------------------------- | -------- |
 | `ghcr.io/thomaskoeppe/gamepile/web`     | `latest` |
 | `ghcr.io/thomaskoeppe/gamepile/worker`  | `latest` |
 | `ghcr.io/thomaskoeppe/gamepile/migrate` | `latest` |
@@ -92,7 +92,7 @@ Subsequent users sign up with the `USER` role. An admin can promote them manuall
 By default, open signup is enabled — any Steam user can create an account. The admin can change this from the admin panel:
 
 | Scenario                 | `ALLOW_USER_SIGNUP` | `ALLOW_INVITE_CODE_GENERATION` |
-|--------------------------|---------------------|--------------------------------|
+| ------------------------ | ------------------- | ------------------------------ |
 | Anyone can register      | `true` (default)    | any                            |
 | Registration closed      | `false`             | `false`                        |
 | Invite-only registration | `false`             | `true`                         |
@@ -106,7 +106,7 @@ When invite-only mode is active, the admin generates invite codes from `/admin/i
 For the bundled `docker-compose.yml` deployment, these three variables must be set. Everything else has sensible defaults.
 
 | Variable                 | What it does                                                                                                                                                                                               |
-|--------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `STEAM_API_KEY`          | 32-char hex key from [steamcommunity.com/dev/apikey](https://steamcommunity.com/dev/apikey). Required for profile fetches, library imports, and catalog sync.                                              |
 | `WEB_VAULT_TOKEN_SECRET` | HMAC secret used to sign per-vault access cookies. Must be at least 32 characters. Generate with `openssl rand -hex 32`.                                                                                   |
 | `DOMAIN`                 | Public hostname without protocol or path (e.g. `gamepile.example.com` or `localhost:8080`). Used by the Compose file to default `WEB_APP_URL` to `http://${DOMAIN}` and `WEB_ALLOWED_ORIGINS` to `DOMAIN`. |
@@ -171,7 +171,7 @@ See **[documentation/Configuration.md](documentation/Configuration.md)** for the
 ![Architecture Diagram](documentation/architecture.png)
 
 | Component    | Description                                                                   |
-|--------------|-------------------------------------------------------------------------------|
+| ------------ | ----------------------------------------------------------------------------- |
 | **web**      | Next.js 16 app: UI, Server Actions, Steam OpenID auth, SSE job streaming      |
 | **worker**   | BullMQ job processor: library imports, game catalog sync, achievement imports |
 | **migrate**  | One-shot Prisma migration container. Runs and exits before web/worker start.  |

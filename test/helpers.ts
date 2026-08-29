@@ -3,10 +3,7 @@
  */
 
 /** Builds a real `Request`, so handlers exercise genuine parsing and headers. */
-export function makeRequest(
-    url = "http://localhost:3000/",
-    init: RequestInit & { requestId?: string } = {},
-): Request {
+export function makeRequest(url = "http://localhost:3000/", init: RequestInit & { requestId?: string } = {}): Request {
     const { requestId, ...rest } = init;
     const headers = new Headers(rest.headers);
 

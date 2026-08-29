@@ -14,12 +14,14 @@ describe("createRedisOptions", () => {
     });
 
     it("reads host, port and credentials from the environment", () => {
-        expect(createRedisOptions({
-            REDIS_HOST: "redis.internal",
-            REDIS_PORT: "6380",
-            REDIS_PASSWORD: "s3cret",
-            REDIS_USERNAME: "gamepile",
-        })).toMatchObject({
+        expect(
+            createRedisOptions({
+                REDIS_HOST: "redis.internal",
+                REDIS_PORT: "6380",
+                REDIS_PASSWORD: "s3cret",
+                REDIS_USERNAME: "gamepile",
+            }),
+        ).toMatchObject({
             host: "redis.internal",
             port: 6380,
             password: "s3cret",

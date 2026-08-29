@@ -95,10 +95,7 @@ export const createVault = actionClientWithAuth
                         },
                     });
                 } catch (error) {
-                    if (
-                        error instanceof Prisma.PrismaClientKnownRequestError
-                        && error.code === "P2002"
-                    ) {
+                    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
                         throw new Error("You already have a vault with that name.");
                     }
 
@@ -112,4 +109,3 @@ export const createVault = actionClientWithAuth
             },
         ),
     );
-

@@ -18,8 +18,8 @@ dayjs.extend(relativeTime);
  * Hidden achievements that are still locked mask their name and description.
  */
 export function AchievementList({ gameId }: { gameId: string }) {
-    const { data, isInitialLoading } = useServerQuery(
-        ["game-achievements", gameId], () => getGameAchievementsForUser({ gameId }),
+    const { data, isInitialLoading } = useServerQuery(["game-achievements", gameId], () =>
+        getGameAchievementsForUser({ gameId }),
     );
 
     if (isInitialLoading) {
@@ -34,11 +34,7 @@ export function AchievementList({ gameId }: { gameId: string }) {
     }
 
     if (!data?.success || data.data.total === 0) {
-        return (
-            <p className="text-sm text-muted-foreground py-8 text-center">
-                No achievements found for this game.
-            </p>
-        );
+        return <p className="text-sm text-muted-foreground py-8 text-center">No achievements found for this game.</p>;
     }
 
     const { total, unlockedCount, achievements } = data.data;
@@ -54,10 +50,7 @@ export function AchievementList({ gameId }: { gameId: string }) {
                     <span className="font-medium">{percent}%</span>
                 </div>
                 <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                    <div
-                        className="h-full rounded-full bg-primary transition-all"
-                        style={{ width: `${percent}%` }}
-                    />
+                    <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${percent}%` }} />
                 </div>
             </div>
 
@@ -94,9 +87,7 @@ export function AchievementList({ gameId }: { gameId: string }) {
                                     {masked ? "Hidden achievement" : a.displayName}
                                 </p>
                                 <p className="text-xs text-muted-foreground line-clamp-2">
-                                    {masked
-                                        ? "Unlock this achievement to reveal its details."
-                                        : a.description || " "}
+                                    {masked ? "Unlock this achievement to reveal its details." : a.description || " "}
                                 </p>
                             </div>
 

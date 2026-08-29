@@ -5,22 +5,17 @@ import { useEffect, useRef, useState } from "react";
 import { getLatestJobByType } from "@/lib/actions/jobs";
 import { browserLog } from "@/lib/browser-logger";
 import { JobType } from "@/prisma/generated/enums";
-import { isTerminal,JobSnapshot } from "@/types/job";
+import { isTerminal, JobSnapshot } from "@/types/job";
 
 const REPOLL_INTERVAL_MS = 30_000;
 
 const RECONNECT_ERROR_THRESHOLD = 3;
 
-export type StreamPhase =
-    | "loading"
-    | "streaming"
-    | "terminal"
-    | "no-job"
-    | "error";
+export type StreamPhase = "loading" | "streaming" | "terminal" | "no-job" | "error";
 
 export type UseJobStreamResult = {
-    snapshot:       JobSnapshot | null;
-    phase:          StreamPhase;
+    snapshot: JobSnapshot | null;
+    phase: StreamPhase;
     isReconnecting: boolean;
 };
 
@@ -60,20 +55,26 @@ export function useJobStream(jobType: JobType): UseJobStreamResult {
     });
 
     useEffect(() => {
-        let destroyed       = false;
-        let es:       EventSource | null = null;
+        let destroyed = false;
+        let es: EventSource | null = null;
         let repollId: ReturnType<typeof setInterval> | null = null;
-        let currentJobId:   string | null = null;
-        let consecutiveErrors              = 0;
+        let currentJobId: string | null = null;
+        let consecutiveErrors = 0;
 
         /** Closes the active EventSource connection, if any. */
         function closeEs() {
-            if (es) { es.close(); es = null; }
+            if (es) {
+                es.close();
+                es = null;
+            }
         }
 
         /** Clears the active repoll interval, if any. */
         function clearRepoll() {
-            if (repollId) { clearInterval(repollId); repollId = null; }
+            if (repollId) {
+                clearInterval(repollId);
+                repollId = null;
+            }
         }
 
         /**
@@ -95,7 +96,10 @@ export function useJobStream(jobType: JobType): UseJobStreamResult {
             clearRepoll();
 
             repollId = setInterval(async () => {
-                if (destroyed) { clearRepoll(); return; }
+                if (destroyed) {
+                    clearRepoll();
+                    return;
+                }
 
                 let result: JobSnapshot | null = null;
                 try {
@@ -105,7 +109,7 @@ export function useJobStream(jobType: JobType): UseJobStreamResult {
                 }
 
                 if (destroyed) return;
-                if (!result)   return;
+                if (!result) return;
 
                 if (result.id === currentJobId) return;
 
@@ -130,7 +134,7 @@ export function useJobStream(jobType: JobType): UseJobStreamResult {
          */
         function openStream(jobId: string) {
             closeEs();
-            currentJobId      = jobId;
+            currentJobId = jobId;
             consecutiveErrors = 0;
 
             const newEs = new EventSource(`/api/jobs/${jobId}/status/stream`);
@@ -145,7 +149,11 @@ export function useJobStream(jobType: JobType): UseJobStreamResult {
                     consecutiveErrors = 0;
                     setPhase(isTerminal(payload.status) ? "terminal" : "streaming");
                 } catch {
-                    browserLog.error("Failed to parse stream snapshot payload", new Error("Invalid JSON in snapshot event"), { rawData: ev.data });
+                    browserLog.error(
+                        "Failed to parse stream snapshot payload",
+                        new Error("Invalid JSON in snapshot event"),
+                        { rawData: ev.data },
+                    );
                 }
             });
 
@@ -193,7 +201,7 @@ export function useJobStream(jobType: JobType): UseJobStreamResult {
             setSnapshot(null);
             setIsReconnecting(false);
             consecutiveErrors = 0;
-            currentJobId      = null;
+            currentJobId = null;
 
             let initial: JobSnapshot | null = null;
             try {

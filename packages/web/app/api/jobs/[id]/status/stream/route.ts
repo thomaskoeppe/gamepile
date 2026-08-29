@@ -1,42 +1,38 @@
 import { getCurrentSession } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
-import { createPollingSseStream, SSE_HEADERS,sseEvent } from "@/lib/sse";
-import { isTerminal,JobSnapshot } from "@/types/job";
+import { createPollingSseStream, SSE_HEADERS, sseEvent } from "@/lib/sse";
+import { isTerminal, JobSnapshot } from "@/types/job";
 
-const POLL_INTERVAL_MS     = 2_000;
+const POLL_INTERVAL_MS = 2_000;
 const KEEPALIVE_INTERVAL_MS = 15_000;
-const LOG_TAIL              = 20;
+const LOG_TAIL = 20;
 
-
-async function fetchSnapshot(
-    jobId: string,
-    userId: string,
-): Promise<JobSnapshot | null> {
+async function fetchSnapshot(jobId: string, userId: string): Promise<JobSnapshot | null> {
     const job = await prisma.job.findUnique({
         where: {
-            id:     jobId,
+            id: jobId,
             userId,
         },
         select: {
-            id:             true,
-            type:           true,
-            status:         true,
+            id: true,
+            type: true,
+            status: true,
             processedItems: true,
-            totalItems:     true,
-            failedItems:    true,
+            totalItems: true,
+            failedItems: true,
             allItemsQueued: true,
-            startedAt:      true,
-            finishedAt:     true,
-            errorMessage:   true,
-            createdAt:      true,
+            startedAt: true,
+            finishedAt: true,
+            errorMessage: true,
+            createdAt: true,
             logs: {
                 orderBy: { timestamp: "desc" },
-                take:    LOG_TAIL,
+                take: LOG_TAIL,
                 select: {
-                    id:        true,
-                    message:   true,
-                    level:     true,
+                    id: true,
+                    message: true,
+                    level: true,
                     timestamp: true,
                 },
             },
@@ -47,19 +43,14 @@ async function fetchSnapshot(
 
     return {
         ...job,
-        startedAt:  job.startedAt?.toISOString()  ?? null,
+        startedAt: job.startedAt?.toISOString() ?? null,
         finishedAt: job.finishedAt?.toISOString() ?? null,
-        createdAt:  job.createdAt.toISOString(),
-        logs: job.logs
-            .reverse()
-            .map((l) => ({ ...l, timestamp: l.timestamp.toISOString() })),
+        createdAt: job.createdAt.toISOString(),
+        logs: job.logs.reverse().map((l) => ({ ...l, timestamp: l.timestamp.toISOString() })),
     };
 }
 
-export async function GET(
-    req: Request,
-    { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
     const log = logger.child("api.routes.jobs:statusStream", {
         requestId: req.headers.get("x-request-id") ?? undefined,
     });
@@ -70,11 +61,11 @@ export async function GET(
         return new Response("Unauthorized", { status: 401 });
     }
 
-    const userId  = session.user.id;
+    const userId = session.user.id;
 
     const stream = createPollingSseStream({
-        signal:              req.signal,
-        pollIntervalMs:      POLL_INTERVAL_MS,
+        signal: req.signal,
+        pollIntervalMs: POLL_INTERVAL_MS,
         keepAliveIntervalMs: KEEPALIVE_INTERVAL_MS,
         async poll({ send, close }) {
             let snapshot: JobSnapshot | null;

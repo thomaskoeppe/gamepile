@@ -13,13 +13,7 @@ import { useEffect } from "react";
  * settings: anything it depends on is something that could already be broken.
  * Styling is inline for the same reason.
  */
-export default function GlobalError({
-    error,
-    reset,
-}: {
-    error: Error & { digest?: string };
-    reset: () => void;
-}) {
+export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
     useEffect(() => {
         // Best-effort: the logger pipeline may be part of what failed.
         try {
@@ -77,10 +71,9 @@ export default function GlobalError({
                     </h1>
 
                     <p style={{ margin: "0 0 1.5rem", fontSize: "0.875rem", lineHeight: 1.6, color: "#a1a1aa" }}>
-                        This is usually a temporary problem reaching the database or cache. The
-                        server keeps retrying in the background, so reloading in a moment will often
-                        work. Check <code style={{ color: "#e8e8ea" }}>/api/health/ready</code> for
-                        which dependency is unhealthy.
+                        This is usually a temporary problem reaching the database or cache. The server keeps retrying in
+                        the background, so reloading in a moment will often work. Check{" "}
+                        <code style={{ color: "#e8e8ea" }}>/api/health/ready</code> for which dependency is unhealthy.
                     </p>
 
                     {error.digest ? (

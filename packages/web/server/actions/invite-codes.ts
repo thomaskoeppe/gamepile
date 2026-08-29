@@ -1,12 +1,12 @@
 "use server";
 
-import {z} from "zod";
+import { z } from "zod";
 
-import {getSetting} from "@/lib/app-settings";
+import { getSetting } from "@/lib/app-settings";
 import prisma from "@/lib/prisma";
 import { withLogging } from "@/lib/with-logging";
-import {AppSettingKey} from "@/prisma/generated/enums";
-import {actionClientWithAdmin} from "@/server/actions";
+import { AppSettingKey } from "@/prisma/generated/enums";
+import { actionClientWithAdmin } from "@/server/actions";
 
 /**
  * Creates a new invite code with optional expiry and usage limits.
@@ -17,30 +17,44 @@ import {actionClientWithAdmin} from "@/server/actions";
  * @returns The created invite code's `id` and `code`.
  * @throws {Error} If invite code generation is disabled by the administrator.
  */
-export const createInviteCode = actionClientWithAdmin.inputSchema(z.object({
-    expiresAt: z.date().optional(),
-    maxUses: z.number().int().positive().optional(),
-})).action(withLogging(async ({parsedInput: { expiresAt, maxUses }, ctx}, {log}) => {
-    if (!getSetting(AppSettingKey.ALLOW_INVITE_CODE_GENERATION)) throw new Error("Invite Code Generation is disabled!");
+export const createInviteCode = actionClientWithAdmin
+    .inputSchema(
+        z.object({
+            expiresAt: z.date().optional(),
+            maxUses: z.number().int().positive().optional(),
+        }),
+    )
+    .action(
+        withLogging(
+            async ({ parsedInput: { expiresAt, maxUses }, ctx }, { log }) => {
+                if (!getSetting(AppSettingKey.ALLOW_INVITE_CODE_GENERATION))
+                    throw new Error("Invite Code Generation is disabled!");
 
-    log.info("Creating invite code", {
-        expiresAt,
-        maxUses,
-        userId: ctx.user.id
-    });
+                log.info("Creating invite code", {
+                    expiresAt,
+                    maxUses,
+                    userId: ctx.user.id,
+                });
 
-    const inviteCode = await prisma.inviteCode.create({
-        data: {
-            createdById: ctx.user.id,
-            expiresAt,
-            maxUses
-        }
-    });
+                const inviteCode = await prisma.inviteCode.create({
+                    data: {
+                        createdById: ctx.user.id,
+                        expiresAt,
+                        maxUses,
+                    },
+                });
 
-    return { success: true, message: "Invite-Code created.", data: { id: inviteCode.id, code: inviteCode.code } };
-}, {
-    namespace: "server.actions.invite-codes:createInviteCode",
-}));
+                return {
+                    success: true,
+                    message: "Invite-Code created.",
+                    data: { id: inviteCode.id, code: inviteCode.code },
+                };
+            },
+            {
+                namespace: "server.actions.invite-codes:createInviteCode",
+            },
+        ),
+    );
 
 /**
  * Deletes an existing invite code.
@@ -50,31 +64,40 @@ export const createInviteCode = actionClientWithAdmin.inputSchema(z.object({
  * @returns Success flag and the deleted code string.
  * @throws {Error} If the invite code is not found.
  */
-export const deleteInviteCode = actionClientWithAdmin.inputSchema(z.object({
-    inviteCodeId: z.cuid(),
-})).action(withLogging(async ({parsedInput: { inviteCodeId }, ctx}, {log}) => {
-    const inviteCode = await prisma.inviteCode.findUnique({
-        where: { id: inviteCodeId },
-        select: { code: true },
-    });
+export const deleteInviteCode = actionClientWithAdmin
+    .inputSchema(
+        z.object({
+            inviteCodeId: z.cuid(),
+        }),
+    )
+    .action(
+        withLogging(
+            async ({ parsedInput: { inviteCodeId }, ctx }, { log }) => {
+                const inviteCode = await prisma.inviteCode.findUnique({
+                    where: { id: inviteCodeId },
+                    select: { code: true },
+                });
 
-    if (!inviteCode) {
-        throw new Error("Invite code not found.");
-    }
+                if (!inviteCode) {
+                    throw new Error("Invite code not found.");
+                }
 
-    log.info("Deleting invite code", {
-        inviteCodeId,
-        code: inviteCode.code,
-        userId: ctx.user.id
-    });
+                log.info("Deleting invite code", {
+                    inviteCodeId,
+                    code: inviteCode.code,
+                    userId: ctx.user.id,
+                });
 
-    await prisma.inviteCode.delete({
-        where: {
-            id: inviteCodeId,
-        }
-    });
+                await prisma.inviteCode.delete({
+                    where: {
+                        id: inviteCodeId,
+                    },
+                });
 
-    return { success: true, message: `Invite code ${inviteCode.code} deleted.` };
-}, {
-    namespace: "server.actions.invite-codes:deleteInviteCode",
-}));
+                return { success: true, message: `Invite code ${inviteCode.code} deleted.` };
+            },
+            {
+                namespace: "server.actions.invite-codes:deleteInviteCode",
+            },
+        ),
+    );

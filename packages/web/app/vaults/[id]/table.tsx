@@ -1,46 +1,36 @@
 // @react-compiler-disable
 "use client";
 
-import {
-    type ColumnDef,
-    flexRender,
-    getCoreRowModel,
-    type SortingState,
-    useReactTable,
-} from "@tanstack/react-table";
-import {
-    ArrowDown,
-    ArrowUp,
-    ArrowUpDown,
-} from "lucide-react";
-import {useState} from "react";
+import { type ColumnDef, flexRender, getCoreRowModel, type SortingState, useReactTable } from "@tanstack/react-table";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import { useState } from "react";
 
 import { TablePagination } from "@/components/table-pagination";
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface DataTableProps<TData> {
-    columns: ColumnDef<TData>[]
-    data: TData[]
-    totalCount: number
-    currentPage: number
-    pageSize: number
-    totalPages: number
-    onPageChange: (page: number) => void
-    onSortChange: (sortBy: string, sortOrder: "asc" | "desc") => void
-    isLoading?: boolean
+    columns: ColumnDef<TData>[];
+    data: TData[];
+    totalCount: number;
+    currentPage: number;
+    pageSize: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+    onSortChange: (sortBy: string, sortOrder: "asc" | "desc") => void;
+    isLoading?: boolean;
 }
 
 export function DataTable<TData>({
-     columns,
-     data,
-     totalCount,
-     currentPage,
-     pageSize,
-     totalPages,
-     onPageChange,
-     onSortChange,
-     isLoading = false,
- }: DataTableProps<TData>) {
+    columns,
+    data,
+    totalCount,
+    currentPage,
+    pageSize,
+    totalPages,
+    onPageChange,
+    onSortChange,
+    isLoading = false,
+}: DataTableProps<TData>) {
     const [sorting, setSorting] = useState<SortingState>([]);
 
     // eslint-disable-next-line react-hooks/incompatible-library
@@ -58,7 +48,7 @@ export function DataTable<TData>({
             setSorting(newSorting);
 
             if (newSorting.length > 0) {
-                const {id, desc} = newSorting[0];
+                const { id, desc } = newSorting[0];
                 onSortChange(id, desc ? "desc" : "asc");
             }
         },
@@ -83,18 +73,20 @@ export function DataTable<TData>({
                                             {header.isPlaceholder ? null : (
                                                 <div
                                                     className={`flex items-center gap-2 ${canSort ? "cursor-pointer select-none" : ""}`}
-                                                    onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
+                                                    onClick={
+                                                        canSort ? header.column.getToggleSortingHandler() : undefined
+                                                    }
                                                 >
                                                     {flexRender(header.column.columnDef.header, header.getContext())}
                                                     {canSort && (
                                                         <span className="text-muted-foreground/50">
-                                                          {sorted === "asc" ? (
-                                                              <ArrowUp className="h-4 w-4"/>
-                                                          ) : sorted === "desc" ? (
-                                                              <ArrowDown className="h-4 w-4"/>
-                                                          ) : (
-                                                              <ArrowUpDown className="h-4 w-4"/>
-                                                          )}
+                                                            {sorted === "asc" ? (
+                                                                <ArrowUp className="h-4 w-4" />
+                                                            ) : sorted === "desc" ? (
+                                                                <ArrowDown className="h-4 w-4" />
+                                                            ) : (
+                                                                <ArrowUpDown className="h-4 w-4" />
+                                                            )}
                                                         </span>
                                                     )}
                                                 </div>
@@ -116,8 +108,9 @@ export function DataTable<TData>({
                             table.getRowModel().rows.map((row) => (
                                 <TableRow key={row.id} className="border-border hover:bg-accent/5">
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell
-                                            key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                                        <TableCell key={cell.id}>
+                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                        </TableCell>
                                     ))}
                                 </TableRow>
                             ))
@@ -133,14 +126,14 @@ export function DataTable<TData>({
             </div>
 
             {totalCount > 0 && (
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="text-sm text-muted-foreground">
-                    Showing <span className="font-medium text-muted-foreground">{startRow}</span> to{" "}
-                    <span className="font-medium text-muted-foreground">{endRow}</span> of{" "}
-                    <span className="font-medium text-muted-foreground">{totalCount}</span> results
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="text-sm text-muted-foreground">
+                        Showing <span className="font-medium text-muted-foreground">{startRow}</span> to{" "}
+                        <span className="font-medium text-muted-foreground">{endRow}</span> of{" "}
+                        <span className="font-medium text-muted-foreground">{totalCount}</span> results
+                    </div>
+                    <TablePagination page={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
                 </div>
-                <TablePagination page={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
-            </div>
             )}
         </div>
     );

@@ -1,33 +1,44 @@
-import {CheckCircle2, Eye, EyeOff, FileText, Plus, XCircle} from "lucide-react";
-import {AlertCircle} from "lucide-react";
-import {useAction} from "next-safe-action/hooks";
-import {startTransition, useEffect, useState} from "react";
+import { CheckCircle2, Eye, EyeOff, FileText, Plus, XCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { startTransition, useEffect, useState } from "react";
 
-import {Badge} from "@/components/ui/badge";
-import {Button} from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
-    DialogDescription, DialogFooter,
+    DialogDescription,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger
+    DialogTrigger,
 } from "@/components/ui/dialog";
-import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
-import {ScrollArea} from "@/components/ui/scroll-area";
-import {Textarea} from "@/components/ui/textarea";
-import {KeyVaultAuthType} from "@/prisma/generated/browser";
-import {importKeys} from "@/server/actions/vault-keys";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
+import { KeyVaultAuthType } from "@/prisma/generated/browser";
+import { importKeys } from "@/server/actions/vault-keys";
 
 type Key = {
     name: string;
     code: string;
     isValid: boolean;
     reason?: string;
-}
+};
 
-export function KeyImport({ keyVaultId, disabled, onRefresh, keyVaultAuthType }: { keyVaultId: string; disabled: boolean; onRefresh?: () => void; keyVaultAuthType: KeyVaultAuthType }) {
+export function KeyImport({
+    keyVaultId,
+    disabled,
+    onRefresh,
+    keyVaultAuthType,
+}: {
+    keyVaultId: string;
+    disabled: boolean;
+    onRefresh?: () => void;
+    keyVaultAuthType: KeyVaultAuthType;
+}) {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [text, setText] = useState<string>("");
     const [items, setItems] = useState<Key[]>([]);
@@ -68,7 +79,7 @@ export function KeyImport({ keyVaultId, disabled, onRefresh, keyVaultAuthType }:
                     name: name,
                     code: key,
                     isValid: isValid,
-                    reason: isValid ? undefined : "Invalid key format"
+                    reason: isValid ? undefined : "Invalid key format",
                 });
             });
 
@@ -82,7 +93,7 @@ export function KeyImport({ keyVaultId, disabled, onRefresh, keyVaultAuthType }:
 
         executeImport({
             vaultId: keyVaultId,
-            keys: items.filter(i => i.isValid).map(i => ({ name: i.name, code: i.code })),
+            keys: items.filter((i) => i.isValid).map((i) => ({ name: i.name, code: i.code })),
             secret: keyVaultAuthType !== KeyVaultAuthType.NONE ? authInput || undefined : undefined,
         });
     };
@@ -99,26 +110,40 @@ export function KeyImport({ keyVaultId, disabled, onRefresh, keyVaultAuthType }:
 
     if (disabled) {
         return (
-            <Button variant="outline" className="border-border hover:bg-card hover:border-primary transition-all duration-300 bg-transparent hover:text-foreground" disabled={true}>
-                <Plus className="h-4 w-4"/> Import Keys
+            <Button
+                variant="outline"
+                className="border-border hover:bg-card hover:border-primary transition-all duration-300 bg-transparent hover:text-foreground"
+                disabled={true}
+            >
+                <Plus className="h-4 w-4" /> Import Keys
             </Button>
         );
     }
 
     return (
-        <Dialog open={isOpen} onOpenChange={(open) =>  { if (!open) handleClose(); else setIsOpen(true); } }>
+        <Dialog
+            open={isOpen}
+            onOpenChange={(open) => {
+                if (!open) handleClose();
+                else setIsOpen(true);
+            }}
+        >
             <DialogTrigger asChild>
-                <Button variant="outline"
-                        className="border-border hover:bg-card hover:border-primary transition-all duration-300 bg-transparent hover:text-foreground"
-                        onClick={() => setIsOpen(true)}>
-                    <Plus className="h-4 w-4"/> Import Keys
+                <Button
+                    variant="outline"
+                    className="border-border hover:bg-card hover:border-primary transition-all duration-300 bg-transparent hover:text-foreground"
+                    onClick={() => setIsOpen(true)}
+                >
+                    <Plus className="h-4 w-4" /> Import Keys
                 </Button>
             </DialogTrigger>
 
             <DialogContent className="sm:max-w-150 flex flex-col h-[80vh]">
                 <DialogHeader>
                     <DialogTitle>Import Keys</DialogTitle>
-                    <DialogDescription>Import multiple keys by pasting them below. You can include the game name before each key.</DialogDescription>
+                    <DialogDescription>
+                        Import multiple keys by pasting them below. You can include the game name before each key.
+                    </DialogDescription>
                 </DialogHeader>
 
                 {keyVaultAuthType === KeyVaultAuthType.PIN && (
@@ -166,7 +191,8 @@ export function KeyImport({ keyVaultId, disabled, onRefresh, keyVaultAuthType }:
                 <div className="grid gap-4 py-4 flex-1 min-h-0">
                     <div className="flex flex-col gap-2 flex-1 min-h-0">
                         <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            Raw Text Input {text != "" && `(${text.split("\n").filter((l) => l.trim() !== "").length} lines)`}
+                            Raw Text Input{" "}
+                            {text != "" && `(${text.split("\n").filter((l) => l.trim() !== "").length} lines)`}
                         </label>
 
                         <Textarea
@@ -188,21 +214,25 @@ export function KeyImport({ keyVaultId, disabled, onRefresh, keyVaultAuthType }:
                             {items.length > 0 && (
                                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                     <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                        <CheckCircle2 className="h-3 w-3 text-green-500" /> {items.filter((i) => i.isValid).length} Valid
+                                        <CheckCircle2 className="h-3 w-3 text-green-500" />{" "}
+                                        {items.filter((i) => i.isValid).length} Valid
                                     </span>
 
                                     <span className="text-xs text-muted-foreground flex items-center gap-1 ml-2">
-                                        <AlertCircle className="h-3 w-3 text-amber-500" /> {items.filter((i) => !i.isValid).length} Invalid
+                                        <AlertCircle className="h-3 w-3 text-amber-500" />{" "}
+                                        {items.filter((i) => !i.isValid).length} Invalid
                                     </span>
 
                                     {hasResults && (
                                         <>
                                             <span className="text-xs text-muted-foreground flex items-center gap-1 ml-2">
-                                                <XCircle className="h-3 w-3 text-red-500" /> {Object.values(result).filter(r => !r.success).length} Failed
+                                                <XCircle className="h-3 w-3 text-red-500" />{" "}
+                                                {Object.values(result).filter((r) => !r.success).length} Failed
                                             </span>
 
-                                                <span className="text-xs text-muted-foreground flex items-center gap-1 ml-2">
-                                                <CheckCircle2 className="h-3 w-3 text-green-500" /> {Object.values(result).filter(r => r.success).length} Imported
+                                            <span className="text-xs text-muted-foreground flex items-center gap-1 ml-2">
+                                                <CheckCircle2 className="h-3 w-3 text-green-500" />{" "}
+                                                {Object.values(result).filter((r) => r.success).length} Imported
                                             </span>
                                         </>
                                     )}
@@ -226,15 +256,18 @@ export function KeyImport({ keyVaultId, disabled, onRefresh, keyVaultAuthType }:
                                             const isFailed = resultData && !resultData.success;
 
                                             return (
-                                                <div key={index} className={`flex items-start gap-3 p-3 rounded-md border text-sm ${
-                                                    isSuccess
-                                                        ? "bg-green-950/20 border-green-900"
-                                                        : isFailed
-                                                            ? "bg-red-950/20 border-red-900"
-                                                            : !item.isValid
+                                                <div
+                                                    key={index}
+                                                    className={`flex items-start gap-3 p-3 rounded-md border text-sm ${
+                                                        isSuccess
+                                                            ? "bg-green-950/20 border-green-900"
+                                                            : isFailed
+                                                              ? "bg-red-950/20 border-red-900"
+                                                              : !item.isValid
                                                                 ? "bg-amber-950/20 border-amber-900"
                                                                 : "bg-background"
-                                                }`}>
+                                                    }`}
+                                                >
                                                     <div className="flex-1 min-w-0 space-y-1">
                                                         <div className="flex items-center justify-between gap-2 flex-wrap">
                                                             <span className="font-medium break-words" title={item.name}>
@@ -247,10 +280,10 @@ export function KeyImport({ keyVaultId, disabled, onRefresh, keyVaultAuthType }:
                                                                     isSuccess
                                                                         ? "border-green-700"
                                                                         : isFailed
-                                                                            ? "border-red-700"
-                                                                            : !item.isValid
-                                                                                ? "border-amber-700"
-                                                                                : ""
+                                                                          ? "border-red-700"
+                                                                          : !item.isValid
+                                                                            ? "border-amber-700"
+                                                                            : ""
                                                                 }`}
                                                             >
                                                                 {item.code}
@@ -263,15 +296,15 @@ export function KeyImport({ keyVaultId, disabled, onRefresh, keyVaultAuthType }:
                                                                     isSuccess
                                                                         ? "text-green-400"
                                                                         : isFailed
-                                                                            ? "text-red-400"
-                                                                            : "text-amber-400"
+                                                                          ? "text-red-400"
+                                                                          : "text-amber-400"
                                                                 }`}
                                                             >
                                                                 {isSuccess
                                                                     ? "Imported successfully"
                                                                     : isFailed
-                                                                        ? resultData?.reason || "Failed to import"
-                                                                        : item.reason}
+                                                                      ? resultData?.reason || "Failed to import"
+                                                                      : item.reason}
                                                             </p>
                                                         )}
                                                     </div>
@@ -302,17 +335,15 @@ export function KeyImport({ keyVaultId, disabled, onRefresh, keyVaultAuthType }:
                             <Button
                                 onClick={handleImport}
                                 disabled={
-                                    items.filter(i => i.isValid).length === 0
-                                    || isLoading
-                                    || (keyVaultAuthType !== KeyVaultAuthType.NONE && !authInput)
+                                    items.filter((i) => i.isValid).length === 0 ||
+                                    isLoading ||
+                                    (keyVaultAuthType !== KeyVaultAuthType.NONE && !authInput)
                                 }
                             >
                                 {isLoading ? "Importing..." : "Continue"}
                             </Button>
                         ) : (
-                            <Button onClick={handleClose}>
-                                Close
-                            </Button>
+                            <Button onClick={handleClose}>Close</Button>
                         )}
                     </div>
                 </DialogFooter>

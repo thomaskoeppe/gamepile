@@ -11,12 +11,9 @@ import { sanitizePostAuthRedirect } from "@/lib/auth/redirect";
 const DEFAULT = "/library";
 
 describe("allowed destinations", () => {
-    it.each(["/", "/library", "/explore", "/collections", "/settings", "/vaults", "/admin"])(
-        "permits %s",
-        (path) => {
-            expect(sanitizePostAuthRedirect(path)).toBe(path);
-        },
-    );
+    it.each(["/", "/library", "/explore", "/collections", "/settings", "/vaults", "/admin"])("permits %s", (path) => {
+        expect(sanitizePostAuthRedirect(path)).toBe(path);
+    });
 
     it("permits nested paths under an allowed prefix", () => {
         expect(sanitizePostAuthRedirect("/vaults/abc123")).toBe("/vaults/abc123");

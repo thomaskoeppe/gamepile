@@ -34,37 +34,37 @@ const nextConfig: NextConfig = {
     output: "standalone",
     reactCompiler: true,
     images: {
-      remotePatterns: [
-          {
+        remotePatterns: [
+            {
                 protocol: "https",
                 hostname: "steamcdn-a.akamaihd.net",
-          },
-          {
+            },
+            {
                 protocol: "https",
                 hostname: "cdn.cloudflare.steamstatic.com",
-          },
-          {
-              protocol: "https",
-              hostname: "cdn.akamai.steamstatic.com",
-          },
-          {
+            },
+            {
+                protocol: "https",
+                hostname: "cdn.akamai.steamstatic.com",
+            },
+            {
                 protocol: "https",
                 hostname: "avatars.steamstatic.com",
-          },
-          {
+            },
+            {
                 protocol: "https",
                 hostname: "shared.akamai.steamstatic.com",
-          },
-          {
+            },
+            {
                 protocol: "https",
                 hostname: "media.steampowered.com",
-          },
-          {
-              protocol: "https",
-              hostname: "placehold.co"
-          }
-      ],
-        minimumCacheTTL: 60 * 60 * 24 * 30
+            },
+            {
+                protocol: "https",
+                hostname: "placehold.co",
+            },
+        ],
+        minimumCacheTTL: 60 * 60 * 24 * 30,
     },
     poweredByHeader: false,
     async headers() {
@@ -95,12 +95,12 @@ const nextConfig: NextConfig = {
                     {
                         key: "Permissions-Policy",
                         value: "camera=(), microphone=(), geolocation=()",
-                    }
-                ]
-            }
+                    },
+                ],
+            },
         ];
     },
-    serverExternalPackages: ['pino', 'pino-pretty'],
+    serverExternalPackages: ["pino", "pino-pretty"],
     // @gamepile/shared is authored as ESM TypeScript and consumed by the worker
     // under NodeNext, which requires explicit ".js" specifiers on relative
     // imports. Teach webpack to resolve those back to the ".ts" sources so the
@@ -117,11 +117,11 @@ const nextConfig: NextConfig = {
     experimental: {
         serverActions: {
             allowedOrigins: serverActionAllowedOrigins,
-        }
+        },
     },
     env: {
         WEB_APP_VERSION: version,
-    }
+    },
 };
 
 export default nextConfig;

@@ -16,12 +16,12 @@ with Conventional Commits on `main`:
 - The release triggers the Docker publish workflow, which pushes three images
   to GHCR — `web`, `worker`, and `migrate` — tagged with:
 
-| Tag | Meaning |
-| --- | ------- |
-| `2.3.1` | Exact release — best for production pinning |
-| `2.3` | Latest patch of a minor — auto-receives fixes |
-| `latest` | Newest release |
-| `<sha>` | Exact commit build |
+| Tag      | Meaning                                       |
+| -------- | --------------------------------------------- |
+| `2.3.1`  | Exact release — best for production pinning   |
+| `2.3`    | Latest patch of a minor — auto-receives fixes |
+| `latest` | Newest release                                |
+| `<sha>`  | Exact commit build                            |
 
 All three images are built from the same commit; **always run the same tag
 for `web`, `worker`, and `migrate`** so the code and schema expectations match.
@@ -111,8 +111,8 @@ The script performs the safe order automatically:
 1. **Backup** — `pg_dump` of the bundled Postgres into `./backups/` (skip
    with `--skip-backup`, e.g. when you manage an external database).
 2. **Pull** the target `migrate`, `web`, and `worker` images.
-3. **Migrate** — runs the one-shot migrate container *while the old version
-   keeps serving traffic*. If migrations fail, the script aborts and the
+3. **Migrate** — runs the one-shot migrate container _while the old version
+   keeps serving traffic_. If migrations fail, the script aborts and the
    running deployment is untouched.
 4. **Recreate** `web`, `worker`, and `caddy` on the new images.
 5. **Verify** — prints `docker compose ps` and the heartbeat, which reports
@@ -158,7 +158,7 @@ Two distinct cases:
   `docker compose up -d web worker caddy`. The schema is unchanged, so the
   old images run fine.
 - **The new release shipped a migration**: application images can still be
-  rolled back *if* the schema change was backwards-compatible (additive
+  rolled back _if_ the schema change was backwards-compatible (additive
   columns/tables usually are — old code simply ignores them). If the old
   version genuinely cannot run against the new schema, restore the
   pre-upgrade backup and then start the old version:

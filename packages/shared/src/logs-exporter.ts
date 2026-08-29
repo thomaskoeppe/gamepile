@@ -33,8 +33,7 @@ export function createLogsExporter(options: CreateLogsExporterOptions) {
     let isInitialized = false;
     let loggerProvider: LoggerProvider | null = null;
 
-    const otlpBaseUrl =
-        options.otlpBaseUrl ?? process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? "http://localhost:4318";
+    const otlpBaseUrl = options.otlpBaseUrl ?? process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? "http://localhost:4318";
 
     function initializeLogsExporter(): void {
         if (options.skipInBrowser && "window" in globalThis) return;
@@ -116,5 +115,3 @@ export function createLogsExporter(options: CreateLogsExporterOptions) {
         shutdownLogsExporter,
     };
 }
-
-

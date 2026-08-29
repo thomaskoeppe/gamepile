@@ -1,5 +1,5 @@
-import {GameType} from "@/src/prisma/generated/enums.js";
-import type {AssetUrls, ReviewData, StoreBrowseItem} from "@/src/lib/steam/api/types.js";
+import { GameType } from "@/src/prisma/generated/enums.js";
+import type { AssetUrls, ReviewData, StoreBrowseItem } from "@/src/lib/steam/api/types.js";
 
 /** Base URL for the Steam shared asset CDN. */
 const ASSET_CDN_BASE = "https://shared.akamai.steamstatic.com/store_item_assets/";
@@ -120,7 +120,7 @@ export function parseReleaseTimestamp(release?: StoreBrowseItem["release"]): Dat
 export function extractReviews(item: StoreBrowseItem): ReviewData {
     const summary = item.reviews?.summary_filtered;
     if (!summary || !summary.review_count) {
-        return {reviewScore: null, reviewPercentage: null, reviewCount: null, reviewScoreLabel: null};
+        return { reviewScore: null, reviewPercentage: null, reviewCount: null, reviewScoreLabel: null };
     }
 
     return {
@@ -149,7 +149,13 @@ export function extractAssetUrls(item: StoreBrowseItem): AssetUrls {
     const fmt = item.assets?.asset_url_format ?? item.assets_without_overrides?.asset_url_format;
 
     if (!hasAssets) {
-        return {headerImageUrl: null, capsuleImageUrl: null, libraryCapsuleUrl: null, libraryHeroUrl: null, heroCapsuleUrl: null};
+        return {
+            headerImageUrl: null,
+            capsuleImageUrl: null,
+            libraryCapsuleUrl: null,
+            libraryHeroUrl: null,
+            heroCapsuleUrl: null,
+        };
     }
 
     return {

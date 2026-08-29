@@ -12,15 +12,16 @@ import { useSession } from "@/lib/providers/session";
 import { getSharedWithMe } from "@/server/queries/vault-shares";
 
 function initials(username: string): string {
-    return username.split(" ").map((n) => n[0]).join("").toUpperCase();
+    return username
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase();
 }
 
 export default function SharedWithMePage() {
     const { user } = useSession();
-    const { data, isLoading } = useServerQuery(
-        user ? ["shared-with-me", user.id] : null,
-        () => getSharedWithMe(),
-    );
+    const { data, isLoading } = useServerQuery(user ? ["shared-with-me", user.id] : null, () => getSharedWithMe());
 
     const shares = data?.success ? data.data : [];
 
@@ -31,9 +32,7 @@ export default function SharedWithMePage() {
             <div className="container-fluid mx-auto px-4 py-6">
                 <div className="mb-8 space-y-1">
                     <h1 className="text-2xl font-semibold tracking-tight">Shared with me</h1>
-                    <p className="text-sm text-muted-foreground">
-                        Vaults other users have shared with you
-                    </p>
+                    <p className="text-sm text-muted-foreground">Vaults other users have shared with you</p>
                 </div>
 
                 {isLoading ? (
@@ -69,8 +68,13 @@ export default function SharedWithMePage() {
                                     <CardContent>
                                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                             <Avatar className="h-6 w-6">
-                                                <AvatarImage src={share.owner.avatarUrl || "/placeholder.svg"} alt={share.owner.username} />
-                                                <AvatarFallback className="text-xs">{initials(share.owner.username)}</AvatarFallback>
+                                                <AvatarImage
+                                                    src={share.owner.avatarUrl || "/placeholder.svg"}
+                                                    alt={share.owner.username}
+                                                />
+                                                <AvatarFallback className="text-xs">
+                                                    {initials(share.owner.username)}
+                                                </AvatarFallback>
                                             </Avatar>
                                             Shared by {share.owner.username}
                                         </div>

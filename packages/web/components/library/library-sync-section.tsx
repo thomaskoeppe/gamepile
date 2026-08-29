@@ -27,8 +27,8 @@ export function LibrarySyncSection({ userId }: { userId: string }) {
     const [nonce, setNonce] = useState(0);
     const [error, setError] = useState<string | null>(null);
 
-    const { data: statusResult, mutate } = useServerQuery(
-        ["library-sync-status", userId], () => getLibrarySyncStatus(),
+    const { data: statusResult, mutate } = useServerQuery(["library-sync-status", userId], () =>
+        getLibrarySyncStatus(),
     );
     const status = statusResult?.success ? statusResult.data : null;
 
@@ -52,11 +52,7 @@ export function LibrarySyncSection({ userId }: { userId: string }) {
     }, []);
 
     const coolingDown = !!status?.nextAllowedAt && new Date(status.nextAllowedAt).getTime() > now;
-    const disabled =
-        resyncAction.isPending ||
-        !status ||
-        status.syncInProgress ||
-        coolingDown;
+    const disabled = resyncAction.isPending || !status || status.syncInProgress || coolingDown;
 
     return (
         <div className="space-y-3 mb-4">
@@ -73,12 +69,7 @@ export function LibrarySyncSection({ userId }: { userId: string }) {
                     </p>
                 </div>
 
-                <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={disabled}
-                    onClick={() => resyncAction.execute()}
-                >
+                <Button size="sm" variant="outline" disabled={disabled} onClick={() => resyncAction.execute()}>
                     {resyncAction.isPending || status?.syncInProgress ? (
                         <LoaderCircle className="size-4 animate-spin" />
                     ) : (
@@ -88,9 +79,7 @@ export function LibrarySyncSection({ userId }: { userId: string }) {
                 </Button>
             </div>
 
-            {error && (
-                <p className="text-xs text-destructive">{error}</p>
-            )}
+            {error && <p className="text-xs text-destructive">{error}</p>}
 
             <JobStatusCard key={`lib-${nonce}`} jobType={JobType.IMPORT_USER_LIBRARY} />
             <JobStatusCard key={`ach-${nonce}`} jobType={JobType.IMPORT_USER_ACHIEVEMENTS} hideWhenEmpty />

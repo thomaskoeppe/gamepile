@@ -4,8 +4,13 @@ import { ReactNode, useCallback, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
-    Dialog, DialogContent, DialogDescription,
-    DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -65,10 +70,13 @@ export function CustomUrlDialog({
         setValue(currentSlug ?? "");
     }, [currentSlug]);
 
-    const handleOpenChange = useCallback((next: boolean) => {
-        setOpen(next);
-        if (!next) resetDialog();
-    }, [resetDialog]);
+    const handleOpenChange = useCallback(
+        (next: boolean) => {
+            setOpen(next);
+            if (!next) resetDialog();
+        },
+        [resetDialog],
+    );
 
     const handleSubmit = useCallback(async () => {
         setServerError(null);
@@ -78,9 +86,10 @@ export function CustomUrlDialog({
         }
 
         browserLog.info("Set custom url submitted", { resourceType, resourceId, slug: normalized });
-        const result = resourceType === "vault"
-            ? await vaultAction.executeAsync({ vaultId: resourceId, slug: normalized })
-            : await collectionAction.executeAsync({ collectionId: resourceId, slug: normalized });
+        const result =
+            resourceType === "vault"
+                ? await vaultAction.executeAsync({ vaultId: resourceId, slug: normalized })
+                : await collectionAction.executeAsync({ collectionId: resourceId, slug: normalized });
 
         if (result?.data?.success) {
             browserLog.info("Custom url updated", { resourceType, resourceId, slug: result.data.slug });
@@ -139,7 +148,11 @@ export function CustomUrlDialog({
                             Cancel
                         </Button>
                         <Button type="button" onClick={handleSubmit} disabled={isPending || !!clientError}>
-                            {isPending ? <LoaderCircle className="size-4 animate-spin" /> : <Link2 className="size-4" />}
+                            {isPending ? (
+                                <LoaderCircle className="size-4 animate-spin" />
+                            ) : (
+                                <Link2 className="size-4" />
+                            )}
                             Save
                         </Button>
                     </DialogFooter>

@@ -56,7 +56,9 @@ export const authenticateVault = actionClientWithAuth
                             maxAttempts,
                             remainingSeconds: remaining,
                         });
-                        throw new Error(`Too many failed attempts. Try again in ${Math.ceil(remaining / 60)} minute(s).`);
+                        throw new Error(
+                            `Too many failed attempts. Try again in ${Math.ceil(remaining / 60)} minute(s).`,
+                        );
                     }
                 }
 
@@ -123,4 +125,3 @@ export const authenticateVault = actionClientWithAuth
             },
         ),
     );
-

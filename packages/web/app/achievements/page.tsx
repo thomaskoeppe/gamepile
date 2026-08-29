@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { CircleGauge, ListChecks, Medal, Search, TriangleAlert,Trophy } from "lucide-react";
+import { CircleGauge, ListChecks, Medal, Search, TriangleAlert, Trophy } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { GameCompletionList } from "@/components/achievements/game-completion-list";
@@ -25,9 +25,12 @@ export default function AchievementsPage() {
     const [sort, setSort] = useState<SortOption>("completion_desc");
     const [filter, setFilter] = useState<FilterOption>("all");
 
-    const { data: overviewResult, isLoading: overviewLoading, isRevalidating, mutate } = useServerQuery(
-        user ? ["achievement-overview", user.id] : null, () => getAchievementOverview(),
-    );
+    const {
+        data: overviewResult,
+        isLoading: overviewLoading,
+        isRevalidating,
+        mutate,
+    } = useServerQuery(user ? ["achievement-overview", user.id] : null, () => getAchievementOverview());
 
     const isLoading = sessionLoading || overviewLoading || overviewResult === undefined;
     const overview = overviewResult?.success ? overviewResult.data : null;
@@ -54,8 +57,7 @@ export default function AchievementsPage() {
                 case "total_desc":
                     return b.total - a.total || a.name.localeCompare(b.name);
                 case "recent":
-                    return (b.lastUnlockAt ?? "").localeCompare(a.lastUnlockAt ?? "")
-                        || a.name.localeCompare(b.name);
+                    return (b.lastUnlockAt ?? "").localeCompare(a.lastUnlockAt ?? "") || a.name.localeCompare(b.name);
                 case "completion_desc":
                 default:
                     return b.percent - a.percent || a.name.localeCompare(b.name);
@@ -106,8 +108,8 @@ export default function AchievementsPage() {
                             <Trophy className="h-10 w-10 text-muted-foreground" />
                             <p className="text-sm font-medium">No achievement data yet</p>
                             <p className="max-w-md text-sm text-muted-foreground">
-                                Achievements are imported automatically after your library syncs.
-                                Check back once a sync has completed.
+                                Achievements are imported automatically after your library syncs. Check back once a sync
+                                has completed.
                             </p>
                         </CardContent>
                     </Card>

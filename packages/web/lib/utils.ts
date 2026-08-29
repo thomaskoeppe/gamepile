@@ -1,9 +1,9 @@
-import { type ClassValue,clsx } from "clsx";
+import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 /** Tailwind CSS class merging utility. */
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+    return twMerge(clsx(inputs));
 }
 
 /** Formats a minute count as a human-readable `Xh Ym` string, or `"Never"` if zero. */
@@ -28,10 +28,7 @@ export function formatMinutesToHoursMinutes(totalMinutes: number): string {
  * Returns `fallback` when the value is absent or not a number, so malformed
  * input (e.g. `?page=abc` → `NaN`) can never reach a database query.
  */
-export function parseClampedInt(
-    raw: string | null,
-    opts: { fallback: number; min: number; max?: number },
-): number {
+export function parseClampedInt(raw: string | null, opts: { fallback: number; min: number; max?: number }): number {
     const parsed = parseInt(raw ?? "", 10);
     if (Number.isNaN(parsed)) {
         return opts.fallback;

@@ -33,18 +33,18 @@ export default async function refreshGameDetails(opts: { jobId: string }): Promi
     const staleThreshold = new Date(Date.now() - staleAfterDays * 24 * 60 * 60 * 1_000);
 
     const checkpoint = await readCheckpoint(jobId);
-    let cursor:      string | null = checkpoint?.cursor      ?? null;
-    let totalQueued: number        = checkpoint?.queuedItems ?? 0;
+    let cursor: string | null = checkpoint?.cursor ?? null;
+    let totalQueued: number = checkpoint?.queuedItems ?? 0;
 
     if (checkpoint) {
-        await createLog(jobId, "info",
-            `Resuming refresh from checkpoint. alreadyQueued=${totalQueued}.`,
-        );
+        await createLog(jobId, "info", `Resuming refresh from checkpoint. alreadyQueued=${totalQueued}.`);
     }
 
-    await createLog(jobId, "info",
+    await createLog(
+        jobId,
+        "info",
         `Refreshing details for games in libraries, collections, or vaults with detailsFetchedAt < ${staleThreshold.toISOString()} ` +
-        `(or never fetched). Threshold: ${staleAfterDays} days.`,
+            `(or never fetched). Threshold: ${staleAfterDays} days.`,
     );
 
     let hasMore = true;
@@ -54,18 +54,18 @@ export default async function refreshGameDetails(opts: { jobId: string }): Promi
             where: {
                 appId: { not: null },
                 OR: [
-                    { detailsFetchedAt: null, userGames:       { some: {} } },
+                    { detailsFetchedAt: null, userGames: { some: {} } },
                     { detailsFetchedAt: null, collectionGames: { some: {} } },
-                    { detailsFetchedAt: null, keyVaultGames:   { some: {} } },
-                    { detailsFetchedAt: { lt: staleThreshold }, userGames:       { some: {} } },
+                    { detailsFetchedAt: null, keyVaultGames: { some: {} } },
+                    { detailsFetchedAt: { lt: staleThreshold }, userGames: { some: {} } },
                     { detailsFetchedAt: { lt: staleThreshold }, collectionGames: { some: {} } },
-                    { detailsFetchedAt: { lt: staleThreshold }, keyVaultGames:   { some: {} } },
+                    { detailsFetchedAt: { lt: staleThreshold }, keyVaultGames: { some: {} } },
                 ],
             },
-            cursor:  cursor ? { id: cursor } : undefined,
-            skip:    cursor ? 1 : 0,
-            take:    PAGE_SIZE,
-            select:  { id: true, appId: true },
+            cursor: cursor ? { id: cursor } : undefined,
+            skip: cursor ? 1 : 0,
+            take: PAGE_SIZE,
+            select: { id: true, appId: true },
             orderBy: { id: "asc" },
         });
 
@@ -75,13 +75,13 @@ export default async function refreshGameDetails(opts: { jobId: string }): Promi
         }
 
         hasMore = games.length === PAGE_SIZE;
-        cursor  = games[games.length - 1].id;
+        cursor = games[games.length - 1].id;
 
         const validGames = games.filter((g): g is typeof g & { appId: number } => g.appId !== null);
 
         await prisma.job.update({
             where: { id: jobId },
-            data:  { totalItems: { increment: validGames.length } },
+            data: { totalItems: { increment: validGames.length } },
         });
 
         const childJobs: Parameters<typeof gameDetailsQueue.addBulk>[0] = [];
@@ -99,11 +99,11 @@ export default async function refreshGameDetails(opts: { jobId: string }): Promi
                 name: "FETCH_GAME_DETAILS_BATCH",
                 data: { parentJobId: jobId, appIds: chunkAppIds, gameIdMap, priority: PRIORITY.NORMAL },
                 opts: {
-                    attempts:         6,
-                    backoff:          { type: "exponential" as const, delay: 2_000 },
+                    attempts: 6,
+                    backoff: { type: "exponential" as const, delay: 2_000 },
                     removeOnComplete: 2_000,
-                    removeOnFail:     5_000,
-                    priority:         PRIORITY.NORMAL,
+                    removeOnFail: 5_000,
+                    priority: PRIORITY.NORMAL,
                 },
             });
         }
@@ -128,9 +128,7 @@ export default async function refreshGameDetails(opts: { jobId: string }): Promi
         data: { allItemsQueued: true },
     });
 
-    await createLog(jobId, "info",
-        `Refresh pagination complete. ${totalQueued} game(s) queued for detail update.`,
-    );
+    await createLog(jobId, "info", `Refresh pagination complete. ${totalQueued} game(s) queued for detail update.`);
 
     await tryCompleteParentJob(jobId);
     await clearCheckpoint(jobId);

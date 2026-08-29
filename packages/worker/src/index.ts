@@ -4,9 +4,9 @@
  *
  * @module index
  */
-import {z} from "zod";
+import { z } from "zod";
 
-import {validateWorkerEnv} from "@/src/lib/env.js";
+import { validateWorkerEnv } from "@/src/lib/env.js";
 
 const envResult = validateWorkerEnv();
 
@@ -16,7 +16,7 @@ if (!envResult.success) {
     process.exit(1);
 }
 
-const [{shutdownTracing}, {initializeLogsExporter}, {logger, logSinks}, workerModule] = await Promise.all([
+const [{ shutdownTracing }, { initializeLogsExporter }, { logger, logSinks }, workerModule] = await Promise.all([
     import("@/src/instrumentation.js"),
     import("@/src/lib/logs-exporter.js"),
     import("@/src/lib/logger.js"),
@@ -28,7 +28,7 @@ initializeLogsExporter();
 // boot instead of silently disabling the sink on the first log line.
 logSinks.initialize?.();
 
-const {shutdownWorkers} = workerModule;
+const { shutdownWorkers } = workerModule;
 const log = logger.child("worker.index");
 
 log.info("Starting...");

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { formatSessionForClient,getCurrentSession } from "@/lib/auth/session";
+import { formatSessionForClient, getCurrentSession } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 
 export async function GET() {
@@ -13,10 +13,7 @@ export async function GET() {
 
         if (!sessionData) {
             log.debug("No active session found", { durationMs: Date.now() - start });
-            return NextResponse.json(
-                { authenticated: false, user: null, session: null },
-                { status: 200 }
-            );
+            return NextResponse.json({ authenticated: false, user: null, session: null }, { status: 200 });
         }
 
         const { user, session } = sessionData;
@@ -44,9 +41,6 @@ export async function GET() {
         log.error("Session fetch error", error instanceof Error ? error : new Error(String(error)), {
             durationMs: Date.now() - start,
         });
-        return NextResponse.json(
-            { authenticated: false, error: "Failed to fetch session" },
-            { status: 500 }
-        );
+        return NextResponse.json({ authenticated: false, error: "Failed to fetch session" }, { status: 500 });
     }
 }

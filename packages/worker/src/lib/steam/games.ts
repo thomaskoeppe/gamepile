@@ -40,6 +40,6 @@ export async function fetchSteamOwnedGames(steamId: string): Promise<SteamOwnedG
         throw new Error(`Failed to fetch owned games for ${steamId}: ${response.status}`);
     }
 
-    const data = await response.json() as { response?: { games: SteamOwnedGame[] } };
+    const data = (await response.json()) as { response?: { games: SteamOwnedGame[] } };
     return data.response?.games || [];
 }

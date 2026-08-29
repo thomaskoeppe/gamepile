@@ -1,7 +1,7 @@
-import { registerOTel } from '@vercel/otel';
-import {z} from "zod";
+import { registerOTel } from "@vercel/otel";
+import { z } from "zod";
 
-import {validateEnv} from "@/env";
+import { validateEnv } from "@/env";
 
 export async function register() {
     const envValidateResult = validateEnv();

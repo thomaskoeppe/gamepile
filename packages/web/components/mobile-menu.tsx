@@ -4,7 +4,7 @@ import { Menu } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-import {Button} from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { browserLog } from "@/lib/browser-logger";
@@ -22,7 +22,7 @@ export function MobileMenu() {
     const [open, setOpen] = useState(false);
 
     const handleOpenChange = (next: boolean) => {
-        browserLog.info(next ? 'Mobile menu opened' : 'Mobile menu closed', { component: 'MobileMenu' });
+        browserLog.info(next ? "Mobile menu opened" : "Mobile menu closed", { component: "MobileMenu" });
         setOpen(next);
     };
 

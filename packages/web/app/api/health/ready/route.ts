@@ -43,7 +43,10 @@ async function runCheck(name: string, check: () => Promise<unknown>): Promise<Ch
         await Promise.race([
             check(),
             new Promise((_resolve, reject) =>
-                setTimeout(() => reject(new Error(`${name} check timed out after ${CHECK_TIMEOUT_MS}ms`)), CHECK_TIMEOUT_MS),
+                setTimeout(
+                    () => reject(new Error(`${name} check timed out after ${CHECK_TIMEOUT_MS}ms`)),
+                    CHECK_TIMEOUT_MS,
+                ),
             ),
         ]);
 

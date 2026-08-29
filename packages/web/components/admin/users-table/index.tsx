@@ -4,13 +4,7 @@ import type { AdminUsersData } from "@/server/queries/admin";
 import { UsersDataTable } from "./data-table";
 import { UsersSummaryCards } from "./summary-cards";
 
-export function AdminUsersTable({
-    data,
-    onMutate,
-}: {
-    data: AdminUsersData;
-    onMutate?: () => void;
-}) {
+export function AdminUsersTable({ data, onMutate }: { data: AdminUsersData; onMutate?: () => void }) {
     return (
         <div className="space-y-6">
             <UsersSummaryCards summary={data.summary} />

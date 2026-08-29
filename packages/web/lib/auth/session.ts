@@ -4,13 +4,13 @@ import { cookies } from "next/headers";
 import { getClientIp } from "@/lib/auth/rate-limit";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
-import {Session, User} from "@/prisma/generated/client";
+import { Session, User } from "@/prisma/generated/client";
 
 const log = logger.child("server.services.auth:session");
 
 export interface SessionData {
-    user: User
-    session: Session
+    user: User;
+    session: Session;
 }
 
 type SessionWithUser = Session & { user: User | null };
@@ -36,24 +36,24 @@ function hashSessionToken(token: string): string {
 async function findSessionByToken(token: string): Promise<SessionWithUser | null> {
     const tokenHash = hashSessionToken(token);
 
-    let session = await prisma.session.findUnique({
+    let session = (await prisma.session.findUnique({
         where: { token: tokenHash },
         include: { user: true },
-    }) as SessionWithUser | null;
+    })) as SessionWithUser | null;
 
     if (!session) {
         // Legacy fallback: try matching the plaintext token and migrate it
-        const legacySession = await prisma.session.findUnique({
+        const legacySession = (await prisma.session.findUnique({
             where: { token },
             include: { user: true },
-        }) as SessionWithUser | null;
+        })) as SessionWithUser | null;
 
         if (legacySession) {
-            session = await prisma.session.update({
+            session = (await prisma.session.update({
                 where: { id: legacySession.id },
                 data: { token: tokenHash },
                 include: { user: true },
-            }) as SessionWithUser;
+            })) as SessionWithUser;
             log.info("Migrated legacy plaintext session token", {
                 sessionId: legacySession.id,
                 userId: legacySession.userId,
@@ -86,10 +86,7 @@ export function generateSessionToken(): string {
  *   (`x-forwarded-for` or `x-real-ip`) and `user-agent` headers.
  * @returns The newly created `Session` record.
  */
-export async function createUserSession(
-    userId: string,
-    request?: Request
-): Promise<CreatedSession> {
+export async function createUserSession(userId: string, request?: Request): Promise<CreatedSession> {
     const token = generateSessionToken();
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + parseInt(process.env.WEB_SESSION_DURATION_DAYS || "7"));
@@ -248,9 +245,7 @@ export async function getCurrentSession(): Promise<SessionData | null> {
  * @returns A `SessionData` object if the token maps to a valid session and user,
  *   or `null` if the token is unknown or the associated user no longer exists.
  */
-export async function validateSessionToken(
-    token: string
-): Promise<SessionData | null> {
+export async function validateSessionToken(token: string): Promise<SessionData | null> {
     log.debug("Validating session token", { tokenPrefix: token.slice(0, 8) + "…" });
 
     const session = await findSessionByToken(token);

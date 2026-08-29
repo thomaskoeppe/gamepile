@@ -1,27 +1,24 @@
-import {
-    Archive, Clock,
-    FolderOpen,
-    Search,
-    Tag,
-} from "lucide-react";
+import { Archive, Clock, FolderOpen, Search, Tag } from "lucide-react";
 import { useRouter } from "next/navigation";
-import {useCallback, useEffect, useState, useTransition} from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 
 import { GameDetailDialog } from "@/components/game/game-detail-dialog";
 import { SafeImage } from "@/components/shared/safe-image";
 import { Badge } from "@/components/ui/badge";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import {Skeleton} from "@/components/ui/skeleton";
 import {
-    getRecentSearches,
-    RecentSearch,
-    search,
-    SearchResult,
-    SearchResults
-} from "@/lib/actions/search";
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+    CommandSeparator,
+} from "@/components/ui/command";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getRecentSearches, RecentSearch, search, SearchResult, SearchResults } from "@/lib/actions/search";
 import { browserLog } from "@/lib/browser-logger";
-import {cn} from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 function getReviewScoreBadgeClass(score: number): string {
     if (score >= 75) return "border-primary/40 bg-primary/10 text-primary";
@@ -47,7 +44,7 @@ export function SearchTrigger({ onClick, className }: { onClick: () => void; cla
             onClick={onClick}
             className={cn(
                 "inline-flex items-center gap-2 rounded-lg border bg-card/50 px-3 py-2 text-sm text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                className
+                className,
             )}
         >
             <Search className="size-4" />
@@ -81,9 +78,12 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                     setResults(null);
                     return;
                 }
-                browserLog.debug('Search query submitted', { query: query.trim() });
+                browserLog.debug("Search query submitted", { query: query.trim() });
                 const searchResults = await search(query);
-                browserLog.debug('Search results received', { query: query.trim(), totalCount: searchResults?.totalCount ?? 0 });
+                browserLog.debug("Search results received", {
+                    query: query.trim(),
+                    totalCount: searchResults?.totalCount ?? 0,
+                });
                 setResults(searchResults);
             });
         }, 500);
@@ -91,36 +91,42 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
         return () => clearTimeout(debounceTimer);
     }, [query]);
 
-    const navigateAndClose = useCallback((path: string) => {
-        browserLog.info('Search result navigated', { path });
-        onOpenChange(false);
-        setQuery("");
-        router.push(path);
-    }, [onOpenChange, router]);
+    const navigateAndClose = useCallback(
+        (path: string) => {
+            browserLog.info("Search result navigated", { path });
+            onOpenChange(false);
+            setQuery("");
+            router.push(path);
+        },
+        [onOpenChange, router],
+    );
 
-    const handleSelect = useCallback((result: SearchResult) => {
-        browserLog.info('Search result selected', { type: result.type, id: result.id, name: result.name });
-        switch (result.type) {
-            case "game":
-                setGameDialog(result);
-                return;
-            case "collection":
-                navigateAndClose(`/collections/${result.id}`);
-                return;
-            case "vault":
-                navigateAndClose(`/vaults/${result.id}`);
-                return;
-            case "category":
-                navigateAndClose(`/explore?categoryIds=${result.id}`);
-                return;
-            case "tag":
-                navigateAndClose(`/explore?tagIds=${result.id}`);
-                return;
-        }
-    }, [navigateAndClose]);
+    const handleSelect = useCallback(
+        (result: SearchResult) => {
+            browserLog.info("Search result selected", { type: result.type, id: result.id, name: result.name });
+            switch (result.type) {
+                case "game":
+                    setGameDialog(result);
+                    return;
+                case "collection":
+                    navigateAndClose(`/collections/${result.id}`);
+                    return;
+                case "vault":
+                    navigateAndClose(`/vaults/${result.id}`);
+                    return;
+                case "category":
+                    navigateAndClose(`/explore?categoryIds=${result.id}`);
+                    return;
+                case "tag":
+                    navigateAndClose(`/explore?tagIds=${result.id}`);
+                    return;
+            }
+        },
+        [navigateAndClose],
+    );
 
     const handleQuickSearch = useCallback((term: string) => {
-        browserLog.info('Recent search selected', { term });
+        browserLog.info("Recent search selected", { term });
         setQuery(term);
     }, []);
 
@@ -133,10 +139,15 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                 <DialogContent className="overflow-hidden p-0 sm:max-w-2xl" showCloseButton={false}>
                     <DialogHeader className="sr-only">
                         <DialogTitle>Search</DialogTitle>
-                        <DialogDescription>Search for games, collections, vaults, categories, and tags</DialogDescription>
+                        <DialogDescription>
+                            Search for games, collections, vaults, categories, and tags
+                        </DialogDescription>
                     </DialogHeader>
 
-                    <Command shouldFilter={false} className="**:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:py-1.5 **:[[cmdk-group-heading]]:text-xs **:[[cmdk-group-heading]]:font-medium **:[[cmdk-group-heading]]:text-muted-foreground">
+                    <Command
+                        shouldFilter={false}
+                        className="**:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:py-1.5 **:[[cmdk-group-heading]]:text-xs **:[[cmdk-group-heading]]:font-medium **:[[cmdk-group-heading]]:text-muted-foreground"
+                    >
                         <div className="flex items-center border-b px-3">
                             <Search className="mr-2 size-4 shrink-0 opacity-50" />
                             <CommandInput
@@ -165,8 +176,12 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                                 <CommandEmpty className="py-12">
                                     <div className="flex flex-col items-center gap-2">
                                         <Search className="size-10 text-muted-foreground/50" />
-                                        <p className="text-muted-foreground">No results found for &quot;{query}&quot;</p>
-                                        <p className="text-xs text-muted-foreground/70">Try searching for game names, app IDs, tags, or categories</p>
+                                        <p className="text-muted-foreground">
+                                            No results found for &quot;{query}&quot;
+                                        </p>
+                                        <p className="text-xs text-muted-foreground/70">
+                                            Try searching for game names, app IDs, tags, or categories
+                                        </p>
                                     </div>
                                 </CommandEmpty>
                             )}
@@ -218,9 +233,16 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                                                         </div>
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center gap-2">
-                                                                <span className="font-medium truncate">{game.name}</span>
+                                                                <span className="font-medium truncate">
+                                                                    {game.name}
+                                                                </span>
                                                                 {game.metadata?.isFree && (
-                                                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Free</Badge>
+                                                                    <Badge
+                                                                        variant="secondary"
+                                                                        className="text-[10px] px-1.5 py-0"
+                                                                    >
+                                                                        Free
+                                                                    </Badge>
                                                                 )}
                                                             </div>
                                                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -230,7 +252,9 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                                                                         variant="outline"
                                                                         className={cn(
                                                                             "text-[10px] px-1 py-0",
-                                                                            getReviewScoreBadgeClass(Number(game.metadata.reviewScore)),
+                                                                            getReviewScoreBadgeClass(
+                                                                                Number(game.metadata.reviewScore),
+                                                                            ),
                                                                         )}
                                                                     >
                                                                         {game.metadata.reviewScore.toString()}
@@ -260,7 +284,9 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                                                                 <FolderOpen className="size-6 text-muted-foreground shrink-0" />
                                                             </div>
                                                             <div className="flex-1 min-w-0">
-                                                                <span className="font-medium truncate block">{collection.name}</span>
+                                                                <span className="font-medium truncate block">
+                                                                    {collection.name}
+                                                                </span>
                                                                 <span className="text-xs text-muted-foreground">
                                                                     {collection.metadata?.gameCount.toString()} games
                                                                 </span>
@@ -288,7 +314,9 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                                                                 <Archive className="size-5 text-muted-foreground" />
                                                             </div>
                                                             <div className="flex-1 min-w-0">
-                                                                <span className="font-medium truncate block">{vault.name}</span>
+                                                                <span className="font-medium truncate block">
+                                                                    {vault.name}
+                                                                </span>
                                                                 <span className="text-xs text-muted-foreground">
                                                                     {vault.metadata?.itemCount.toString()} items
                                                                 </span>
@@ -346,28 +374,26 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
 
                         <div className="flex items-center justify-between border-t px-3 py-2 text-xs text-muted-foreground">
                             <div className="flex items-center gap-4">
-                  <span className="flex items-center gap-1">
-                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-                      <span className="text-xs">↑↓</span>
-                    </kbd>
-                    Navigate
-                  </span>
                                 <span className="flex items-center gap-1">
-                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-                      ↵
-                    </kbd>
-                    Select
-                  </span>
+                                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                                        <span className="text-xs">↑↓</span>
+                                    </kbd>
+                                    Navigate
+                                </span>
                                 <span className="flex items-center gap-1">
-                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-                      esc
-                    </kbd>
-                    Close
-                  </span>
+                                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                                        ↵
+                                    </kbd>
+                                    Select
+                                </span>
+                                <span className="flex items-center gap-1">
+                                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                                        esc
+                                    </kbd>
+                                    Close
+                                </span>
                             </div>
-                            {results && results.totalCount > 0 && (
-                                <span>{results.totalCount} results</span>
-                            )}
+                            {results && results.totalCount > 0 && <span>{results.totalCount} results</span>}
                         </div>
                     </Command>
                 </DialogContent>
@@ -376,7 +402,9 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
             <GameDetailDialog
                 game={gameDialog}
                 open={gameDialog !== null}
-                onOpenChange={(open) => { if (!open) setGameDialog(null); }}
+                onOpenChange={(open) => {
+                    if (!open) setGameDialog(null);
+                }}
             />
         </>
     );

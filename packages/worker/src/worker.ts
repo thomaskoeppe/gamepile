@@ -8,18 +8,18 @@
  * @module worker
  */
 import * as os from "node:os";
-import {setInterval} from "node:timers";
+import { setInterval } from "node:timers";
 
-import {SpanStatusCode, trace} from "@opentelemetry/api";
-import {Worker} from "bullmq";
-import {WORKER_METRICS} from "@gamepile/shared/worker-metrics";
+import { SpanStatusCode, trace } from "@opentelemetry/api";
+import { Worker } from "bullmq";
+import { WORKER_METRICS } from "@gamepile/shared/worker-metrics";
 
 import handleFetchGameDetails from "@/src/jobs/fetch-game-details.js";
 import handleFetchUserAchievements from "@/src/jobs/fetch-user-achievements.js";
-import {handleJobByType} from "@/src/handlers/jobs-handler.js";
-import {getWorkerEnv} from "@/src/lib/env.js";
-import {flagJobCancelled, isJobCancelled} from "@/src/lib/job/cancel.js";
-import {createLog} from "@/src/lib/job/log.js";
+import { handleJobByType } from "@/src/handlers/jobs-handler.js";
+import { getWorkerEnv } from "@/src/lib/env.js";
+import { flagJobCancelled, isJobCancelled } from "@/src/lib/job/cancel.js";
+import { createLog } from "@/src/lib/job/log.js";
 import {
     type AchievementsQueuePayload,
     gameDetailsQueue,
@@ -28,13 +28,13 @@ import {
     type JobsQueuePayload,
     QUEUE_NAMES,
 } from "@/src/lib/job/queue.js";
-import {flushLogs, logger} from "@/src/lib/logger.js";
+import { flushLogs, logger } from "@/src/lib/logger.js";
 import prisma from "@/src/lib/prisma.js";
-import {redis, redisOptions} from "@/src/lib/redis.js";
-import {publishWorkerHeartbeat, removeWorkerHeartbeat} from "@/src/lib/worker-metrics.js";
-import {JobStatus} from "@/src/prisma/generated/enums.js";
-import {recoverStaleJobs} from "@/src/recovery.js";
-import {ensureInitialSyncQueued, registerScheduledJobs} from "@/src/scheduler.js";
+import { redis, redisOptions } from "@/src/lib/redis.js";
+import { publishWorkerHeartbeat, removeWorkerHeartbeat } from "@/src/lib/worker-metrics.js";
+import { JobStatus } from "@/src/prisma/generated/enums.js";
+import { recoverStaleJobs } from "@/src/recovery.js";
+import { ensureInitialSyncQueued, registerScheduledJobs } from "@/src/scheduler.js";
 
 const log = logger.child("worker");
 const tracer = trace.getTracer("gamepile-worker");
@@ -67,21 +67,17 @@ export async function shutdownWorkers(signal: string): Promise<void> {
     if (shuttingDown) return;
     shuttingDown = true;
 
-    log.info("Worker received shutdown signal", {signal, hostname: HOSTNAME});
+    log.info("Worker received shutdown signal", { signal, hostname: HOSTNAME });
 
     try {
         if (statusInterval) clearInterval(statusInterval);
         if (heartbeatInterval) clearInterval(heartbeatInterval);
 
-        await Promise.all([
-            jobsWorker?.close(),
-            detailsWorker?.close(),
-            achievementsWorker?.close(),
-        ]);
+        await Promise.all([jobsWorker?.close(), detailsWorker?.close(), achievementsWorker?.close()]);
 
         await removeWorkerHeartbeat(HOSTNAME, process.pid);
         await Promise.all([prisma.$disconnect(), redis.quit()]);
-        log.info("Worker shutdown complete", {hostname: HOSTNAME});
+        log.info("Worker shutdown complete", { hostname: HOSTNAME });
         await flushLogs();
     } catch (error) {
         log.error("Error during worker shutdown", error as Error);
@@ -100,10 +96,18 @@ function startStatusInterval(): void {
             const priorities = [...Array(10).keys()];
 
             const [
-                detailsActive, detailsDelayed, detailsWaiting,
-                detailsFailed, detailsCompleted, detailsPriority,
-                mainActive, mainDelayed, mainWaiting,
-                mainFailed, mainCompleted, mainPriority,
+                detailsActive,
+                detailsDelayed,
+                detailsWaiting,
+                detailsFailed,
+                detailsCompleted,
+                detailsPriority,
+                mainActive,
+                mainDelayed,
+                mainWaiting,
+                mainFailed,
+                mainCompleted,
+                mainPriority,
             ] = await Promise.all([
                 gameDetailsQueue.getActiveCount(),
                 gameDetailsQueue.getDelayedCount(),
@@ -124,13 +128,19 @@ function startStatusInterval(): void {
 
             log.debug("Worker status update", {
                 gameDetailsQueue: {
-                    active: detailsActive, delayed: detailsDelayed, waiting: detailsWaiting,
-                    failed: detailsFailed, completed: detailsCompleted,
+                    active: detailsActive,
+                    delayed: detailsDelayed,
+                    waiting: detailsWaiting,
+                    failed: detailsFailed,
+                    completed: detailsCompleted,
                     priority: nonZeroPriority(detailsPriority),
                 },
                 mainQueue: {
-                    active: mainActive, delayed: mainDelayed, waiting: mainWaiting,
-                    failed: mainFailed, completed: mainCompleted,
+                    active: mainActive,
+                    delayed: mainDelayed,
+                    waiting: mainWaiting,
+                    failed: mainFailed,
+                    completed: mainCompleted,
                     priority: nonZeroPriority(mainPriority),
                 },
                 hostname: HOSTNAME,
@@ -174,7 +184,7 @@ function startHeartbeatInterval(): void {
  */
 async function initWorkers(): Promise<void> {
     if (STARTUP_DELAY_MS > 0) {
-        log.info("Worker startup delay in effect", {delayMs: STARTUP_DELAY_MS});
+        log.info("Worker startup delay in effect", { delayMs: STARTUP_DELAY_MS });
         // await new Promise((resolve) => setTimeout(resolve, STARTUP_DELAY_MS));
     }
 
@@ -182,9 +192,11 @@ async function initWorkers(): Promise<void> {
         hostname: HOSTNAME,
         staleActiveRecoveryDelayMs: env.WORKER_STALE_ACTIVE_RECOVERY_DELAY_MS,
         activeRecoveryLockTtlMs: env.WORKER_ACTIVE_RECOVERY_LOCK_TTL_MS,
-    }).catch((error) => log.warn("Stale job recovery failed (non-fatal)", {
-        message: error instanceof Error ? error.message : "Unknown error",
-    }));
+    }).catch((error) =>
+        log.warn("Stale job recovery failed (non-fatal)", {
+            message: error instanceof Error ? error.message : "Unknown error",
+        }),
+    );
 
     await registerScheduledJobs(HOSTNAME);
 
@@ -236,7 +248,7 @@ function createJobsWorker(): Worker<JobsQueuePayload> {
                         data: { status: JobStatus.ACTIVE, startedAt: new Date(), claimedBy: HOSTNAME },
                     });
 
-                    if (claimed === 0 || await isJobCancelled(jobId)) {
+                    if (claimed === 0 || (await isJobCancelled(jobId))) {
                         log.info("Skipping job — canceled before it started", { jobId, type });
                         await createLog(jobId, "warn", "Job was canceled before the worker could start it");
                         span.setStatus({ code: SpanStatusCode.OK });
@@ -268,8 +280,8 @@ function createJobsWorker(): Worker<JobsQueuePayload> {
                         // Only fail a job that is still running — never overwrite a
                         // CANCELED (or already-terminal) status with FAILED.
                         const { count: failed } = await prisma.job.updateMany({
-                            where: {id: jobId, status: { in: [JobStatus.QUEUED, JobStatus.ACTIVE] }},
-                            data: {status: JobStatus.FAILED, finishedAt: new Date(), errorMessage: message},
+                            where: { id: jobId, status: { in: [JobStatus.QUEUED, JobStatus.ACTIVE] } },
+                            data: { status: JobStatus.FAILED, finishedAt: new Date(), errorMessage: message },
                         });
 
                         await flagJobCancelled(jobId);
@@ -285,10 +297,10 @@ function createJobsWorker(): Worker<JobsQueuePayload> {
                 }
             });
         },
-        {connection: redisOptions, concurrency: JOBS_CONCURRENCY},
+        { connection: redisOptions, concurrency: JOBS_CONCURRENCY },
     )
         .on("error", (error) => log.error("Jobs worker encountered an error", error))
-        .on("ready", () => log.info("Jobs worker is ready", {concurrency: JOBS_CONCURRENCY}));
+        .on("ready", () => log.info("Jobs worker is ready", { concurrency: JOBS_CONCURRENCY }));
 }
 
 /**
@@ -316,15 +328,15 @@ async function ensureDbJobExists(
     if (jobId) return jobId;
 
     const dbJob = await prisma.job.create({
-        data: {type, userId: userId ?? null},
+        data: { type, userId: userId ?? null },
     });
 
     try {
-        await job.updateData({...job.data, jobId: dbJob.id});
+        await job.updateData({ ...job.data, jobId: dbJob.id });
         span.setAttribute("job.id", dbJob.id);
         return dbJob.id;
     } catch (error) {
-        await prisma.job.delete({where: {id: dbJob.id}});
+        await prisma.job.delete({ where: { id: dbJob.id } });
         throw error;
     }
 }
@@ -361,10 +373,10 @@ function createDetailsWorker(): Worker<GameDetailsQueuePayload> {
                     span.end();
                 }
             }),
-        {connection: redisOptions, concurrency: DETAILS_CONCURRENCY},
+        { connection: redisOptions, concurrency: DETAILS_CONCURRENCY },
     )
         .on("error", (error) => log.error("Details worker encountered an error", error))
-        .on("ready", () => log.info("Details worker is ready", {concurrency: DETAILS_CONCURRENCY}));
+        .on("ready", () => log.info("Details worker is ready", { concurrency: DETAILS_CONCURRENCY }));
 }
 
 /**
@@ -399,10 +411,10 @@ function createAchievementsWorker(): Worker<AchievementsQueuePayload> {
                     span.end();
                 }
             }),
-        {connection: redisOptions, concurrency: ACHIEVEMENTS_CONCURRENCY},
+        { connection: redisOptions, concurrency: ACHIEVEMENTS_CONCURRENCY },
     )
         .on("error", (error) => log.error("Achievements worker encountered an error", error))
-        .on("ready", () => log.info("Achievements worker is ready", {concurrency: ACHIEVEMENTS_CONCURRENCY}));
+        .on("ready", () => log.info("Achievements worker is ready", { concurrency: ACHIEVEMENTS_CONCURRENCY }));
 }
 
 void initWorkers().catch((error) => {

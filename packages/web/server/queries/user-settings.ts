@@ -11,25 +11,29 @@ type UserSettingsData = {
 };
 
 export const getUserSettings = queryClientWithAuth.query<UserSettingsData>(
-    withLogging(async ({ ctx }, { log }) => {
-        log.info("Fetching user settings", { userId: ctx.user.id });
+    withLogging(
+        async ({ ctx }, { log }) => {
+            log.info("Fetching user settings", { userId: ctx.user.id });
 
-        const settings = await prisma.userSettings.findUnique({
-            where: { userId: ctx.user.id },
-            select: {
-                privacyAllowVaultInvites: true,
-                privacyAllowCollectionInvites: true,
-                privacyAllowProfileView: true,
-            },
-        });
+            const settings = await prisma.userSettings.findUnique({
+                where: { userId: ctx.user.id },
+                select: {
+                    privacyAllowVaultInvites: true,
+                    privacyAllowCollectionInvites: true,
+                    privacyAllowProfileView: true,
+                },
+            });
 
-        return settings ?? {
-            privacyAllowVaultInvites: true,
-            privacyAllowCollectionInvites: true,
-            privacyAllowProfileView: true,
-        };
-    }, {
-        namespace: "server.queries.user-settings:getUserSettings",
-    })
+            return (
+                settings ?? {
+                    privacyAllowVaultInvites: true,
+                    privacyAllowCollectionInvites: true,
+                    privacyAllowProfileView: true,
+                }
+            );
+        },
+        {
+            namespace: "server.queries.user-settings:getUserSettings",
+        },
+    ),
 );
-

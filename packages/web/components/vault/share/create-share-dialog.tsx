@@ -5,8 +5,13 @@ import { ReactNode, useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-    Dialog, DialogContent, DialogDescription,
-    DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -41,9 +46,8 @@ export function CreateShareDialog({
 
     const requiresSecret = authType !== KeyVaultAuthType.NONE;
 
-    const { data: keysResult } = useServerQuery(
-        open && !shareAll ? ["vault-keys-for-share", vaultId] : null,
-        () => getKeys({ keyVaultId: vaultId, page: 1, pageSize: 100, sortOrder: "asc", filters: { tags: [] } }),
+    const { data: keysResult } = useServerQuery(open && !shareAll ? ["vault-keys-for-share", vaultId] : null, () =>
+        getKeys({ keyVaultId: vaultId, page: 1, pageSize: 100, sortOrder: "asc", filters: { tags: [] } }),
     );
     const keys = useMemo(() => (keysResult?.success ? keysResult.data.games : []), [keysResult]);
 
@@ -59,10 +63,13 @@ export function CreateShareDialog({
         setServerError(null);
     }, []);
 
-    const handleOpenChange = useCallback((next: boolean) => {
-        setOpen(next);
-        if (!next) reset();
-    }, [reset]);
+    const handleOpenChange = useCallback(
+        (next: boolean) => {
+            setOpen(next);
+            if (!next) reset();
+        },
+        [reset],
+    );
 
     const toggleKey = useCallback((id: string) => {
         setSelectedKeyIds((prev) => (prev.includes(id) ? prev.filter((k) => k !== id) : [...prev, id]));
@@ -103,7 +110,19 @@ export function CreateShareDialog({
         } else {
             setServerError(result?.serverError ?? "An unexpected error occurred.");
         }
-    }, [executeAsync, maxKeys, mode, onCreated, passphrase, requiresSecret, reset, secret, selectedKeyIds, shareAll, vaultId]);
+    }, [
+        executeAsync,
+        maxKeys,
+        mode,
+        onCreated,
+        passphrase,
+        requiresSecret,
+        reset,
+        secret,
+        selectedKeyIds,
+        shareAll,
+        vaultId,
+    ]);
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -126,7 +145,9 @@ export function CreateShareDialog({
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="DIRECT">Direct claim — recipients take keys instantly</SelectItem>
+                                    <SelectItem value="DIRECT">
+                                        Direct claim — recipients take keys instantly
+                                    </SelectItem>
                                     <SelectItem value="REQUEST">Request — you approve each key</SelectItem>
                                 </SelectContent>
                             </Select>
@@ -202,9 +223,15 @@ export function CreateShareDialog({
                     {serverError && <p className="text-sm text-destructive">{serverError}</p>}
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                        <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                            Cancel
+                        </Button>
                         <Button type="button" onClick={handleSubmit} disabled={isPending}>
-                            {isPending ? <LoaderCircle className="size-4 animate-spin" /> : <Share2 className="size-4" />}
+                            {isPending ? (
+                                <LoaderCircle className="size-4 animate-spin" />
+                            ) : (
+                                <Share2 className="size-4" />
+                            )}
                             Create share
                         </Button>
                     </DialogFooter>

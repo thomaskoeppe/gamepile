@@ -10,7 +10,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createPollingSseStream, SSE_HEADERS,sseEvent, ssePing } from "@/lib/sse";
+import { createPollingSseStream, SSE_HEADERS, sseEvent, ssePing } from "@/lib/sse";
 
 beforeEach(() => {
     vi.useFakeTimers();
@@ -22,9 +22,7 @@ afterEach(() => {
 
 describe("frame formatting", () => {
     it("emits a well-formed named event terminated by a blank line", () => {
-        expect(sseEvent("snapshot", { id: "job-1" })).toBe(
-            'event: snapshot\ndata: {"id":"job-1"}\n\n',
-        );
+        expect(sseEvent("snapshot", { id: "job-1" })).toBe('event: snapshot\ndata: {"id":"job-1"}\n\n');
     });
 
     it("emits a comment frame for keep-alives", () => {
@@ -127,7 +125,9 @@ describe("createPollingSseStream", () => {
         const onClose = vi.fn();
 
         createPollingSseStream({
-            poll: ({ close }) => { close(); },
+            poll: ({ close }) => {
+                close();
+            },
             pollIntervalMs: 2_000,
             keepAliveIntervalMs: 15_000,
             onClose,
@@ -163,7 +163,9 @@ describe("createPollingSseStream", () => {
 
     it("emits keep-alive pings on their own cadence", async () => {
         const stream = createPollingSseStream({
-            poll: ({ send }) => { send(sseEvent("snapshot", { ok: true })); },
+            poll: ({ send }) => {
+                send(sseEvent("snapshot", { ok: true }));
+            },
             pollIntervalMs: 60_000,
             keepAliveIntervalMs: 15_000,
         });

@@ -44,9 +44,7 @@ function AchievementRow({ achievement }: { achievement: GameAchievementEntry }) 
                     {masked ? "Hidden achievement" : achievement.displayName}
                 </p>
                 <p className="text-xs text-muted-foreground line-clamp-2">
-                    {masked
-                        ? "Unlock this achievement to reveal its details."
-                        : achievement.description || " "}
+                    {masked ? "Unlock this achievement to reveal its details." : achievement.description || " "}
                 </p>
             </div>
 
@@ -92,8 +90,7 @@ export function AchievementBrowser({ achievements }: { achievements: GameAchieve
         const matches = (a: GameAchievementEntry) => {
             if (!query) return true;
             if (a.hidden && a.achievedAt === null) return false;
-            return a.displayName.toLowerCase().includes(query)
-                || a.description.toLowerCase().includes(query);
+            return a.displayName.toLowerCase().includes(query) || a.description.toLowerCase().includes(query);
         };
 
         const visible = achievements.filter(matches);
@@ -141,7 +138,11 @@ export function AchievementBrowser({ achievements }: { achievements: GameAchieve
             <TabsContent value="missing" className="focus-visible:outline-none">
                 <RowList
                     achievements={missing}
-                    emptyText={search ? "No missing achievements match your search." : "Nothing missing — this game is 100% complete!"}
+                    emptyText={
+                        search
+                            ? "No missing achievements match your search."
+                            : "Nothing missing — this game is 100% complete!"
+                    }
                 />
             </TabsContent>
             <TabsContent value="unlocked" className="focus-visible:outline-none">

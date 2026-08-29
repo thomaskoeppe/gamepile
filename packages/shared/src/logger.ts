@@ -84,8 +84,7 @@ export function safeStringify(value: unknown): string {
 }
 
 function mirrorToConsole(entry: LogEntry): void {
-    const contextSuffix =
-        Object.keys(entry.context).length > 0 ? ` ${safeStringify(entry.context)}` : "";
+    const contextSuffix = Object.keys(entry.context).length > 0 ? ` ${safeStringify(entry.context)}` : "";
     const errorSuffix = entry.error
         ? ` | ${sanitizeForConsole(entry.error.name)}: ${sanitizeForConsole(entry.error.message)}${entry.error.stack ? ` | ${sanitizeForConsole(entry.error.stack)}` : ""}`
         : "";
@@ -121,12 +120,7 @@ class Logger implements ILogger {
         return { traceId, spanId };
     }
 
-    private log(
-        level: LogEntry["level"],
-        message: string,
-        context?: LogContext,
-        error?: Error,
-    ) {
+    private log(level: LogEntry["level"], message: string, context?: LogContext, error?: Error) {
         if (this.options.skipInBrowser && "window" in globalThis) {
             return;
         }
@@ -178,5 +172,3 @@ class Logger implements ILogger {
 export function createLogger(options: CreateLoggerOptions, baseContext?: LogContext): ILogger {
     return new Logger(options, baseContext);
 }
-
-

@@ -1,8 +1,19 @@
-'use client';
+"use client";
 
 import {
-    ArrowRight, Calendar, Gamepad2, Gift, Library, LoaderCircle,
-    Lock, LockOpen, Plus, RefreshCcw, Trash2, TriangleAlert, Users,
+    ArrowRight,
+    Calendar,
+    Gamepad2,
+    Gift,
+    Library,
+    LoaderCircle,
+    Lock,
+    LockOpen,
+    Plus,
+    RefreshCcw,
+    Trash2,
+    TriangleAlert,
+    Users,
 } from "lucide-react";
 import Link from "next/link";
 import { MouseEvent } from "react";
@@ -27,7 +38,17 @@ function VaultCard({
     isOwner,
     onReload,
 }: {
-    vault: Prisma.KeyVaultGetPayload<{ include: { _count: { select: { games: true; users: true } } }, omit: { authHash: true, authSalt: true, keySalt: true, encryptedVaultKey: true, recoveryEncryptedVaultKey: true, recoveryKeyHash: true } }>;
+    vault: Prisma.KeyVaultGetPayload<{
+        include: { _count: { select: { games: true; users: true } } };
+        omit: {
+            authHash: true;
+            authSalt: true;
+            keySalt: true;
+            encryptedVaultKey: true;
+            recoveryEncryptedVaultKey: true;
+            recoveryKeyHash: true;
+        };
+    }>;
     isOwner: boolean;
     onReload?: () => void;
 }) {
@@ -43,16 +64,10 @@ function VaultCard({
                     <div className="flex items-start justify-between gap-2">
                         <div className="space-y-1.5 min-w-0">
                             <CardTitle className="text-base truncate">{vault.name}</CardTitle>
-                            <CardDescription>
-                                {isOwner ? "Owned by you" : "Shared with you"}
-                            </CardDescription>
+                            <CardDescription>{isOwner ? "Owned by you" : "Shared with you"}</CardDescription>
                         </div>
                         <Badge variant="outline" className="shrink-0 text-xs capitalize gap-1">
-                            {vault.authType === "NONE" ? (
-                                <LockOpen className="size-3" />
-                            ) : (
-                                <Lock className="size-3" />
-                            )}
+                            {vault.authType === "NONE" ? <LockOpen className="size-3" /> : <Lock className="size-3" />}
                             {vault.authType.toLowerCase()}
                         </Badge>
                     </div>
@@ -62,11 +77,15 @@ function VaultCard({
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1.5">
                             <Gamepad2 className="size-4" />
-                            <span>{vault._count.games} game{vault._count.games !== 1 ? "s" : ""}</span>
+                            <span>
+                                {vault._count.games} game{vault._count.games !== 1 ? "s" : ""}
+                            </span>
                         </div>
                         <div className="flex items-center gap-1.5">
                             <Users className="size-4" />
-                            <span>{vault._count.users} member{vault._count.users !== 1 ? "s" : ""}</span>
+                            <span>
+                                {vault._count.users} member{vault._count.users !== 1 ? "s" : ""}
+                            </span>
                         </div>
                     </div>
                 </CardContent>
@@ -76,7 +95,9 @@ function VaultCard({
                         <Calendar className="size-3.5" />
                         <span>
                             {new Date(vault.createdAt).toLocaleDateString("en-US", {
-                                month: "short", day: "numeric", year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
                             })}
                         </span>
                     </div>
@@ -117,10 +138,7 @@ export default function Page() {
         isRevalidating,
         isValidating,
         mutate,
-    } = useServerQuery(
-        user ? ["vaults", user.id] : null,
-        () => getVaults()
-    );
+    } = useServerQuery(user ? ["vaults", user.id] : null, () => getVaults());
 
     const isLoading = sessionLoading || isInitialLoading;
     const vaults = result?.success ? result.data : null;
@@ -135,9 +153,7 @@ export default function Page() {
                 <div className="flex items-center justify-between mb-8">
                     <div className="space-y-1">
                         <h1 className="text-2xl font-semibold tracking-tight">Your Vaults</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Manage and access your key vaults
-                        </p>
+                        <p className="text-sm text-muted-foreground">Manage and access your key vaults</p>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -149,7 +165,10 @@ export default function Page() {
                         </Button>
 
                         <CreateVaultDialog onReload={() => mutate()}>
-                            <Button variant="outline" disabled={isLoading || getSetting("MAX_VAULTS_PER_USER") <= ownedVaultCount}>
+                            <Button
+                                variant="outline"
+                                disabled={isLoading || getSetting("MAX_VAULTS_PER_USER") <= ownedVaultCount}
+                            >
                                 {!isLoading ? (
                                     <>
                                         <Plus className="size-4 mr-1.5" />
@@ -170,10 +189,11 @@ export default function Page() {
                             onClick={() => mutate()}
                             disabled={isValidating || isLoading}
                         >
-                            {isValidating || isLoading
-                                ? <LoaderCircle className="size-4 animate-spin" />
-                                : <RefreshCcw className="size-4" />
-                            }
+                            {isValidating || isLoading ? (
+                                <LoaderCircle className="size-4 animate-spin" />
+                            ) : (
+                                <RefreshCcw className="size-4" />
+                            )}
                         </Button>
                     </div>
                 </div>
@@ -219,9 +239,11 @@ export default function Page() {
                 )}
 
                 {!isLoading && !error && vaults && vaults.length > 0 && (
-                    <div className={cn(
-                        "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 relative transition-opacity duration-200",
-                    )}>
+                    <div
+                        className={cn(
+                            "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 relative transition-opacity duration-200",
+                        )}
+                    >
                         {vaults?.map((vault) => (
                             <VaultCard
                                 key={vault.id}

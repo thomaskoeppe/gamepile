@@ -1,4 +1,4 @@
-import {createLogsExporter} from "@gamepile/shared/logs-exporter";
+import { createLogsExporter } from "@gamepile/shared/logs-exporter";
 
 /**
  * OTLP logs exporter instance for the worker service.

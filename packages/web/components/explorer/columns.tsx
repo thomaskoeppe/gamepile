@@ -14,8 +14,7 @@ import { cn } from "@/lib/utils";
 import type { ExplorerGameRow } from "@/types/explorer";
 
 function ReviewScoreBadge({ score }: { score: number | null }) {
-    if (score == null)
-        return <span className="text-xs text-muted-foreground">—</span>;
+    if (score == null) return <span className="text-xs text-muted-foreground">—</span>;
 
     return <ReviewScoreCircle score={score} size="sm" />;
 }
@@ -85,24 +84,21 @@ export function createColumns(
         },
         {
             accessorKey: "name",
-            header: () => (
-                <SortableHeader
-                    label="Name"
-                    field="name"
-                    currentSort={currentSort}
-                    onSort={onSort}
-                />
-            ),
+            header: () => <SortableHeader label="Name" field="name" currentSort={currentSort} onSort={onSort} />,
             cell: ({ row }) => (
                 <div className="flex items-center gap-2 min-w-0">
                     <div className="min-w-0">
                         <span className="block font-medium truncate max-w-60 hover:text-primary transition-colors cursor-default text-sm">
-                          {row.original.name !== "" ? row.original.name : <span className="text-muted-foreground font-medium italic">No name</span>}
+                            {row.original.name !== "" ? (
+                                row.original.name
+                            ) : (
+                                <span className="text-muted-foreground font-medium italic">No name</span>
+                            )}
                         </span>
                         {(row.original.developers?.length > 0 || row.original.publishers?.length > 0) && (
                             <span className="block truncate max-w-60 text-[11px] text-muted-foreground">
-                {row.original.developers?.join(", ") ?? row.original.publishers?.join(", ")}
-              </span>
+                                {row.original.developers?.join(", ") ?? row.original.publishers?.join(", ")}
+                            </span>
                         )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
@@ -132,10 +128,7 @@ export function createColumns(
             header: "Type",
             size: 90,
             cell: ({ row }) => (
-                <Badge
-                    variant="outline"
-                    className="text-[10px] px-1.5 py-0 font-normal capitalize"
-                >
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal capitalize">
                     {row.original.type?.toLowerCase() ?? "—"}
                 </Badge>
             ),
@@ -150,9 +143,7 @@ export function createColumns(
             id: "categories",
             header: "Categories",
             size: 210,
-            cell: ({ row }) => (
-                <ExpandablePills items={row.original.categories} max={2} variant="secondary" />
-            ),
+            cell: ({ row }) => <ExpandablePills items={row.original.categories} max={2} variant="secondary" />,
         },
         {
             id: "platforms",
@@ -169,12 +160,7 @@ export function createColumns(
             accessorKey: "reviewScore",
             sortUndefined: "last",
             header: () => (
-                <SortableHeader
-                    label="Score"
-                    field="reviewScore"
-                    currentSort={currentSort}
-                    onSort={onSort}
-                />
+                <SortableHeader label="Score" field="reviewScore" currentSort={currentSort} onSort={onSort} />
             ),
             size: 80,
             cell: ({ row }) => <ReviewScoreBadge score={row.original.reviewPercentage} />,
@@ -182,26 +168,20 @@ export function createColumns(
         {
             accessorKey: "releaseDate",
             header: () => (
-                <SortableHeader
-                    label="Release"
-                    field="releaseDate"
-                    currentSort={currentSort}
-                    onSort={onSort}
-                />
+                <SortableHeader label="Release" field="releaseDate" currentSort={currentSort} onSort={onSort} />
             ),
             size: 120,
             cell: ({ row }) => {
                 const d = row.original.releaseDate;
-                if (!d)
-                    return <span className="text-xs text-muted-foreground">TBA</span>;
+                if (!d) return <span className="text-xs text-muted-foreground">TBA</span>;
                 return (
                     <span className="text-xs text-muted-foreground tabular-nums">
-            {new Date(d).toLocaleDateString(undefined, {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-            })}
-          </span>
+                        {new Date(d).toLocaleDateString(undefined, {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                        })}
+                    </span>
                 );
             },
         },
@@ -209,13 +189,7 @@ export function createColumns(
             id: "actions",
             header: "",
             size: 48,
-            cell: ({ row }) => (
-                <AddToCollectionDropdown
-                    gameId={row.original.id}
-                    side="left"
-                    align="start"
-                />
-            ),
+            cell: ({ row }) => <AddToCollectionDropdown gameId={row.original.id} side="left" align="start" />,
         },
     ];
 }

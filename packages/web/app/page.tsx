@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import {AlertCircle, ChevronDown, Gamepad2, Ticket} from "lucide-react";
+import { AlertCircle, ChevronDown, Gamepad2, Ticket } from "lucide-react";
 import Link from "next/link";
-import {useSearchParams} from "next/navigation";
-import {useEffect, useState} from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
-import {Alert, AlertDescription} from "@/components/ui/alert";
-import {Button} from "@/components/ui/button";
-import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
-import {Input} from "@/components/ui/input";
-import {useAppSettings} from "@/lib/providers/app-settings";
-import {useSession} from "@/lib/providers/session";
-import {cn} from "@/lib/utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useAppSettings } from "@/lib/providers/app-settings";
+import { useSession } from "@/lib/providers/session";
+import { cn } from "@/lib/utils";
 
 const ERROR_MESSAGES: Record<string, string> = {
     verification_failed: "Steam verification failed. Please try again.",
@@ -38,7 +38,7 @@ export default function Home() {
     const inviteCodeParam = searchParams.get("invite_code") ?? "";
     const [inviteCode, setInviteCode] = useState(inviteCodeParam);
     const [inviteOpen, setInviteOpen] = useState(
-        !!inviteCodeParam || ["no_invite_code", "invalid_invite_code"].includes(error ?? "")
+        !!inviteCodeParam || ["no_invite_code", "invalid_invite_code"].includes(error ?? ""),
     );
 
     useEffect(() => {
@@ -60,9 +60,7 @@ export default function Home() {
                     </div>
                     <div>
                         <CardTitle className="text-2xl">Welcome Back</CardTitle>
-                        <CardDescription>
-                            Sign in with your Steam account to continue
-                        </CardDescription>
+                        <CardDescription>Sign in with your Steam account to continue</CardDescription>
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -81,12 +79,16 @@ export default function Home() {
                         className="w-full h-12 text-base cursor-pointer"
                         size="lg"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                             fill="currentColor" className="bi bi-steam" viewBox="0 0 16 16">
-                            <path
-                                d="M.329 10.333A8.01 8.01 0 0 0 7.99 16C12.414 16 16 12.418 16 8s-3.586-8-8.009-8A8.006 8.006 0 0 0 0 7.468l.003.006 4.304 1.769A2.2 2.2 0 0 1 5.62 8.88l1.96-2.844-.001-.04a3.046 3.046 0 0 1 3.042-3.043 3.046 3.046 0 0 1 3.042 3.043 3.047 3.047 0 0 1-3.111 3.044l-2.804 2a2.223 2.223 0 0 1-3.075 2.11 2.22 2.22 0 0 1-1.312-1.568L.33 10.333Z"/>
-                            <path
-                                d="M4.868 12.683a1.715 1.715 0 0 0 1.318-3.165 1.7 1.7 0 0 0-1.263-.02l1.023.424a1.261 1.261 0 1 1-.97 2.33l-.99-.41a1.7 1.7 0 0 0 .882.84Zm3.726-6.687a2.03 2.03 0 0 0 2.027 2.029 2.03 2.03 0 0 0 2.027-2.029 2.03 2.03 0 0 0-2.027-2.027 2.03 2.03 0 0 0-2.027 2.027m2.03-1.527a1.524 1.524 0 1 1-.002 3.048 1.524 1.524 0 0 1 .002-3.048"/>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            fill="currentColor"
+                            className="bi bi-steam"
+                            viewBox="0 0 16 16"
+                        >
+                            <path d="M.329 10.333A8.01 8.01 0 0 0 7.99 16C12.414 16 16 12.418 16 8s-3.586-8-8.009-8A8.006 8.006 0 0 0 0 7.468l.003.006 4.304 1.769A2.2 2.2 0 0 1 5.62 8.88l1.96-2.844-.001-.04a3.046 3.046 0 0 1 3.042-3.043 3.046 3.046 0 0 1 3.042 3.043 3.047 3.047 0 0 1-3.111 3.044l-2.804 2a2.223 2.223 0 0 1-3.075 2.11 2.22 2.22 0 0 1-1.312-1.568L.33 10.333Z" />
+                            <path d="M4.868 12.683a1.715 1.715 0 0 0 1.318-3.165 1.7 1.7 0 0 0-1.263-.02l1.023.424a1.261 1.261 0 1 1-.97 2.33l-.99-.41a1.7 1.7 0 0 0 .882.84Zm3.726-6.687a2.03 2.03 0 0 0 2.027 2.029 2.03 2.03 0 0 0 2.027-2.029 2.03 2.03 0 0 0-2.027-2.027 2.03 2.03 0 0 0-2.027 2.027m2.03-1.527a1.524 1.524 0 1 1-.002 3.048 1.524 1.524 0 0 1 .002-3.048" />
                         </svg>
                         Sign in with Steam
                     </Button>
@@ -101,17 +103,16 @@ export default function Home() {
                                 <ChevronDown
                                     className={cn(
                                         "h-3.5 w-3.5 transition-transform duration-200",
-                                        inviteOpen && "rotate-180"
+                                        inviteOpen && "rotate-180",
                                     )}
                                 />
                                 Have an invite code?
                             </button>
 
-
                             <div
                                 className={cn(
                                     "grid transition-all duration-200 ease-in-out",
-                                    inviteOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                                    inviteOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
                                 )}
                             >
                                 <div className="overflow-hidden">
@@ -137,10 +138,22 @@ export default function Home() {
 
                 <CardFooter>
                     <CardDescription className="text-xs">
-                        Built by <Link href="https://github.com/thomaskoeppe" target="_blank"
-                                       className="text-primary hover:underline">@thomaskoeppe</Link> · Open source
-                        on <Link href="https://github.com/thomaskoeppe/gamepile" target="_blank"
-                                 className="text-primary hover:underline">GitHub</Link>
+                        Built by{" "}
+                        <Link
+                            href="https://github.com/thomaskoeppe"
+                            target="_blank"
+                            className="text-primary hover:underline"
+                        >
+                            @thomaskoeppe
+                        </Link>{" "}
+                        · Open source on{" "}
+                        <Link
+                            href="https://github.com/thomaskoeppe/gamepile"
+                            target="_blank"
+                            className="text-primary hover:underline"
+                        >
+                            GitHub
+                        </Link>
                     </CardDescription>
                 </CardFooter>
             </Card>

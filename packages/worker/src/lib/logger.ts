@@ -33,19 +33,19 @@ const fileLogger = createFileLogger(fileLoggerOptionsFromEnv(SERVICE_NAME));
  * from one another, so a full disk or an unreachable collector cannot throw into
  * a job handler.
  */
-export const logSinks = composeLogSinks([
-    { name: "otlp", exportLogEntry },
-    fileLogger.toLogSink(),
-]);
+export const logSinks = composeLogSinks([{ name: "otlp", exportLogEntry }, fileLogger.toLogSink()]);
 
-export const logger = createLogger({
-    exportLogEntry: logSinks.exportLogEntry,
-    mirrorToStdout: env.WORKER_LOG_TO_STDOUT !== "false",
-}, {
-    hostname: HOSTNAME,
-    ips: IPS,
-    node_env: env.NODE_ENV,
-});
+export const logger = createLogger(
+    {
+        exportLogEntry: logSinks.exportLogEntry,
+        mirrorToStdout: env.WORKER_LOG_TO_STDOUT !== "false",
+    },
+    {
+        hostname: HOSTNAME,
+        ips: IPS,
+        node_env: env.NODE_ENV,
+    },
+);
 
 /**
  * Flushes buffered log entries to every configured sink and shuts them down.

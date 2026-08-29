@@ -1,5 +1,5 @@
 import { useAction } from "next-safe-action/hooks";
-import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useServerQuery } from "@/lib/hooks/use-server-query";
 import { useSession } from "@/lib/providers/session";
@@ -20,7 +20,7 @@ export function TableWrapper({
     canRedeem,
     canCreate,
     keyVaultAuthType,
-    onRevalidating
+    onRevalidating,
 }: {
     keyVaultId: string;
     canRedeem: boolean;
@@ -53,20 +53,23 @@ export function TableWrapper({
         isInitialLoading,
         isRevalidating,
         mutate: mutateKeys,
-    } = useServerQuery(
-        user ? ["vault-keys", keyVaultId, page, pageSize, sortBy, sortOrder, activeFilters] : null,
-        () => getKeys({ keyVaultId, page, pageSize, sortBy, sortOrder, filters: {
+    } = useServerQuery(user ? ["vault-keys", keyVaultId, page, pageSize, sortBy, sortOrder, activeFilters] : null, () =>
+        getKeys({
+            keyVaultId,
+            page,
+            pageSize,
+            sortBy,
+            sortOrder,
+            filters: {
                 name: activeFilters.name || undefined,
                 tags: activeFilters.tags,
                 isOwned: activeFilters.isOwned ?? undefined,
                 isRedeemed: activeFilters.isRedeemed ?? undefined,
-            }})
+            },
+        }),
     );
 
-    const { data: categoriesResult } = useServerQuery(
-        user ? ["categories"] : null,
-        () => getGameCategories()
-    );
+    const { data: categoriesResult } = useServerQuery(user ? ["categories"] : null, () => getGameCategories());
 
     useEffect(() => {
         if (onRevalidating) onRevalidating(isRevalidating);
@@ -92,40 +95,41 @@ export function TableWrapper({
     }, []);
 
     const columns = useMemo(
-        () => createVaultKeyColumns({
-            canRedeem,
-            openKeyDialog: keyDialogHook.openKeyDialog,
-            onUnredeem: (vaultGameId) => unredeemAction.execute({ vaultGameId }),
-            selectedVaultGameIds,
-            onToggleSelect: (vaultGameId, checked) => {
-                setSelectedVaultGameIds((prev) => {
-                    if (!checked) {
-                        return prev.filter((id) => id !== vaultGameId);
-                    }
-                    if (prev.includes(vaultGameId)) {
-                        return prev;
-                    }
-                    return [...prev, vaultGameId];
-                });
-            },
-            onToggleSelectPage: (checked) => {
-                const selectableIds = data
-                    .filter((row) => !row.redeemed)
-                    .map((row) => row.id);
+        () =>
+            createVaultKeyColumns({
+                canRedeem,
+                openKeyDialog: keyDialogHook.openKeyDialog,
+                onUnredeem: (vaultGameId) => unredeemAction.execute({ vaultGameId }),
+                selectedVaultGameIds,
+                onToggleSelect: (vaultGameId, checked) => {
+                    setSelectedVaultGameIds((prev) => {
+                        if (!checked) {
+                            return prev.filter((id) => id !== vaultGameId);
+                        }
+                        if (prev.includes(vaultGameId)) {
+                            return prev;
+                        }
+                        return [...prev, vaultGameId];
+                    });
+                },
+                onToggleSelectPage: (checked) => {
+                    const selectableIds = data.filter((row) => !row.redeemed).map((row) => row.id);
 
-                setSelectedVaultGameIds((prev) => {
-                    if (!checked) {
-                        return prev.filter((id) => !selectableIds.includes(id));
-                    }
+                    setSelectedVaultGameIds((prev) => {
+                        if (!checked) {
+                            return prev.filter((id) => !selectableIds.includes(id));
+                        }
 
-                    const merged = new Set([...prev, ...selectableIds]);
-                    return Array.from(merged);
-                });
-            },
-            allPageRowsSelected: data.length > 0 && data.filter((row) => !row.redeemed).every((row) => selectedVaultGameIds.includes(row.id)),
-            somePageRowsSelected: data.some((row) => !row.redeemed && selectedVaultGameIds.includes(row.id)),
-        }),
-        [canRedeem, data, keyDialogHook.openKeyDialog, selectedVaultGameIds, unredeemAction]
+                        const merged = new Set([...prev, ...selectableIds]);
+                        return Array.from(merged);
+                    });
+                },
+                allPageRowsSelected:
+                    data.length > 0 &&
+                    data.filter((row) => !row.redeemed).every((row) => selectedVaultGameIds.includes(row.id)),
+                somePageRowsSelected: data.some((row) => !row.redeemed && selectedVaultGameIds.includes(row.id)),
+            }),
+        [canRedeem, data, keyDialogHook.openKeyDialog, selectedVaultGameIds, unredeemAction],
     );
 
     return (
@@ -135,9 +139,21 @@ export function TableWrapper({
                     filters={filters}
                     categories={categories}
                     onNameChange={handleNameChange}
-                    onTagsChange={(tags) => { setFilters((prev) => ({ ...prev, tags })); setPage(1); setSelectedVaultGameIds([]); }}
-                    onOwnedChange={(isOwned) => { setFilters((prev) => ({ ...prev, isOwned })); setPage(1); setSelectedVaultGameIds([]); }}
-                    onRedeemedChange={(isRedeemed) => { setFilters((prev) => ({ ...prev, isRedeemed })); setPage(1); setSelectedVaultGameIds([]); }}
+                    onTagsChange={(tags) => {
+                        setFilters((prev) => ({ ...prev, tags }));
+                        setPage(1);
+                        setSelectedVaultGameIds([]);
+                    }}
+                    onOwnedChange={(isOwned) => {
+                        setFilters((prev) => ({ ...prev, isOwned }));
+                        setPage(1);
+                        setSelectedVaultGameIds([]);
+                    }}
+                    onRedeemedChange={(isRedeemed) => {
+                        setFilters((prev) => ({ ...prev, isRedeemed }));
+                        setPage(1);
+                        setSelectedVaultGameIds([]);
+                    }}
                     onClearFilters={() => {
                         setFilters({ name: "", tags: [], isOwned: null, isRedeemed: null });
                         setDebouncedName("");

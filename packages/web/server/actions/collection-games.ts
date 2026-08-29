@@ -1,10 +1,10 @@
 "use server";
 
-import {z} from "zod";
+import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { withLogging } from "@/lib/with-logging";
-import {actionClientWithAuth} from "@/server/actions";
+import { actionClientWithAuth } from "@/server/actions";
 
 /**
  * Returns true if the authenticated user may modify games in the given collection.
@@ -40,25 +40,39 @@ async function assertCanModifyCollection(collectionId: string, userId: string): 
  * @returns `true` on success.
  * @throws {Error} If the collection is not found or the user does not have modify access.
  */
-export const addGameToCollection = actionClientWithAuth.inputSchema(z.object({
-    collectionId: z.cuid(), gameId: z.uuid(),
-})).action(withLogging(async ({parsedInput: {collectionId, gameId}, ctx}, {log}) => {
-    log.info("Adding game to collection", {
-        collectionId, gameId, userId: ctx.user.id,
-    });
+export const addGameToCollection = actionClientWithAuth
+    .inputSchema(
+        z.object({
+            collectionId: z.cuid(),
+            gameId: z.uuid(),
+        }),
+    )
+    .action(
+        withLogging(
+            async ({ parsedInput: { collectionId, gameId }, ctx }, { log }) => {
+                log.info("Adding game to collection", {
+                    collectionId,
+                    gameId,
+                    userId: ctx.user.id,
+                });
 
-    await assertCanModifyCollection(collectionId, ctx.user.id);
+                await assertCanModifyCollection(collectionId, ctx.user.id);
 
-    await prisma.collectionGame.create({
-        data: {
-            collectionId, gameId, addedById: ctx.user.id
-        },
-    });
+                await prisma.collectionGame.create({
+                    data: {
+                        collectionId,
+                        gameId,
+                        addedById: ctx.user.id,
+                    },
+                });
 
-    return true;
-}, {
-    namespace: "server.actions.collection-games:addGameToCollection"
-}));
+                return true;
+            },
+            {
+                namespace: "server.actions.collection-games:addGameToCollection",
+            },
+        ),
+    );
 
 /**
  * Removes a game from a collection.
@@ -68,27 +82,40 @@ export const addGameToCollection = actionClientWithAuth.inputSchema(z.object({
  * @returns `true` on success.
  * @throws {Error} If the collection is not found or the user does not have modify access.
  */
-export const removeGameFromCollection = actionClientWithAuth.inputSchema(z.object({
-    collectionId: z.cuid(), gameId: z.uuid(),
-})).action(withLogging(async ({parsedInput: {collectionId, gameId}, ctx}, {log}) => {
-    log.info("Removing game from collection", {
-        collectionId, gameId, userId: ctx.user.id,
-    });
+export const removeGameFromCollection = actionClientWithAuth
+    .inputSchema(
+        z.object({
+            collectionId: z.cuid(),
+            gameId: z.uuid(),
+        }),
+    )
+    .action(
+        withLogging(
+            async ({ parsedInput: { collectionId, gameId }, ctx }, { log }) => {
+                log.info("Removing game from collection", {
+                    collectionId,
+                    gameId,
+                    userId: ctx.user.id,
+                });
 
-    await assertCanModifyCollection(collectionId, ctx.user.id);
+                await assertCanModifyCollection(collectionId, ctx.user.id);
 
-    await prisma.collectionGame.delete({
-        where: {
-            collectionId_gameId: {
-                collectionId, gameId,
+                await prisma.collectionGame.delete({
+                    where: {
+                        collectionId_gameId: {
+                            collectionId,
+                            gameId,
+                        },
+                    },
+                });
+
+                return true;
             },
-        },
-    });
-
-    return true;
-}, {
-    namespace: "server.actions.collection-games:removeGameFromCollection"
-}));
+            {
+                namespace: "server.actions.collection-games:removeGameFromCollection",
+            },
+        ),
+    );
 
 /**
  * Toggles a game's membership in a collection.
@@ -99,26 +126,35 @@ export const removeGameFromCollection = actionClientWithAuth.inputSchema(z.objec
  * @returns The `collectionId` and the new `isMember` state after the toggle.
  * @throws {Error} If the collection is not found or the user does not have modify access.
  */
-export const toggleGameInCollection = actionClientWithAuth.inputSchema(z.object({
-    collectionId: z.cuid(),
-    gameId: z.uuid(),
-    isMember: z.boolean(),
-})).action(withLogging(async ({ parsedInput: { collectionId, gameId, isMember }, ctx }, { log }) => {
-    log.info("Toggling game in collection", { collectionId, gameId, isMember, userId: ctx.user.id });
+export const toggleGameInCollection = actionClientWithAuth
+    .inputSchema(
+        z.object({
+            collectionId: z.cuid(),
+            gameId: z.uuid(),
+            isMember: z.boolean(),
+        }),
+    )
+    .action(
+        withLogging(
+            async ({ parsedInput: { collectionId, gameId, isMember }, ctx }, { log }) => {
+                log.info("Toggling game in collection", { collectionId, gameId, isMember, userId: ctx.user.id });
 
-    await assertCanModifyCollection(collectionId, ctx.user.id);
+                await assertCanModifyCollection(collectionId, ctx.user.id);
 
-    if (isMember) {
-        await prisma.collectionGame.delete({
-            where: { collectionId_gameId: { collectionId, gameId } },
-        });
-    } else {
-        await prisma.collectionGame.create({
-            data: { collectionId, gameId, addedById: ctx.user.id },
-        });
-    }
+                if (isMember) {
+                    await prisma.collectionGame.delete({
+                        where: { collectionId_gameId: { collectionId, gameId } },
+                    });
+                } else {
+                    await prisma.collectionGame.create({
+                        data: { collectionId, gameId, addedById: ctx.user.id },
+                    });
+                }
 
-    return { collectionId, isMember: !isMember };
-}, {
-    namespace: "server.actions.collections:toggleGameInCollection"
-}));
+                return { collectionId, isMember: !isMember };
+            },
+            {
+                namespace: "server.actions.collections:toggleGameInCollection",
+            },
+        ),
+    );

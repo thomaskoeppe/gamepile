@@ -42,7 +42,9 @@ describe("composeLogSinks", () => {
 
     it("keeps delivering to healthy sinks when one throws", () => {
         const failing = sink("failing", {
-            exportLogEntry: vi.fn(() => { throw new Error("disk full"); }),
+            exportLogEntry: vi.fn(() => {
+                throw new Error("disk full");
+            }),
         });
         const healthy = sink("healthy");
 
@@ -55,7 +57,11 @@ describe("composeLogSinks", () => {
 
     it("reports a failing sink to stderr without recursing into the logger", () => {
         const composite = composeLogSinks([
-            sink("broken", { exportLogEntry: vi.fn(() => { throw new Error("nope"); }) }),
+            sink("broken", {
+                exportLogEntry: vi.fn(() => {
+                    throw new Error("nope");
+                }),
+            }),
         ]);
 
         composite.exportLogEntry(entry);
@@ -65,7 +71,11 @@ describe("composeLogSinks", () => {
     });
 
     it("isolates initialize failures", () => {
-        const failing = sink("failing", { initialize: vi.fn(() => { throw new Error("bad path"); }) });
+        const failing = sink("failing", {
+            initialize: vi.fn(() => {
+                throw new Error("bad path");
+            }),
+        });
         const healthy = sink("healthy", { initialize: vi.fn() });
 
         const composite = composeLogSinks([failing, healthy]);

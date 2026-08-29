@@ -37,10 +37,7 @@
       }
     ],
     "@semantic-release/changelog",
-    [
-      "@semantic-release/npm",
-      { "npmPublish": false }
-    ],
+    ["@semantic-release/npm", { "npmPublish": false }],
     [
       "@semantic-release/exec",
       {
@@ -63,4 +60,3 @@
     "@semantic-release/github"
   ]
 }
-

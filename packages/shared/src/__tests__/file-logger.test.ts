@@ -71,7 +71,13 @@ describe("writing", () => {
     });
 
     it("serialises errors with name, message and stack", async () => {
-        const logger = createFileLogger({ serviceName: "svc", enabled: true, dir, fileName: "svc.log", compress: false });
+        const logger = createFileLogger({
+            serviceName: "svc",
+            enabled: true,
+            dir,
+            fileName: "svc.log",
+            compress: false,
+        });
         const error = new Error("boom");
 
         logger.initializeFileLogger();
@@ -84,7 +90,13 @@ describe("writing", () => {
     });
 
     it("keeps one record on one line even when the message contains newlines", async () => {
-        const logger = createFileLogger({ serviceName: "svc", enabled: true, dir, fileName: "svc.log", compress: false });
+        const logger = createFileLogger({
+            serviceName: "svc",
+            enabled: true,
+            dir,
+            fileName: "svc.log",
+            compress: false,
+        });
 
         logger.initializeFileLogger();
         logger.exportLogEntry(makeEntry({ message: "line1\nline2\rinjected" }));
@@ -96,7 +108,12 @@ describe("writing", () => {
 
     it("writes human-readable lines in text format", async () => {
         const logger = createFileLogger({
-            serviceName: "svc", enabled: true, dir, fileName: "svc.log", compress: false, format: "text",
+            serviceName: "svc",
+            enabled: true,
+            dir,
+            fileName: "svc.log",
+            compress: false,
+            format: "text",
         });
 
         logger.initializeFileLogger();
@@ -111,7 +128,13 @@ describe("writing", () => {
 
     it("creates the log directory when it does not exist yet", async () => {
         const nested = join(dir, "deeply", "nested");
-        const logger = createFileLogger({ serviceName: "svc", enabled: true, dir: nested, fileName: "svc.log", compress: false });
+        const logger = createFileLogger({
+            serviceName: "svc",
+            enabled: true,
+            dir: nested,
+            fileName: "svc.log",
+            compress: false,
+        });
 
         logger.initializeFileLogger();
         logger.exportLogEntry(makeEntry());
@@ -149,7 +172,13 @@ describe("rotation and retention", () => {
 
     it("compresses rotated files when compression is enabled", async () => {
         const logger = createFileLogger({
-            serviceName: "svc", enabled: true, dir, fileName: "svc.log", maxSize: "1B", maxFiles: 3, compress: "gzip",
+            serviceName: "svc",
+            enabled: true,
+            dir,
+            fileName: "svc.log",
+            maxSize: "1B",
+            maxFiles: 3,
+            compress: "gzip",
         });
 
         logger.initializeFileLogger();
@@ -181,7 +210,10 @@ describe("fail-soft behaviour", () => {
         const stderr = vi.spyOn(process.stderr, "write").mockReturnValue(true);
 
         const logger = createFileLogger({
-            serviceName: "svc", enabled: true, dir: join(blocked, "logs"), fileName: "svc.log",
+            serviceName: "svc",
+            enabled: true,
+            dir: join(blocked, "logs"),
+            fileName: "svc.log",
         });
 
         expect(() => logger.initializeFileLogger()).not.toThrow();
@@ -200,7 +232,13 @@ describe("fail-soft behaviour", () => {
     });
 
     it("exposes a LogSink adapter wired to the same stream", async () => {
-        const logger = createFileLogger({ serviceName: "svc", enabled: true, dir, fileName: "svc.log", compress: false });
+        const logger = createFileLogger({
+            serviceName: "svc",
+            enabled: true,
+            dir,
+            fileName: "svc.log",
+            compress: false,
+        });
         const sink = logger.toLogSink();
 
         expect(sink.name).toBe("file");
@@ -250,8 +288,14 @@ describe("fileLoggerOptionsFromEnv", () => {
     });
 
     it.each([
-        ["1", true], ["true", true], ["yes", true], ["on", true],
-        ["0", false], ["false", false], ["no", false], ["off", false],
+        ["1", true],
+        ["true", true],
+        ["yes", true],
+        ["on", true],
+        ["0", false],
+        ["false", false],
+        ["no", false],
+        ["off", false],
     ])("parses LOG_FILE_ENABLED=%s as %s", (value, expected) => {
         expect(fileLoggerOptionsFromEnv("svc", { LOG_FILE_ENABLED: value }).enabled).toBe(expected);
     });

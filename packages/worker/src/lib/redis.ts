@@ -11,10 +11,10 @@ const env = getWorkerEnv();
  * Reused by BullMQ queues, workers, and any direct Redis operations.
  */
 export const redisOptions = createRedisOptions({
-	REDIS_HOST: env.REDIS_HOST,
-	REDIS_PORT: String(env.REDIS_PORT),
-	REDIS_PASSWORD: env.REDIS_PASSWORD,
-	REDIS_USERNAME: env.REDIS_USERNAME,
+    REDIS_HOST: env.REDIS_HOST,
+    REDIS_PORT: String(env.REDIS_PORT),
+    REDIS_PASSWORD: env.REDIS_PASSWORD,
+    REDIS_USERNAME: env.REDIS_USERNAME,
 });
 
 /**

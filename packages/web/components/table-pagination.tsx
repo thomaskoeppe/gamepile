@@ -13,14 +13,7 @@ interface PaginationProps {
     className?: string;
 }
 
-export function TablePagination({
-    page,
-    totalPages,
-    onPageChange,
-    totalCount,
-    pageSize,
-    className,
-}: PaginationProps) {
+export function TablePagination({ page, totalPages, onPageChange, totalCount, pageSize, className }: PaginationProps) {
     const safeTotalPages = Math.max(1, totalPages);
     const start = totalCount && pageSize ? (page - 1) * pageSize + 1 : null;
     const end = totalCount && pageSize ? Math.min(page * pageSize, totalCount) : null;
@@ -60,4 +53,3 @@ export function TablePagination({
         </div>
     );
 }
-

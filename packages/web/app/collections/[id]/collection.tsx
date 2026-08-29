@@ -18,7 +18,7 @@ import { useServerQuery } from "@/lib/hooks/use-server-query";
 import { useSession } from "@/lib/providers/session";
 import { getGamesForCollection } from "@/server/queries/collection-games";
 import { getCollectionMembers } from "@/server/queries/collection-members";
-import { getCollection} from "@/server/queries/collections";
+import { getCollection } from "@/server/queries/collections";
 import { getGameCategories, getGameTags } from "@/server/queries/games";
 
 export function Collection({ collectionId }: { collectionId: string }) {
@@ -30,35 +30,24 @@ export function Collection({ collectionId }: { collectionId: string }) {
         isInitialLoading: collectionInitial,
         isRevalidating: collectionRevalidating,
         mutate: mutateCollection,
-    } = useServerQuery(
-        user ? ["collection", collectionId, user.id] : null,
-        () => getCollection({ collectionId })
-    );
+    } = useServerQuery(user ? ["collection", collectionId, user.id] : null, () => getCollection({ collectionId }));
 
     const {
         data: gamesResult,
         isInitialLoading: gamesInitial,
         isRevalidating: gamesRevalidating,
         mutate: mutateGames,
-    } = useServerQuery(
-        user ? ["collection-games", collectionId, user.id] : null,
-        () => getGamesForCollection({ collectionId })
+    } = useServerQuery(user ? ["collection-games", collectionId, user.id] : null, () =>
+        getGamesForCollection({ collectionId }),
     );
 
-    const { data: categoriesResult } = useServerQuery(
-        ["categories"], () => getGameCategories()
-    );
+    const { data: categoriesResult } = useServerQuery(["categories"], () => getGameCategories());
 
-    const { data: tagsResult } = useServerQuery(
-        ["tags"], () => getGameTags()
-    );
+    const { data: tagsResult } = useServerQuery(["tags"], () => getGameTags());
 
-    const {
-        data: membersResult,
-        mutate: mutateMembers,
-    } = useServerQuery(
+    const { data: membersResult, mutate: mutateMembers } = useServerQuery(
         user ? ["collection-members", collectionId, user.id] : null,
-        () => getCollectionMembers({ collectionId })
+        () => getCollectionMembers({ collectionId }),
     );
 
     const isInitialLoading = collectionInitial || gamesInitial || gamesResult === undefined;
@@ -135,7 +124,11 @@ export function Collection({ collectionId }: { collectionId: string }) {
                                                             collectionName={collection.name}
                                                             onDeleted={() => router.push("/collections")}
                                                         >
-                                                            <Button variant="ghost" size="icon" className="size-8 text-destructive hover:text-destructive">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="size-8 text-destructive hover:text-destructive"
+                                                            >
                                                                 <Trash2 className="size-4" />
                                                                 <span className="sr-only">Delete collection</span>
                                                             </Button>
@@ -155,7 +148,9 @@ export function Collection({ collectionId }: { collectionId: string }) {
                                                 {collection?.slug && (
                                                     <div className="flex items-center gap-2">
                                                         <dt className="text-foreground">URL</dt>
-                                                        <dd className="text-muted-foreground">/collections/{collection.slug}</dd>
+                                                        <dd className="text-muted-foreground">
+                                                            /collections/{collection.slug}
+                                                        </dd>
                                                     </div>
                                                 )}
 
@@ -166,7 +161,9 @@ export function Collection({ collectionId }: { collectionId: string }) {
 
                                                 <div className="flex items-center gap-2">
                                                     <dt className="text-foreground">Created By</dt>
-                                                    <dd className="text-muted-foreground">{collection?.createdBy.username}</dd>
+                                                    <dd className="text-muted-foreground">
+                                                        {collection?.createdBy.username}
+                                                    </dd>
                                                 </div>
 
                                                 <div className="flex items-center gap-2">
@@ -192,7 +189,10 @@ export function Collection({ collectionId }: { collectionId: string }) {
                                                 resourceType="collection"
                                                 users={members}
                                                 isOwner={isOwner}
-                                                onMutate={() => { void mutateMembers(); void mutateCollection(); }}
+                                                onMutate={() => {
+                                                    void mutateMembers();
+                                                    void mutateCollection();
+                                                }}
                                             />
                                         </CardContent>
                                     </Card>

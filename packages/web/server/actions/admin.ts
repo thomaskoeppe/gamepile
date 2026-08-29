@@ -4,10 +4,10 @@ import { z } from "zod";
 
 import { getSetting, loadSettings, upsertSetting, upsertSettings } from "@/lib/app-settings";
 import prisma from "@/lib/prisma";
-import {jobsQueue} from "@/lib/queue";
+import { jobsQueue } from "@/lib/queue";
 import { redis } from "@/lib/redis";
 import { withLogging } from "@/lib/with-logging";
-import {AppSettingKey, JobStatus, JobType, KeyVaultAuthType, UserRole} from "@/prisma/generated/enums";
+import { AppSettingKey, JobStatus, JobType, KeyVaultAuthType, UserRole } from "@/prisma/generated/enums";
 import { actionClientWithAdmin } from "@/server/actions";
 import type { AppSettingValueType } from "@/types/app-setting";
 
@@ -57,24 +57,25 @@ const updateSettingSchema = z.object({
  * @param input.value - The new value; must match the type expected for the key.
  * @returns Success flag and a confirmation message.
  */
-export const updateSetting = actionClientWithAdmin
-    .inputSchema(updateSettingSchema)
-    .action(withLogging(async ({ parsedInput: { key, value }, ctx }, { log }) => {
-        log.info("Updating app setting", { userId: ctx.user.id, key });
+export const updateSetting = actionClientWithAdmin.inputSchema(updateSettingSchema).action(
+    withLogging(
+        async ({ parsedInput: { key, value }, ctx }, { log }) => {
+            log.info("Updating app setting", { userId: ctx.user.id, key });
 
-        const expectedType = SETTING_TYPES[key];
-        if (typeof value !== expectedType) {
-            throw new Error(
-                `Invalid value type for "${key}": expected ${expectedType}, received ${typeof value}.`,
-            );
-        }
+            const expectedType = SETTING_TYPES[key];
+            if (typeof value !== expectedType) {
+                throw new Error(`Invalid value type for "${key}": expected ${expectedType}, received ${typeof value}.`);
+            }
 
-        await upsertSetting(key, value as AppSettingValueType[typeof key]);
+            await upsertSetting(key, value as AppSettingValueType[typeof key]);
 
-        return { success: true, message: `Setting "${key}" updated successfully.` };
-    }, {
-        namespace: "server.actions.admin:updateSetting",
-    }));
+            return { success: true, message: `Setting "${key}" updated successfully.` };
+        },
+        {
+            namespace: "server.actions.admin:updateSetting",
+        },
+    ),
+);
 
 const configurationSchema = z.object({
     [AppSettingKey.ALLOW_USER_SIGNUP]: z.boolean(),
@@ -111,35 +112,42 @@ const configurationSchema = z.object({
  * @param input - An object containing all `AppSettingKey` entries with their new values.
  * @returns Success flag and a confirmation message.
  */
-export const saveConfiguration = actionClientWithAdmin
-    .inputSchema(configurationSchema)
-    .action(withLogging(async ({ parsedInput, ctx }, { log }) => {
-        log.info("Saving admin configuration", { userId: ctx.user.id });
+export const saveConfiguration = actionClientWithAdmin.inputSchema(configurationSchema).action(
+    withLogging(
+        async ({ parsedInput, ctx }, { log }) => {
+            log.info("Saving admin configuration", { userId: ctx.user.id });
 
-        await upsertSettings(parsedInput as Partial<AppSettingValueType>);
+            await upsertSettings(parsedInput as Partial<AppSettingValueType>);
 
-        return { success: true, message: "Configuration saved successfully." };
-    }, {
-        namespace: "server.actions.admin:saveConfiguration",
-    }));
+            return { success: true, message: "Configuration saved successfully." };
+        },
+        {
+            namespace: "server.actions.admin:saveConfiguration",
+        },
+    ),
+);
 
 /**
  * Reloads settings from the database, swapping the in-memory store atomically.
  *
  * @returns Success flag and a confirmation message.
  */
-export const reloadSettings = actionClientWithAdmin
-    .action(withLogging(async ({ ctx }, { log }) => {
-        log.info("Reloading app settings", { userId: ctx.user.id });
+export const reloadSettings = actionClientWithAdmin.action(
+    withLogging(
+        async ({ ctx }, { log }) => {
+            log.info("Reloading app settings", { userId: ctx.user.id });
 
-        // Load-then-swap: a failed read leaves the currently loaded settings in
-        // place instead of emptying the cache for every subsequent request.
-        await loadSettings({ force: true });
+            // Load-then-swap: a failed read leaves the currently loaded settings in
+            // place instead of emptying the cache for every subsequent request.
+            await loadSettings({ force: true });
 
-        return { success: true, message: "Settings reloaded from database." };
-    }, {
-        namespace: "server.actions.admin:reloadSettings",
-    }));
+            return { success: true, message: "Settings reloaded from database." };
+        },
+        {
+            namespace: "server.actions.admin:reloadSettings",
+        },
+    ),
+);
 
 /**
  * Transfers ownership of a vault to another user.
@@ -149,31 +157,38 @@ export const reloadSettings = actionClientWithAdmin
  * @returns Success flag and a confirmation message.
  */
 export const changeVaultOwner = actionClientWithAdmin
-    .inputSchema(z.object({
-        vaultId: z.string().min(1),
-        ownerId: z.string().min(1),
-    }))
-    .action(withLogging(async ({ parsedInput: { vaultId, ownerId }, ctx }, { log }) => {
-        log.info("Changing vault owner", { userId: ctx.user.id, vaultId, ownerId });
+    .inputSchema(
+        z.object({
+            vaultId: z.string().min(1),
+            ownerId: z.string().min(1),
+        }),
+    )
+    .action(
+        withLogging(
+            async ({ parsedInput: { vaultId, ownerId }, ctx }, { log }) => {
+                log.info("Changing vault owner", { userId: ctx.user.id, vaultId, ownerId });
 
-        const owner = await prisma.user.findUnique({
-            where: { id: ownerId },
-            select: { id: true },
-        });
+                const owner = await prisma.user.findUnique({
+                    where: { id: ownerId },
+                    select: { id: true },
+                });
 
-        if (!owner) {
-            throw new Error("Target owner not found.");
-        }
+                if (!owner) {
+                    throw new Error("Target owner not found.");
+                }
 
-        await prisma.keyVault.update({
-            where: { id: vaultId },
-            data: { createdById: ownerId },
-        });
+                await prisma.keyVault.update({
+                    where: { id: vaultId },
+                    data: { createdById: ownerId },
+                });
 
-        return { success: true, message: "Vault owner updated successfully." };
-    }, {
-        namespace: "server.actions.admin:changeVaultOwner",
-    }));
+                return { success: true, message: "Vault owner updated successfully." };
+            },
+            {
+                namespace: "server.actions.admin:changeVaultOwner",
+            },
+        ),
+    );
 
 /**
  * Transfers ownership of a collection to another user.
@@ -183,144 +198,169 @@ export const changeVaultOwner = actionClientWithAdmin
  * @returns Success flag and a confirmation message.
  */
 export const changeCollectionOwner = actionClientWithAdmin
-    .inputSchema(z.object({
-        collectionId: z.string().min(1),
-        ownerId: z.string().min(1),
-    }))
-    .action(withLogging(async ({ parsedInput: { collectionId, ownerId }, ctx }, { log }) => {
-        log.info("Changing collection owner", { userId: ctx.user.id, collectionId, ownerId });
+    .inputSchema(
+        z.object({
+            collectionId: z.string().min(1),
+            ownerId: z.string().min(1),
+        }),
+    )
+    .action(
+        withLogging(
+            async ({ parsedInput: { collectionId, ownerId }, ctx }, { log }) => {
+                log.info("Changing collection owner", { userId: ctx.user.id, collectionId, ownerId });
 
-        const owner = await prisma.user.findUnique({
-            where: { id: ownerId },
-            select: { id: true },
-        });
+                const owner = await prisma.user.findUnique({
+                    where: { id: ownerId },
+                    select: { id: true },
+                });
 
-        if (!owner) {
-            throw new Error("Target owner not found.");
-        }
+                if (!owner) {
+                    throw new Error("Target owner not found.");
+                }
 
-        await prisma.collection.update({
-            where: { id: collectionId },
-            data: { createdById: ownerId },
-        });
+                await prisma.collection.update({
+                    where: { id: collectionId },
+                    data: { createdById: ownerId },
+                });
 
-        return { success: true, message: "Collection owner updated successfully." };
-    }, {
-        namespace: "server.actions.admin:changeCollectionOwner",
-    }));
+                return { success: true, message: "Collection owner updated successfully." };
+            },
+            {
+                namespace: "server.actions.admin:changeCollectionOwner",
+            },
+        ),
+    );
 
 /**
  * Deletes any vault as an admin when the feature flag allows it.
  */
 export const deleteVaultAsAdmin = actionClientWithAdmin
-    .inputSchema(z.object({
-        vaultId: z.string().min(1),
-    }))
-    .action(withLogging(async ({ parsedInput: { vaultId }, ctx }, { log }) => {
-        log.info("Deleting vault as admin", { vaultId, userId: ctx.user.id });
+    .inputSchema(
+        z.object({
+            vaultId: z.string().min(1),
+        }),
+    )
+    .action(
+        withLogging(
+            async ({ parsedInput: { vaultId }, ctx }, { log }) => {
+                log.info("Deleting vault as admin", { vaultId, userId: ctx.user.id });
 
-        if (!getSetting(AppSettingKey.ADMIN_CAN_DELETE_ANY_VAULT)) {
-            throw new Error("Admin vault deletion is disabled by configuration.");
-        }
+                if (!getSetting(AppSettingKey.ADMIN_CAN_DELETE_ANY_VAULT)) {
+                    throw new Error("Admin vault deletion is disabled by configuration.");
+                }
 
-        const vault = await prisma.keyVault.findUnique({
-            where: { id: vaultId },
-            select: { id: true },
-        });
+                const vault = await prisma.keyVault.findUnique({
+                    where: { id: vaultId },
+                    select: { id: true },
+                });
 
-        if (!vault) {
-            throw new Error("Vault not found.");
-        }
+                if (!vault) {
+                    throw new Error("Vault not found.");
+                }
 
-        await prisma.keyVault.delete({ where: { id: vaultId } });
+                await prisma.keyVault.delete({ where: { id: vaultId } });
 
-        return { success: true };
-    }, {
-        namespace: "server.actions.admin:deleteVaultAsAdmin",
-    }));
+                return { success: true };
+            },
+            {
+                namespace: "server.actions.admin:deleteVaultAsAdmin",
+            },
+        ),
+    );
 
 /**
  * Deletes any collection as an admin when the feature flag allows it.
  */
 export const deleteCollectionAsAdmin = actionClientWithAdmin
-    .inputSchema(z.object({
-        collectionId: z.string().min(1),
-    }))
-    .action(withLogging(async ({ parsedInput: { collectionId }, ctx }, { log }) => {
-        log.info("Deleting collection as admin", { collectionId, userId: ctx.user.id });
+    .inputSchema(
+        z.object({
+            collectionId: z.string().min(1),
+        }),
+    )
+    .action(
+        withLogging(
+            async ({ parsedInput: { collectionId }, ctx }, { log }) => {
+                log.info("Deleting collection as admin", { collectionId, userId: ctx.user.id });
 
-        if (!getSetting(AppSettingKey.ADMIN_CAN_DELETE_ANY_COLLECTION)) {
-            throw new Error("Admin collection deletion is disabled by configuration.");
-        }
+                if (!getSetting(AppSettingKey.ADMIN_CAN_DELETE_ANY_COLLECTION)) {
+                    throw new Error("Admin collection deletion is disabled by configuration.");
+                }
 
-        const collection = await prisma.collection.findUnique({
-            where: { id: collectionId },
-            select: { id: true },
-        });
+                const collection = await prisma.collection.findUnique({
+                    where: { id: collectionId },
+                    select: { id: true },
+                });
 
-        if (!collection) {
-            throw new Error("Collection not found.");
-        }
+                if (!collection) {
+                    throw new Error("Collection not found.");
+                }
 
-        await prisma.collection.delete({ where: { id: collectionId } });
+                await prisma.collection.delete({ where: { id: collectionId } });
 
-        return { success: true };
-    }, {
-        namespace: "server.actions.admin:deleteCollectionAsAdmin",
-    }));
+                return { success: true };
+            },
+            {
+                namespace: "server.actions.admin:deleteCollectionAsAdmin",
+            },
+        ),
+    );
 
 /** Job types that operate on a single user and therefore require a target userId. */
-const USER_SCOPED_JOB_TYPES: readonly JobType[] = [
-    JobType.IMPORT_USER_LIBRARY,
-    JobType.IMPORT_USER_ACHIEVEMENTS,
-];
+const USER_SCOPED_JOB_TYPES: readonly JobType[] = [JobType.IMPORT_USER_LIBRARY, JobType.IMPORT_USER_ACHIEVEMENTS];
 
 /**
  * Allows an admin to manually queue one of the supported background jobs.
  * User-specific jobs (library/achievements imports) require a valid userId.
  */
 export const invokeAdminJob = actionClientWithAdmin
-    .inputSchema(z.object({
-        type: z.enum([
-            JobType.SYNC_STEAM_GAMES,
-            JobType.IMPORT_USER_LIBRARY,
-            JobType.IMPORT_USER_ACHIEVEMENTS,
-            JobType.REFRESH_GAME_DETAILS,
-        ] as const),
-        userId: z.string().min(1).optional(),
-    }))
-    .action(withLogging(async ({ parsedInput: { type, userId }, ctx }, { log }) => {
-        log.info("Invoking admin job", { invokedBy: ctx.user.id, type, targetUserId: userId });
+    .inputSchema(
+        z.object({
+            type: z.enum([
+                JobType.SYNC_STEAM_GAMES,
+                JobType.IMPORT_USER_LIBRARY,
+                JobType.IMPORT_USER_ACHIEVEMENTS,
+                JobType.REFRESH_GAME_DETAILS,
+            ] as const),
+            userId: z.string().min(1).optional(),
+        }),
+    )
+    .action(
+        withLogging(
+            async ({ parsedInput: { type, userId }, ctx }, { log }) => {
+                log.info("Invoking admin job", { invokedBy: ctx.user.id, type, targetUserId: userId });
 
-        const isUserScoped = USER_SCOPED_JOB_TYPES.includes(type);
+                const isUserScoped = USER_SCOPED_JOB_TYPES.includes(type);
 
-        if (isUserScoped && !userId) {
-            throw new Error(`${type} requires a target user to be selected.`);
-        }
+                if (isUserScoped && !userId) {
+                    throw new Error(`${type} requires a target user to be selected.`);
+                }
 
-        const existingJob = await prisma.job.findFirst({
-            where: {
-                type,
-                status: { in: [JobStatus.QUEUED, JobStatus.ACTIVE] },
-                ...(isUserScoped ? { userId: userId ?? null } : {}),
+                const existingJob = await prisma.job.findFirst({
+                    where: {
+                        type,
+                        status: { in: [JobStatus.QUEUED, JobStatus.ACTIVE] },
+                        ...(isUserScoped ? { userId: userId ?? null } : {}),
+                    },
+                    select: { id: true },
+                });
+
+                if (existingJob) {
+                    throw new Error(`A ${type} job is already queued or running.`);
+                }
+
+                const job = await prisma.job.create({
+                    data: { type, userId: userId ?? null },
+                });
+
+                await jobsQueue.add(type, { jobId: job.id, userId, type });
+
+                log.info("Admin job queued successfully", { jobId: job.id, type, invokedBy: ctx.user.id });
+
+                return { success: true, jobId: job.id, message: `Job "${type}" queued successfully.` };
             },
-            select: { id: true },
-        });
-
-        if (existingJob) {
-            throw new Error(`A ${type} job is already queued or running.`);
-        }
-
-        const job = await prisma.job.create({
-            data: { type, userId: userId ?? null },
-        });
-
-        await jobsQueue.add(type, { jobId: job.id, userId, type });
-
-        log.info("Admin job queued successfully", { jobId: job.id, type, invokedBy: ctx.user.id });
-
-        return { success: true, jobId: job.id, message: `Job "${type}" queued successfully.` };
-    }, { namespace: "server.actions.admin:invokeAdminJob" }));
+            { namespace: "server.actions.admin:invokeAdminJob" },
+        ),
+    );
 
 /** Lifetime of the Redis cancellation flag (2 hours) — long enough for any
  * in-flight batch to drain, short enough to self-clean. */
@@ -338,50 +378,57 @@ const CANCEL_FLAG_TTL_SECONDS = 2 * 60 * 60;
  * @returns Success flag and a confirmation message.
  */
 export const cancelAdminJob = actionClientWithAdmin
-    .inputSchema(z.object({
-        jobId: z.string().min(1),
-    }))
-    .action(withLogging(async ({ parsedInput: { jobId }, ctx }, { log }) => {
-        log.info("Canceling job", { jobId, canceledBy: ctx.user.id });
+    .inputSchema(
+        z.object({
+            jobId: z.string().min(1),
+        }),
+    )
+    .action(
+        withLogging(
+            async ({ parsedInput: { jobId }, ctx }, { log }) => {
+                log.info("Canceling job", { jobId, canceledBy: ctx.user.id });
 
-        const job = await prisma.job.findUnique({
-            where: { id: jobId },
-            select: { id: true, status: true },
-        });
+                const job = await prisma.job.findUnique({
+                    where: { id: jobId },
+                    select: { id: true, status: true },
+                });
 
-        if (!job) {
-            throw new Error("Job not found.");
-        }
+                if (!job) {
+                    throw new Error("Job not found.");
+                }
 
-        if (job.status !== JobStatus.QUEUED && job.status !== JobStatus.ACTIVE) {
-            throw new Error("Only queued or running jobs can be canceled.");
-        }
+                if (job.status !== JobStatus.QUEUED && job.status !== JobStatus.ACTIVE) {
+                    throw new Error("Only queued or running jobs can be canceled.");
+                }
 
-        // Set the cancellation flag first so any worker that picks up or is
-        // already processing the job observes it as soon as the status flips.
-        await redis.set(`cancel:parent:${jobId}`, "1", "EX", CANCEL_FLAG_TTL_SECONDS);
+                // Set the cancellation flag first so any worker that picks up or is
+                // already processing the job observes it as soon as the status flips.
+                await redis.set(`cancel:parent:${jobId}`, "1", "EX", CANCEL_FLAG_TTL_SECONDS);
 
-        const { count } = await prisma.job.updateMany({
-            where: { id: jobId, status: { in: [JobStatus.QUEUED, JobStatus.ACTIVE] } },
-            data: {
-                status: JobStatus.CANCELED,
-                errorMessage: "Job canceled by admin",
-                finishedAt: new Date(),
+                const { count } = await prisma.job.updateMany({
+                    where: { id: jobId, status: { in: [JobStatus.QUEUED, JobStatus.ACTIVE] } },
+                    data: {
+                        status: JobStatus.CANCELED,
+                        errorMessage: "Job canceled by admin",
+                        finishedAt: new Date(),
+                    },
+                });
+
+                if (count === 0) {
+                    throw new Error("Job already finished before it could be canceled.");
+                }
+
+                await prisma.jobLog.create({
+                    data: { jobId, level: "warn", message: "Job canceled by admin" },
+                });
+
+                log.info("Job canceled", { jobId, canceledBy: ctx.user.id });
+
+                return { success: true, message: "Job canceled." };
             },
-        });
-
-        if (count === 0) {
-            throw new Error("Job already finished before it could be canceled.");
-        }
-
-        await prisma.jobLog.create({
-            data: { jobId, level: "warn", message: "Job canceled by admin" },
-        });
-
-        log.info("Job canceled", { jobId, canceledBy: ctx.user.id });
-
-        return { success: true, message: "Job canceled." };
-    }, { namespace: "server.actions.admin:cancelAdminJob" }));
+            { namespace: "server.actions.admin:cancelAdminJob" },
+        ),
+    );
 
 /**
  * Changes a user's role between ADMIN and USER.
@@ -391,34 +438,41 @@ export const cancelAdminJob = actionClientWithAdmin
  * @returns Success flag and a confirmation message.
  */
 export const changeUserRole = actionClientWithAdmin
-    .inputSchema(z.object({
-        userId: z.string().min(1),
-        role: z.enum([UserRole.ADMIN, UserRole.USER]),
-    }))
-    .action(withLogging(async ({ parsedInput: { userId, role }, ctx }, { log }) => {
-        log.info("Changing user role", { userId, newRole: role, changedBy: ctx.user.id });
+    .inputSchema(
+        z.object({
+            userId: z.string().min(1),
+            role: z.enum([UserRole.ADMIN, UserRole.USER]),
+        }),
+    )
+    .action(
+        withLogging(
+            async ({ parsedInput: { userId, role }, ctx }, { log }) => {
+                log.info("Changing user role", { userId, newRole: role, changedBy: ctx.user.id });
 
-        if (userId === ctx.user.id && role === UserRole.USER) {
-            throw new Error("You cannot downgrade your own admin role.");
-        }
+                if (userId === ctx.user.id && role === UserRole.USER) {
+                    throw new Error("You cannot downgrade your own admin role.");
+                }
 
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-            select: { id: true, username: true, role: true },
-        });
+                const user = await prisma.user.findUnique({
+                    where: { id: userId },
+                    select: { id: true, username: true, role: true },
+                });
 
-        if (!user) {
-            throw new Error(`User with ID "${userId}" not found.`);
-        }
+                if (!user) {
+                    throw new Error(`User with ID "${userId}" not found.`);
+                }
 
-        await prisma.user.update({
-            where: { id: userId },
-            data: { role },
-        });
+                await prisma.user.update({
+                    where: { id: userId },
+                    data: { role },
+                });
 
-        log.info("User role updated successfully", { userId, oldRole: user.role, newRole: role });
+                log.info("User role updated successfully", { userId, oldRole: user.role, newRole: role });
 
-        return { success: true, message: `User "${user.username}" role changed to ${role}.` };
-    }, {
-        namespace: "server.actions.admin:changeUserRole",
-    }));
+                return { success: true, message: `User "${user.username}" role changed to ${role}.` };
+            },
+            {
+                namespace: "server.actions.admin:changeUserRole",
+            },
+        ),
+    );

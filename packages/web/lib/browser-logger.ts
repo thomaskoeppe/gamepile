@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * lib/browser-logger.ts
@@ -14,41 +14,41 @@
  *   browserLog.info('Button clicked', { section: 'checkout' })
  */
 
-import { trace } from '@opentelemetry/api';
+import { trace } from "@opentelemetry/api";
 
-import type { LogContext } from '@/lib/logger';
+import type { LogContext } from "@/lib/logger";
 
 interface BrowserLogEntry {
-    timestamp:  string
-    level:      'debug' | 'info' | 'warn' | 'error'
-    message:    string
-    context:    LogContext
+    timestamp: string;
+    level: "debug" | "info" | "warn" | "error";
+    message: string;
+    context: LogContext;
     error?: {
-        name:     string
-        message:  string
-        stack?:   string
-    }
+        name: string;
+        message: string;
+        stack?: string;
+    };
 }
 
 class BrowserLogger {
     private buffer: BrowserLogEntry[] = [];
-    private readonly flushIntervalMs  = 10_000;
-    private readonly sessionId        = this.makeSessionId();
+    private readonly flushIntervalMs = 10_000;
+    private readonly sessionId = this.makeSessionId();
 
     constructor() {
-        if (typeof window === 'undefined') return;
+        if (typeof window === "undefined") return;
 
         this.hookGlobalErrors();
 
         setInterval(() => this.flush(), this.flushIntervalMs);
 
-        window.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden') this.flush();
+        window.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "hidden") this.flush();
         });
     }
 
     private makeSessionId(): string {
-        return 'sess_' + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+        return "sess_" + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
     }
 
     private sanitizeConsoleMessage(value: string): string {
@@ -59,7 +59,12 @@ class BrowserLogger {
             .slice(0, 4_000);
     }
 
-    private mirrorDevConsole(level: BrowserLogEntry['level'], message: string, context: LogContext, error?: Error): void {
+    private mirrorDevConsole(
+        level: BrowserLogEntry["level"],
+        message: string,
+        context: LogContext,
+        error?: Error,
+    ): void {
         const safeMessage = this.sanitizeConsoleMessage(message);
 
         switch (level) {
@@ -81,24 +86,19 @@ class BrowserLogger {
     /** Merge OTel span context + browser metadata into caller-supplied fields. */
     private enrich(context: LogContext = {}): LogContext {
         const span = trace.getActiveSpan();
-        const ctx  = span?.spanContext();
+        const ctx = span?.spanContext();
         return {
-            traceId:   ctx?.traceId ?? 'no-trace',
-            spanId:    ctx?.spanId  ?? 'no-span',
+            traceId: ctx?.traceId ?? "no-trace",
+            spanId: ctx?.spanId ?? "no-span",
             sessionId: this.sessionId,
-            url:       typeof window !== 'undefined' ? window.location.href : undefined,
-            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+            url: typeof window !== "undefined" ? window.location.href : undefined,
+            userAgent: typeof navigator !== "undefined" ? navigator.userAgent : undefined,
             ...context,
         };
     }
 
-    private record(
-        level: BrowserLogEntry['level'],
-        message: string,
-        context?: LogContext,
-        error?: Error,
-    ) {
-        if (typeof window === 'undefined') return;
+    private record(level: BrowserLogEntry["level"], message: string, context?: LogContext, error?: Error) {
+        if (typeof window === "undefined") return;
 
         const entry: BrowserLogEntry = {
             timestamp: new Date().toISOString(),
@@ -111,7 +111,7 @@ class BrowserLogger {
             entry.error = { name: error.name, message: error.message, stack: error.stack };
         }
 
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === "development") {
             this.mirrorDevConsole(level, message, entry.context, error);
         }
 
@@ -123,7 +123,7 @@ class BrowserLogger {
      * Uses sendBeacon when available so logs survive navigation away.
      */
     private flush(): void {
-        if (typeof window === 'undefined' || this.buffer.length === 0) return;
+        if (typeof window === "undefined" || this.buffer.length === 0) return;
 
         const payload = this.buffer.splice(0);
 
@@ -131,7 +131,7 @@ class BrowserLogger {
             const body = JSON.stringify(payload);
 
             if (navigator.sendBeacon) {
-                const sent = navigator.sendBeacon('/api/logs', new Blob([body], { type: 'application/json' }));
+                const sent = navigator.sendBeacon("/api/logs", new Blob([body], { type: "application/json" }));
                 if (!sent) {
                     this.fetchFallback(body, payload);
                 }
@@ -139,19 +139,19 @@ class BrowserLogger {
                 this.fetchFallback(body, payload);
             }
         } catch (err) {
-            console.error('[browser-log] flush error', err);
+            console.error("[browser-log] flush error", err);
             this.buffer.unshift(...payload);
         }
     }
 
     private fetchFallback(body: string, entries: BrowserLogEntry[]): void {
-        fetch('/api/logs', {
-            method:    'POST',
-            headers:   { 'Content-Type': 'application/json' },
+        fetch("/api/logs", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body,
             keepalive: true,
         }).catch((err) => {
-            console.error('[browser-log] fetch error', err);
+            console.error("[browser-log] fetch error", err);
             this.buffer.unshift(...entries);
         });
     }
@@ -162,35 +162,40 @@ class BrowserLogger {
      */
     private hookGlobalErrors(): void {
         window.onerror = (msg, src, line, col, error) => {
-            this.record('error', `Unhandled error: ${msg}`, {
-                source:     'window.onerror',
-                sourceFile: src,
-                line,
-                col,
-            }, error ?? new Error(String(msg)));
+            this.record(
+                "error",
+                `Unhandled error: ${msg}`,
+                {
+                    source: "window.onerror",
+                    sourceFile: src,
+                    line,
+                    col,
+                },
+                error ?? new Error(String(msg)),
+            );
         };
 
         window.onunhandledrejection = (event: PromiseRejectionEvent) => {
             const reason = event.reason;
-            const err    = reason instanceof Error ? reason : new Error(String(reason));
-            this.record('error', 'Unhandled promise rejection', { source: 'window.onunhandledrejection' }, err);
+            const err = reason instanceof Error ? reason : new Error(String(reason));
+            this.record("error", "Unhandled promise rejection", { source: "window.onunhandledrejection" }, err);
         };
     }
 
     info(message: string, context?: LogContext) {
-        this.record('info', message, context);
+        this.record("info", message, context);
     }
 
     debug(message: string, context?: LogContext) {
-        this.record('debug', message, context);
+        this.record("debug", message, context);
     }
 
     warn(message: string, context?: LogContext) {
-        this.record('warn', message, context);
+        this.record("warn", message, context);
     }
 
     error(message: string, error: Error, context?: LogContext) {
-        this.record('error', message, context, error);
+        this.record("error", message, context, error);
     }
 
     /** Manually trigger a flush (useful in E2E tests or before critical navigations). */

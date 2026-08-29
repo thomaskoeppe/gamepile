@@ -16,11 +16,19 @@ const transaction = vi.fn();
 vi.mock("@/lib/prisma", () => ({
     default: {
         appSetting: {
-            get findMany() { return findMany; },
-            get upsert() { return upsert; },
-            get delete() { return deleteOne; },
+            get findMany() {
+                return findMany;
+            },
+            get upsert() {
+                return upsert;
+            },
+            get delete() {
+                return deleteOne;
+            },
         },
-        get $transaction() { return transaction; },
+        get $transaction() {
+            return transaction;
+        },
     },
 }));
 
@@ -152,14 +160,13 @@ describe("ensureSettingsLoaded", () => {
 
         let release: (rows: unknown[]) => void = () => {};
         findMany.mockImplementation(
-            () => new Promise((resolve) => { release = resolve as (rows: unknown[]) => void; }),
+            () =>
+                new Promise((resolve) => {
+                    release = resolve as (rows: unknown[]) => void;
+                }),
         );
 
-        const all = Promise.all([
-            ensureSettingsLoaded(),
-            ensureSettingsLoaded(),
-            ensureSettingsLoaded(),
-        ]);
+        const all = Promise.all([ensureSettingsLoaded(), ensureSettingsLoaded(), ensureSettingsLoaded()]);
 
         release([]);
         await all;
@@ -205,9 +212,7 @@ describe("mutations", () => {
 
         await upsertSetting("MAX_VAULTS_PER_USER" as never, 55 as never);
 
-        expect(upsert).toHaveBeenCalledWith(
-            expect.objectContaining({ where: { key: "MAX_VAULTS_PER_USER" } }),
-        );
+        expect(upsert).toHaveBeenCalledWith(expect.objectContaining({ where: { key: "MAX_VAULTS_PER_USER" } }));
         expect(getSetting("MAX_VAULTS_PER_USER" as never)).toBe(55);
     });
 

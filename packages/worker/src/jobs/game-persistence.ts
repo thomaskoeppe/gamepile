@@ -1,9 +1,9 @@
-import type {StoreBrowseDetails} from "@/src/lib/steam/api/types.js";
-import {getAllCategories} from "@/src/lib/steam/cache/category-cache.js";
-import {createLog} from "@/src/lib/job/log.js";
-import {logger} from "@/src/lib/logger.js";
+import type { StoreBrowseDetails } from "@/src/lib/steam/api/types.js";
+import { getAllCategories } from "@/src/lib/steam/cache/category-cache.js";
+import { createLog } from "@/src/lib/job/log.js";
+import { logger } from "@/src/lib/logger.js";
 import prisma from "@/src/lib/prisma.js";
-import {GameType} from "@/src/prisma/generated/enums.js";
+import { GameType } from "@/src/prisma/generated/enums.js";
 
 const log = logger.child("worker.jobs:gamePersistence");
 
@@ -27,20 +27,21 @@ export async function recordChildFailure(
     attempts: number,
 ): Promise<void> {
     await prisma.failedChildJob.create({
-        data: {jobId: parentJobId, appId, gameId, errorMessage, attempts},
+        data: { jobId: parentJobId, appId, gameId, errorMessage, attempts },
     });
 
     await prisma.job.update({
-        where: {id: parentJobId},
-        data: {failedItems: {increment: 1}},
+        where: { id: parentJobId },
+        data: { failedItems: { increment: 1 } },
     });
 
     await createLog(
-        parentJobId, "warn",
+        parentJobId,
+        "warn",
         `appId=${appId} permanently failed after ${attempts} attempt(s): ${errorMessage}`,
     );
 
-    log.warn("Recorded child job failure", {parentJobId, appId, gameId, errorMessage, attempts});
+    log.warn("Recorded child job failure", { parentJobId, appId, gameId, errorMessage, attempts });
 }
 
 /**
@@ -51,8 +52,8 @@ export async function recordChildFailure(
  */
 export async function incrementProcessedItems(parentJobId: string, count: number): Promise<void> {
     await prisma.job.update({
-        where: {id: parentJobId},
-        data: {processedItems: {increment: count}},
+        where: { id: parentJobId },
+        data: { processedItems: { increment: count } },
     });
 }
 
@@ -73,10 +74,10 @@ async function ensureCategoriesExist(categoryIds: number[]): Promise<void> {
     const toCreate = categoryIds
         .map((id) => categoryMap.get(id))
         .filter((c): c is NonNullable<typeof c> => c !== undefined)
-        .map((c) => ({categoryId: c.categoryid, name: c.display_name}));
+        .map((c) => ({ categoryId: c.categoryid, name: c.display_name }));
 
     if (toCreate.length > 0) {
-        await prisma.category.createMany({data: toCreate, skipDuplicates: true});
+        await prisma.category.createMany({ data: toCreate, skipDuplicates: true });
     }
 }
 
@@ -97,7 +98,7 @@ async function ensureTagsExist(tagIds: number[], tagNames: string[]): Promise<vo
         name: tagNames[i] ?? `Tag ${tagId}`,
     }));
 
-    await prisma.tag.createMany({data: toCreate, skipDuplicates: true});
+    await prisma.tag.createMany({ data: toCreate, skipDuplicates: true });
 }
 
 /**
@@ -110,23 +111,16 @@ async function ensureTagsExist(tagIds: number[], tagNames: string[]): Promise<vo
  * @param details - Normalised game details from the Steam Store API.
  * @param gameId - Internal game UUID if known (for direct update), or `undefined` (for upsert by appId).
  */
-export async function persistGameDetails(
-    details: StoreBrowseDetails,
-    gameId: string | undefined,
-): Promise<void> {
+export async function persistGameDetails(details: StoreBrowseDetails, gameId: string | undefined): Promise<void> {
     await ensureCategoriesExist(details.categoryIds);
     await ensureTagsExist(details.tagIds, details.tagNames);
 
     const [existingCategories, existingTags] = await prisma.$transaction([
         prisma.category.findMany({
-            where: details.categoryIds.length > 0
-                ? {categoryId: {in: details.categoryIds}}
-                : {id: "none"},
+            where: details.categoryIds.length > 0 ? { categoryId: { in: details.categoryIds } } : { id: "none" },
         }),
         prisma.tag.findMany({
-            where: details.tagIds.length > 0
-                ? {tagId: {in: details.tagIds}}
-                : {id: "none"},
+            where: details.tagIds.length > 0 ? { tagId: { in: details.tagIds } } : { id: "none" },
         }),
     ]);
 
@@ -155,19 +149,20 @@ export async function persistGameDetails(
         detailsFetchedAt: details.detailsFetchedAt,
     };
 
-    const categoryConnect = existingCategories.map((c) => ({id: c.id}));
-    const tagConnect = existingTags.map((t) => ({id: t.id}));
+    const categoryConnect = existingCategories.map((c) => ({ id: c.id }));
+    const tagConnect = existingTags.map((t) => ({ id: t.id }));
 
     let resolvedGameId = gameId;
     if (resolvedGameId) {
         const exists = await prisma.game.findUnique({
-            where: {id: resolvedGameId},
-            select: {id: true},
+            where: { id: resolvedGameId },
+            select: { id: true },
         });
 
         if (!exists) {
             log.warn("Game record not found for gameId — falling back to upsert by appId", {
-                gameId: resolvedGameId, appId: details.appId,
+                gameId: resolvedGameId,
+                appId: details.appId,
             });
             resolvedGameId = undefined;
         }
@@ -175,30 +170,30 @@ export async function persistGameDetails(
 
     if (resolvedGameId) {
         await prisma.game.update({
-            where: {id: resolvedGameId},
+            where: { id: resolvedGameId },
             data: {
                 ...sharedFields,
-                ...(categoryConnect.length > 0 ? {categories: {set: categoryConnect}} : {}),
-                ...(tagConnect.length > 0 ? {tags: {set: tagConnect}} : {}),
+                ...(categoryConnect.length > 0 ? { categories: { set: categoryConnect } } : {}),
+                ...(tagConnect.length > 0 ? { tags: { set: tagConnect } } : {}),
             },
         });
 
         await persistMedia(resolvedGameId, details);
     } else {
         const game = await prisma.game.upsert({
-            where: {appId: details.appId},
+            where: { appId: details.appId },
             create: {
                 ...sharedFields,
                 appId: details.appId,
-                ...(categoryConnect.length > 0 ? {categories: {connect: categoryConnect}} : {}),
-                ...(tagConnect.length > 0 ? {tags: {connect: tagConnect}} : {}),
+                ...(categoryConnect.length > 0 ? { categories: { connect: categoryConnect } } : {}),
+                ...(tagConnect.length > 0 ? { tags: { connect: tagConnect } } : {}),
             },
             update: {
                 ...sharedFields,
-                ...(categoryConnect.length > 0 ? {categories: {set: categoryConnect}} : {}),
-                ...(tagConnect.length > 0 ? {tags: {set: tagConnect}} : {}),
+                ...(categoryConnect.length > 0 ? { categories: { set: categoryConnect } } : {}),
+                ...(tagConnect.length > 0 ? { tags: { set: tagConnect } } : {}),
             },
-            select: {id: true},
+            select: { id: true },
         });
 
         await persistMedia(game.id, details);
@@ -223,8 +218,8 @@ export async function persistGameDetails(
  */
 async function persistMedia(gameId: string, details: StoreBrowseDetails): Promise<void> {
     const [existingScreenshots, existingVideos] = await Promise.all([
-        prisma.gameScreenshot.findMany({where: {gameId}, select: {id: true, url: true}}),
-        prisma.gameVideo.findMany({where: {gameId}, select: {id: true, url: true, title: true}}),
+        prisma.gameScreenshot.findMany({ where: { gameId }, select: { id: true, url: true } }),
+        prisma.gameVideo.findMany({ where: { gameId }, select: { id: true, url: true, title: true } }),
     ]);
 
     // Screenshots — identity is the URL.
@@ -233,7 +228,7 @@ async function persistMedia(gameId: string, details: StoreBrowseDetails): Promis
 
     const screenshotsToInsert = details.screenshotUrls
         .filter((url) => !existingScreenshotUrls.has(url))
-        .map((url) => ({gameId, url}));
+        .map((url) => ({ gameId, url }));
     const screenshotIdsToDelete = existingScreenshots
         .filter((s) => !incomingScreenshotUrls.has(s.url))
         .map((s) => s.id);
@@ -244,24 +239,22 @@ async function persistMedia(gameId: string, details: StoreBrowseDetails): Promis
 
     const videosToInsert = details.trailers
         .filter((t) => !existingVideoByUrl.has(t.url))
-        .map((t) => ({gameId, url: t.url, title: t.title}));
-    const videoIdsToDelete = existingVideos
-        .filter((v) => !incomingVideoUrls.has(v.url))
-        .map((v) => v.id);
+        .map((t) => ({ gameId, url: t.url, title: t.title }));
+    const videoIdsToDelete = existingVideos.filter((v) => !incomingVideoUrls.has(v.url)).map((v) => v.id);
     const videoTitleUpdates = details.trailers.flatMap((t) => {
         const existing = existingVideoByUrl.get(t.url);
         if (existing && (existing.title ?? null) !== (t.title ?? null)) {
-            return [{id: existing.id, title: t.title}];
+            return [{ id: existing.id, title: t.title }];
         }
         return [];
     });
 
     const hasChanges =
-        screenshotsToInsert.length > 0
-        || screenshotIdsToDelete.length > 0
-        || videosToInsert.length > 0
-        || videoIdsToDelete.length > 0
-        || videoTitleUpdates.length > 0;
+        screenshotsToInsert.length > 0 ||
+        screenshotIdsToDelete.length > 0 ||
+        videosToInsert.length > 0 ||
+        videoIdsToDelete.length > 0 ||
+        videoTitleUpdates.length > 0;
 
     if (!hasChanges) {
         return;
@@ -269,19 +262,18 @@ async function persistMedia(gameId: string, details: StoreBrowseDetails): Promis
 
     await prisma.$transaction([
         ...(screenshotIdsToDelete.length > 0
-            ? [prisma.gameScreenshot.deleteMany({where: {id: {in: screenshotIdsToDelete}}})]
+            ? [prisma.gameScreenshot.deleteMany({ where: { id: { in: screenshotIdsToDelete } } })]
             : []),
         ...(videoIdsToDelete.length > 0
-            ? [prisma.gameVideo.deleteMany({where: {id: {in: videoIdsToDelete}}})]
+            ? [prisma.gameVideo.deleteMany({ where: { id: { in: videoIdsToDelete } } })]
             : []),
         ...(screenshotsToInsert.length > 0
-            ? [prisma.gameScreenshot.createMany({data: screenshotsToInsert, skipDuplicates: true})]
+            ? [prisma.gameScreenshot.createMany({ data: screenshotsToInsert, skipDuplicates: true })]
             : []),
         ...(videosToInsert.length > 0
-            ? [prisma.gameVideo.createMany({data: videosToInsert, skipDuplicates: true})]
+            ? [prisma.gameVideo.createMany({ data: videosToInsert, skipDuplicates: true })]
             : []),
-        ...videoTitleUpdates.map((u) =>
-            prisma.gameVideo.update({where: {id: u.id}, data: {title: u.title}})),
+        ...videoTitleUpdates.map((u) => prisma.gameVideo.update({ where: { id: u.id }, data: { title: u.title } })),
     ]);
 }
 
@@ -304,23 +296,24 @@ export async function createGameStub(appId: number, gameId: string | undefined):
     let resolvedId = gameId;
     if (resolvedId) {
         const exists = await prisma.game.findUnique({
-            where: {id: resolvedId},
-            select: {id: true},
+            where: { id: resolvedId },
+            select: { id: true },
         });
         if (!exists) {
             log.warn("Game record not found for stub gameId — falling back to upsert by appId", {
-                gameId: resolvedId, appId,
+                gameId: resolvedId,
+                appId,
             });
             resolvedId = undefined;
         }
     }
 
     if (resolvedId) {
-        await prisma.game.update({where: {id: resolvedId}, data: stubFields});
+        await prisma.game.update({ where: { id: resolvedId }, data: stubFields });
     } else {
         await prisma.game.upsert({
-            where: {appId},
-            create: {...stubFields, appId},
+            where: { appId },
+            create: { ...stubFields, appId },
             update: stubFields,
         });
     }

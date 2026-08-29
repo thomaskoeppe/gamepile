@@ -49,13 +49,25 @@ vi.mock("@/lib/search-query", () => ({ searchGamesRanked: vi.fn().mockResolvedVa
 
 vi.mock("@/lib/logger", () => {
     const child = () => ({
-        info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn(), child: () => child(),
+        info: vi.fn(),
+        debug: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        child: () => child(),
     });
     return { logger: { child } };
 });
 
 const SESSION = {
-    user: { id: "u-1", steamId: "76561198000000000", username: "tester", avatarUrl: null, profileUrl: null, createdAt: new Date("2026-01-01"), role: "USER" },
+    user: {
+        id: "u-1",
+        steamId: "76561198000000000",
+        username: "tester",
+        avatarUrl: null,
+        profileUrl: null,
+        createdAt: new Date("2026-01-01"),
+        role: "USER",
+    },
     session: { id: "s-1", expiresAt: new Date("2026-12-31") },
 };
 

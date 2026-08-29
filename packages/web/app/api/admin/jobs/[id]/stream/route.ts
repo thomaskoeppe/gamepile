@@ -1,17 +1,14 @@
 import { requireAdmin } from "@/lib/auth/admin";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
-import { createPollingSseStream, SSE_HEADERS,sseEvent } from "@/lib/sse";
+import { createPollingSseStream, SSE_HEADERS, sseEvent } from "@/lib/sse";
 import { isTerminal } from "@/types/job";
 
 const POLL_INTERVAL_MS = 2_000;
 const KEEPALIVE_INTERVAL_MS = 15_000;
 const LOG_TAIL = 50;
 
-export async function GET(
-    req: Request,
-    { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
     const log = logger.child("api.routes.admin.jobs:stream", {
         requestId: req.headers.get("x-request-id") ?? undefined,
     });

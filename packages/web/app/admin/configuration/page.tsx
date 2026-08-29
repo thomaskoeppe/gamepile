@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { RefreshCw, TriangleAlert } from "lucide-react";
 
@@ -27,10 +27,7 @@ export default function AdminConfigurationPage() {
         isRevalidating,
         isValidating,
         mutate,
-    } = useServerQuery(
-        ["admin-configuration"],
-        () => getAdminConfiguration()
-    );
+    } = useServerQuery(["admin-configuration"], () => getAdminConfiguration());
 
     const error = configResult?.success === false ? configResult.error : null;
     const settings = configResult?.success ? configResult.data : null;
@@ -40,9 +37,7 @@ export default function AdminConfigurationPage() {
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div className="space-y-1">
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-                            Configuration
-                        </h1>
+                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Configuration</h1>
                         <p className="text-sm text-muted-foreground">
                             Manage platform settings, feature flags, and resource limits
                         </p>
