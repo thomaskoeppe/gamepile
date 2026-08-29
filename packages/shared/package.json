@@ -4,10 +4,14 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./file-logger": "./src/file-logger.ts",
+    "./log-sinks": "./src/log-sinks.ts",
     "./logger": "./src/logger.ts",
     "./logs-exporter": "./src/logs-exporter.ts",
     "./redis": "./src/redis.ts",
     "./worker-metrics": "./src/worker-metrics.ts"
+  },
+  "dependencies": {
+    "rotating-file-stream": "^3.2.10"
   }
 }
-

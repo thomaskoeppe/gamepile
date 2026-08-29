@@ -44,6 +44,10 @@ COPY --from=builder --chown=worker:worker /app/packages/worker/package.json ./pa
 COPY --from=builder --chown=worker:worker /app/packages/worker/prisma.config.ts ./packages/worker/prisma.config.ts
 COPY --from=builder --chown=worker:worker /app/prisma ./prisma
 
+# Pre-create the log directory owned by the runtime user, so a mounted named
+# volume inherits writable ownership instead of defaulting to root.
+RUN mkdir -p /var/log/gamepile && chown -R worker:worker /var/log/gamepile
+
 USER worker
 
 CMD ["node", "packages/worker/dist/index.js"]

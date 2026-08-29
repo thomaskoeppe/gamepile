@@ -88,6 +88,51 @@ const schema = z.object({
         .default("true")
         .describe("Enable Prisma query-event logging for slow query warnings in web and worker services."),
 
+    LOG_LEVEL: z.enum(["debug", "info", "warn", "error"])
+        .default("info")
+        .describe("Minimum severity emitted by the application logger. Entries below this level are dropped before export."),
+
+    LOG_SERVICE: z.string()
+        .optional()
+        .describe("Service name attached to log records and used for the default log filename."),
+
+    LOG_FILE_ENABLED: z.enum(["true", "false"])
+        .default("false")
+        .describe("Write application logs to rotating files on disk in addition to stdout and OTLP."),
+
+    LOG_FILE_DIR: z.string()
+        .default("./logs")
+        .describe("Directory that rotating log files are written to. Must be writable by the container user (uid 1001)."),
+
+    LOG_FILE_NAME: z.string()
+        .optional()
+        .describe("Active log file name. Defaults to `<LOG_SERVICE>.log` so web and worker never share a file."),
+
+    LOG_FILE_MAX_SIZE: z.string()
+        .default("10M")
+        .refine(val => /^\d+[BKMG]$/.test(val), {
+            message: "LOG_FILE_MAX_SIZE must be a size like 10M, 512K or 1G",
+        })
+        .describe("Rotate the active log file once it exceeds this size."),
+
+    LOG_FILE_MAX_FILES: z.preprocess(val => Number(val ?? 14), z.number().int().min(1).max(365).default(14))
+        .describe("Number of rotated log files to retain before the oldest is pruned."),
+
+    LOG_FILE_INTERVAL: z.string()
+        .default("1d")
+        .refine(val => /^\d+[smhdM]$/.test(val), {
+            message: "LOG_FILE_INTERVAL must be an interval like 1d, 12h or 30m",
+        })
+        .describe("Also rotate the log file on this fixed interval."),
+
+    LOG_FILE_COMPRESS: z.string()
+        .default("gzip")
+        .describe("Compression applied to rotated log files. Set to `false` to keep them uncompressed."),
+
+    LOG_FILE_FORMAT: z.enum(["json", "text"])
+        .default("json")
+        .describe("On-disk log format. `json` writes one newline-delimited JSON record per line."),
+
     WEB_APP_URL: z.string()
         .refine(val => /^https?:\/\/\S+$/.test(val), {
             message: "WEB_APP_URL must be a valid URL including protocol",

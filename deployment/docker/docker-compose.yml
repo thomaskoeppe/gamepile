@@ -46,6 +46,14 @@ x-common-env: &common-env
   OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: "${OTEL_EXPORTER_OTLP_TRACES_PROTOCOL:-http/protobuf}"
   OTEL_EXPORTER_OTLP_HEADERS: "${OTEL_EXPORTER_OTLP_HEADERS:-}"
   OTEL_LOG_LEVEL: "${OTEL_LOG_LEVEL:-info}"
+  # Application log file rotation. Files land on the shared `logs` volume.
+  LOG_FILE_ENABLED: "${LOG_FILE_ENABLED:-false}"
+  LOG_FILE_DIR: "${LOG_FILE_DIR:-/var/log/gamepile}"
+  LOG_FILE_MAX_SIZE: "${LOG_FILE_MAX_SIZE:-10M}"
+  LOG_FILE_MAX_FILES: "${LOG_FILE_MAX_FILES:-14}"
+  LOG_FILE_INTERVAL: "${LOG_FILE_INTERVAL:-1d}"
+  LOG_FILE_COMPRESS: "${LOG_FILE_COMPRESS:-gzip}"
+  LOG_FILE_FORMAT: "${LOG_FILE_FORMAT:-json}"
 
 services:
   # ────────────────────────────────────────────────────
@@ -125,6 +133,17 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+    volumes:
+      - gamepile_logs:/var/log/gamepile
+    # Readiness probes Postgres, Redis and the settings cache, so a container
+    # that is running but cannot serve requests is restarted instead of
+    # silently returning 500s.
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/api/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     expose:
       - "3000"
     networks:
@@ -161,6 +180,8 @@ services:
       LOG_LEVEL: "${LOG_LEVEL:-info}"
       LOG_SERVICE: "gamepile-worker"
       LOG_ENV: "${NODE_ENV:-production}"
+    volumes:
+      - gamepile_logs:/var/log/gamepile
     depends_on:
       redis:
         condition: service_healthy
@@ -202,6 +223,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  gamepile_logs:
 
 networks:
   gamepile-net:

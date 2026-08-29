@@ -7,9 +7,11 @@ export interface LogContext {
     [key: string]: unknown;
 }
 
+export type LogLevel = "debug" | "info" | "warn" | "error";
+
 export interface LogEntry {
     timestamp: string;
-    level: "debug" | "info" | "warn" | "error";
+    level: LogLevel;
     message: string;
     context: LogContext;
     error?: Error;
@@ -27,11 +29,45 @@ interface CreateLoggerOptions {
     exportLogEntry: (entry: LogEntry) => void;
     skipInBrowser?: boolean;
     mirrorToStdout?: boolean;
+    /**
+     * Minimum severity to emit. Entries below this level are dropped before any
+     * export or stdout mirroring happens. Defaults to `LOG_LEVEL`, then `"info"`.
+     */
+    level?: LogLevel;
+}
+
+/** Severity ordering used for threshold comparisons. Higher is more severe. */
+const LEVEL_SEVERITY: Record<LogLevel, number> = {
+    debug: 10,
+    info: 20,
+    warn: 30,
+    error: 40,
+};
+
+const DEFAULT_LOG_LEVEL: LogLevel = "info";
+
+/**
+ * Parses a log level from an arbitrary value, falling back to {@link DEFAULT_LOG_LEVEL}
+ * when the value is absent or is not a recognised level name.
+ */
+export function parseLogLevel(value: unknown, fallback: LogLevel = DEFAULT_LOG_LEVEL): LogLevel {
+    if (typeof value !== "string") {
+        return fallback;
+    }
+
+    const normalized = value.trim().toLowerCase();
+    return normalized in LEVEL_SEVERITY ? (normalized as LogLevel) : fallback;
+}
+
+/** Reads the configured minimum log level from `LOG_LEVEL`. */
+function resolveConfiguredLevel(): LogLevel {
+    const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
+    return parseLogLevel(env?.LOG_LEVEL);
 }
 
 const MAX_CONSOLE_TEXT_LENGTH = 8_000;
 
-function sanitizeForConsole(value: string): string {
+export function sanitizeForConsole(value: string): string {
     return value
         .replace(/\r/g, "\\r")
         .replace(/\n/g, "\\n")
@@ -39,7 +75,7 @@ function sanitizeForConsole(value: string): string {
         .slice(0, MAX_CONSOLE_TEXT_LENGTH);
 }
 
-function safeStringify(value: unknown): string {
+export function safeStringify(value: unknown): string {
     try {
         return sanitizeForConsole(JSON.stringify(value));
     } catch {
@@ -64,10 +100,18 @@ function mirrorToConsole(entry: LogEntry): void {
 }
 
 class Logger implements ILogger {
+    private readonly threshold: number;
+
     constructor(
         private readonly options: CreateLoggerOptions,
         private readonly baseContext: LogContext = {},
-    ) {}
+    ) {
+        this.threshold = LEVEL_SEVERITY[options.level ?? resolveConfiguredLevel()];
+    }
+
+    private isEnabled(level: LogLevel): boolean {
+        return LEVEL_SEVERITY[level] >= this.threshold;
+    }
 
     private getTraceContext(): Pick<LogContext, "traceId" | "spanId"> {
         const span = trace.getActiveSpan();
@@ -84,6 +128,10 @@ class Logger implements ILogger {
         error?: Error,
     ) {
         if (this.options.skipInBrowser && "window" in globalThis) {
+            return;
+        }
+
+        if (!this.isEnabled(level)) {
             return;
         }
 

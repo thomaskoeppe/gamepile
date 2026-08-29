@@ -16,7 +16,7 @@ if (!envResult.success) {
     process.exit(1);
 }
 
-const [{shutdownTracing}, {initializeLogsExporter}, {logger}, workerModule] = await Promise.all([
+const [{shutdownTracing}, {initializeLogsExporter}, {logger, logSinks}, workerModule] = await Promise.all([
     import("@/src/instrumentation.js"),
     import("@/src/lib/logs-exporter.js"),
     import("@/src/lib/logger.js"),
@@ -24,6 +24,9 @@ const [{shutdownTracing}, {initializeLogsExporter}, {logger}, workerModule] = aw
 ]);
 
 initializeLogsExporter();
+// Opens the rotating log file now, so a misconfigured LOG_FILE_DIR surfaces at
+// boot instead of silently disabling the sink on the first log line.
+logSinks.initialize?.();
 
 const {shutdownWorkers} = workerModule;
 const log = logger.child("worker.index");
