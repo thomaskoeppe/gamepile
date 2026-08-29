@@ -1,7 +1,8 @@
 import type { SteamCategory, StoreCategoriesResponse } from "@/src/lib/steam/api/types.js";
 import { getWorkerEnv } from "@/src/lib/env.js";
 import { logger } from "@/src/lib/logger.js";
-import { steamRateLimiter, SteamRateLimitError } from "@/src/lib/steam/ratelimiter.js";
+import { fetchSteamJson } from "@/src/lib/steam/api/fetch-json.js";
+import { extractEnvelopeArray, parseItems, steamCategorySchema } from "@/src/lib/steam/api/schemas.js";
 
 const log = logger.child("worker.lib.steam:categoryCache");
 
@@ -30,33 +31,32 @@ async function loadCategoryCache(): Promise<Map<number, SteamCategory>> {
         return categoryCache;
     }
 
-    await steamRateLimiter.acquire();
-
     const apiKey = getWorkerEnv().STEAM_API_KEY;
     const url = `https://api.steampowered.com/IStoreBrowseService/GetStoreCategories/v1?key=${apiKey}&language=english`;
 
     log.debug("Loading Steam store categories");
 
-    const response = await fetch(url, { headers: { Accept: "application/json" } });
+    const payload = await fetchSteamJson(url, { endpoint: "IStoreService/GetStoreCategories" });
 
-    if (response.status === 429 || response.status === 403) {
-        steamRateLimiter.reportRateLimit();
-        throw new SteamRateLimitError(0, response.status);
+    // Tolerates the empty and null envelopes Steam returns under load,
+    // which used to throw a TypeError here and abort the sync.
+    const rawCategories = extractEnvelopeArray(payload, "response", "categories");
+    const { valid, invalid } = parseItems(rawCategories, steamCategorySchema);
+
+    if (invalid.length > 0) {
+        log.warn("Discarded malformed Steam categories", {
+            returned: rawCategories.length,
+            discarded: invalid.length,
+        });
     }
 
-    if (!response.ok) {
-        throw new Error(`Failed to fetch Steam store categories: HTTP ${response.status}`);
-    }
-
-    const data = (await response.json()) as StoreCategoriesResponse;
-    const categories = data.response.categories ?? [];
-
-    categoryCache = new Map(categories.map((c) => [c.categoryid, c]));
+    const loaded = new Map<number, SteamCategory>(valid.map((c) => [c.categoryid, c as unknown as SteamCategory]));
+    categoryCache = loaded;
     categoryCacheLoadedAt = now;
 
-    log.debug("Steam store categories loaded", { categoryCount: categoryCache.size });
+    log.debug("Steam store categories loaded", { categoryCount: loaded.size });
 
-    return categoryCache;
+    return loaded;
 }
 
 /**

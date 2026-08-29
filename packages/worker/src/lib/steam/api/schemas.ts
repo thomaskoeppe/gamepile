@@ -176,6 +176,24 @@ export const playerAchievementSchema = z
     })
     .loose();
 
+/** A single tag from IStoreService/GetTagList. */
+export const steamTagSchema = z
+    .object({
+        tagid: numeric,
+        name: z.string(),
+    })
+    .loose();
+
+/** A single category from IStoreBrowseService/GetStoreCategories. */
+export const steamCategorySchema = z
+    .object({
+        categoryid: numeric,
+        type: numeric.optional().default(0),
+        internal_name: z.string().optional().default(""),
+        display_name: z.string().optional().default(""),
+    })
+    .loose();
+
 /**
  * Pulls an array out of a Steam envelope without assuming any of it exists.
  *

@@ -1,7 +1,8 @@
 import type { SteamTag, TagListResponse } from "@/src/lib/steam/api/types.js";
 import { getWorkerEnv } from "@/src/lib/env.js";
 import { logger } from "@/src/lib/logger.js";
-import { steamRateLimiter, SteamRateLimitError } from "@/src/lib/steam/ratelimiter.js";
+import { fetchSteamJson } from "@/src/lib/steam/api/fetch-json.js";
+import { extractEnvelopeArray, parseItems, steamTagSchema } from "@/src/lib/steam/api/schemas.js";
 
 const log = logger.child("worker.lib.steam:tagCache");
 
@@ -29,33 +30,29 @@ async function loadTagCache(): Promise<Map<number, string>> {
         return tagCache;
     }
 
-    await steamRateLimiter.acquire();
-
     const apiKey = getWorkerEnv().STEAM_API_KEY;
     const url = `https://api.steampowered.com/IStoreService/GetTagList/v1?key=${apiKey}&language=english`;
 
     log.debug("Loading Steam tag list");
 
-    const response = await fetch(url, { headers: { Accept: "application/json" } });
+    const payload = await fetchSteamJson(url, { endpoint: "IStoreService/GetTagList" });
 
-    if (response.status === 429 || response.status === 403) {
-        steamRateLimiter.reportRateLimit();
-        throw new SteamRateLimitError(0, response.status);
+    // Tolerates the empty and null envelopes Steam returns under load,
+    // which used to throw a TypeError here and abort the sync.
+    const rawTags = extractEnvelopeArray(payload, "response", "tags");
+    const { valid, invalid } = parseItems(rawTags, steamTagSchema);
+
+    if (invalid.length > 0) {
+        log.warn("Discarded malformed Steam tags", { returned: rawTags.length, discarded: invalid.length });
     }
 
-    if (!response.ok) {
-        throw new Error(`Failed to fetch Steam tag list: HTTP ${response.status}`);
-    }
-
-    const data = (await response.json()) as TagListResponse;
-    const tags = data.response.tags ?? [];
-
-    tagCache = new Map(tags.map((t) => [t.tagid, t.name]));
+    const loaded = new Map<number, string>(valid.map((t) => [t.tagid, t.name]));
+    tagCache = loaded;
     tagCacheLoadedAt = now;
 
-    log.debug("Steam tag list loaded", { tagCount: tagCache.size });
+    log.debug("Steam tag list loaded", { tagCount: loaded.size });
 
-    return tagCache;
+    return loaded;
 }
 
 /**
