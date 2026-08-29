@@ -5,11 +5,20 @@
   ],
   "workspaces": {
     ".": {
-      "entry": ["prisma/**"],
-      "ignore": [".github/**", "docs/**"]
+      "entry": [
+        "prisma/**"
+      ],
+      "ignore": [
+        ".github/**",
+        "docs/**",
+        "coverage/**"
+      ]
     },
     "packages/web": {
-      "ignore": [".next/**", "public/**"]
+      "ignore": [
+        ".next/**",
+        "public/**"
+      ]
     },
     "packages/worker": {
       "entry": [

@@ -1,0 +1,50 @@
+# Gitleaks configuration for gamepile.
+#
+# Extends the upstream default ruleset and allowlists the placeholder values that
+# ship in documentation, so the scan stays signal-only.
+
+title = "gamepile"
+
+[extend]
+useDefault = true
+
+# Gitleaks uses Go's RE2 engine, which has no lookahead — placeholder values are
+# excluded through [allowlist].regexes below rather than inside the pattern.
+[[rules]]
+id = "gamepile-vault-token-secret"
+description = "Vault token HMAC secret committed with a real value"
+regex = '''(?i)WEB_VAULT_TOKEN_SECRET\s*[:=]\s*["']?[A-Za-z0-9+/=_-]{32,}["']?'''
+tags = ["secret", "gamepile"]
+
+[[rules]]
+id = "gamepile-steam-api-key"
+description = "Steam Web API key (32 hex characters)"
+regex = '''(?i)STEAM_API_KEY\s*[:=]\s*["']?[A-Fa-f0-9]{32}["']?'''
+tags = ["key", "steam"]
+
+[allowlist]
+description = "Documented placeholders and generated artifacts"
+
+paths = [
+  '''\.env\.example$''',
+  # Build and tooling output. Never committed, but `gitleaks dir` walks the
+  # working tree regardless of .gitignore, and bundles inline env values.
+  '''(^|/)\.next/''',
+  '''(^|/)dist/''',
+  '''(^|/)coverage/''',
+  '''(^|/)node_modules/''',
+  '''(^|/)package-lock\.json$''',
+  '''(^|/)CHANGELOG\.md$''',
+  '''(^|/)prisma/generated/''',
+  '''(^|/)deployment/k8s/secrets\.yaml$''',
+]
+
+# Placeholder values used throughout the docs, compose defaults and manifests.
+regexes = [
+  '''your-[a-z-]*(secret|key|password|token)''',
+  '''gamepile_secret''',
+  '''redis_secret''',
+  '''change-?me''',
+  '''postgresql://dummy:dummy@''',
+  '''postgresql://[^:]+:5432/dummy''',
+]

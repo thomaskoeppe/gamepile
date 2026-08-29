@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+
+      - name: ESLint
+        run: npm run lint
+
+      # Reported, not enforced: knip currently flags pre-existing unused files,
+      # exports and dependency-manifest gaps that predate this pipeline. Fix the
+      # backlog first, then drop continue-on-error to make it a gate.
+      - name: Unused files, exports and dependencies
+        continue-on-error: true
+        run: npm run knip
+
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Prettier needs no Prisma client, so this job skips the heavier setup.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prettier
+        run: npm run format:check
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+
+      - name: Typecheck web
+        run: npx tsc --noEmit -p packages/web/tsconfig.json
+
+      - name: Typecheck shared
+        run: npx tsc --noEmit -p packages/shared/tsconfig.json
+
+      - name: Typecheck worker
+        run: npm run typecheck --workspace=packages/worker
+
+  test:
+    name: Test & coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 14
+
+      - name: Summarise coverage
+        if: always()
+        run: |
+          if [ ! -f coverage/coverage-summary.json ]; then
+            echo "No coverage summary produced." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          {
+            echo "### Coverage"
+            echo ""
+            echo "| Metric | % | Covered / Total |"
+            echo "| --- | --: | --: |"
+            node -e '
+              const t = require("./coverage/coverage-summary.json").total;
+              for (const k of ["statements", "branches", "functions", "lines"]) {
+                const m = t[k];
+                console.log(`| ${k} | ${m.pct}% | ${m.covered} / ${m.total} |`);
+              }
+            '
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+
+      # Building the web app in CI is what catches a runtime break before it is
+      # published as an image — previously only the worker was built here.
+      - name: Build web
+        run: npm run build --workspace=packages/web
+        env:
+          NODE_ENV: production
+          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
+          WEB_APP_URL: http://localhost:3000
+
+      - name: Build worker
+        run: npm run build --workspace=packages/worker

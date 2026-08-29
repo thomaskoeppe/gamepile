@@ -1,0 +1,31 @@
+name: Setup
+description: Checks out dependencies, installs the workspace, and generates the Prisma clients.
+
+inputs:
+  node-version:
+    description: Node.js version to install.
+    required: false
+    default: "22"
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: npm
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    # Generated clients are gitignored, so every job that typechecks, tests, or
+    # builds needs them present before it runs.
+    - name: Generate Prisma clients
+      shell: bash
+      run: |
+        npm run prisma:generate --workspace=packages/web
+        npm run prisma:generate --workspace=packages/worker
+      env:
+        DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
