@@ -50,15 +50,27 @@ spec:
             limits:
               cpu: "1"
               memory: 512Mi
+          volumeMounts:
+            - name: logs
+              mountPath: /var/log/gamepile
+          # Readiness checks Postgres, Redis and the settings cache, so a pod that
+          # is up but cannot serve is pulled from the Service endpoints.
           readinessProbe:
             httpGet:
-              path: /
+              path: /api/health/ready
               port: 3000
             initialDelaySeconds: 10
             periodSeconds: 10
+            failureThreshold: 3
+          # Liveness stays on the dependency-free heartbeat: a pod waiting on a
+          # temporarily unreachable database should be drained, not killed.
           livenessProbe:
             httpGet:
-              path: /
+              path: /api/v1/heartbeat
               port: 3000
             initialDelaySeconds: 15
             periodSeconds: 20
+            failureThreshold: 3
+      volumes:
+        - name: logs
+          emptyDir: {}

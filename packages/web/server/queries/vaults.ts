@@ -1,13 +1,13 @@
 "use server";
 
-import {z} from "zod";
+import { z } from "zod";
 
-import {requireVaultAccess} from "@/lib/auth/vault/auth";
+import { requireVaultAccess } from "@/lib/auth/vault/auth";
 import prisma from "@/lib/prisma";
 import { withLogging } from "@/lib/with-logging";
-import type {Prisma} from "@/prisma/generated/browser";
-import {KeyVaultAuthType} from "@/prisma/generated/enums";
-import {queryClientWithAuth} from "@/server/query";
+import type { Prisma } from "@/prisma/generated/browser";
+import { KeyVaultAuthType } from "@/prisma/generated/enums";
+import { queryClientWithAuth } from "@/server/query";
 
 /**
  * Fetches all vaults accessible to the authenticated user (owned or shared).
@@ -15,44 +15,63 @@ import {queryClientWithAuth} from "@/server/query";
  * @returns Array of vault objects with game and user counts, excluding sensitive
  *   auth fields (`authHash`, `authSalt`).
  */
-export const getVaults = queryClientWithAuth.query<Array<Prisma.KeyVaultGetPayload<{ include: { _count: { select: { games: true; users: true } } }, omit: { authHash: true, authSalt: true, keySalt: true, encryptedVaultKey: true, recoveryEncryptedVaultKey: true, recoveryKeyHash: true } }>>>(withLogging(async ({ ctx }, { log }) => {
-    log.info("Fetching vaults for user", {
-        userId: ctx.user.id,
-    });
+export const getVaults = queryClientWithAuth.query<
+    Array<
+        Prisma.KeyVaultGetPayload<{
+            include: { _count: { select: { games: true; users: true } } };
+            omit: {
+                authHash: true;
+                authSalt: true;
+                keySalt: true;
+                encryptedVaultKey: true;
+                recoveryEncryptedVaultKey: true;
+                recoveryKeyHash: true;
+            };
+        }>
+    >
+>(
+    withLogging(
+        async ({ ctx }, { log }) => {
+            log.info("Fetching vaults for user", {
+                userId: ctx.user.id,
+            });
 
-    return prisma.keyVault.findMany({
-        where: {
-            'OR': [
-                { createdById: ctx.user.id },
-                {
-                    users: {
-                        some: {
-                            userId: ctx.user.id
-                        }
-                    }
-                }
-            ]
+            return prisma.keyVault.findMany({
+                where: {
+                    OR: [
+                        { createdById: ctx.user.id },
+                        {
+                            users: {
+                                some: {
+                                    userId: ctx.user.id,
+                                },
+                            },
+                        },
+                    ],
+                },
+                include: {
+                    _count: {
+                        select: {
+                            games: true,
+                            users: true,
+                        },
+                    },
+                },
+                omit: {
+                    authHash: true,
+                    authSalt: true,
+                    keySalt: true,
+                    encryptedVaultKey: true,
+                    recoveryEncryptedVaultKey: true,
+                    recoveryKeyHash: true,
+                },
+            });
         },
-        include: {
-            _count: {
-                select: {
-                    games: true,
-                    users: true
-                }
-            }
+        {
+            namespace: "server.queries.vaults:getVaults",
         },
-        omit: {
-            authHash: true,
-            authSalt: true,
-            keySalt: true,
-            encryptedVaultKey: true,
-            recoveryEncryptedVaultKey: true,
-            recoveryKeyHash: true,
-        }
-    });
-}, {
-    namespace: "server.queries.vaults:getVaults"
-}));
+    ),
+);
 
 export type VaultDetailData = {
     id: string;
@@ -82,71 +101,77 @@ export type VaultDetailData = {
  * @returns The full `VaultDetailData` object, or `null` if the vault does not exist
  *   or the user does not have access.
  */
-export const getVaultDetail = queryClientWithAuth.inputSchema(z.object({
-    vaultId: z.string().min(1),
-})).query<VaultDetailData | null>(withLogging(async ({ parsedInput: { vaultId }, ctx }, { log }) => {
-    log.info("Fetching vault detail", { userId: ctx.user.id, vaultId });
+export const getVaultDetail = queryClientWithAuth
+    .inputSchema(
+        z.object({
+            vaultId: z.string().min(1),
+        }),
+    )
+    .query<VaultDetailData | null>(
+        withLogging(
+            async ({ parsedInput: { vaultId }, ctx }, { log }) => {
+                log.info("Fetching vault detail", { userId: ctx.user.id, vaultId });
 
-    const vault = await prisma.keyVault.findFirst({
-        where: {
-            AND: [
-                {OR: [{id: vaultId}, {slug: vaultId}]},
-                {
-                    OR: [
-                        {createdById: ctx.user.id},
-                        {users: {some: {userId: ctx.user.id}}},
-                    ],
-                },
-            ],
-        },
-        include: {
-            users: {
-                include: {
-                    user: {
-                        select: {id: true, steamId: true, username: true, avatarUrl: true},
+                const vault = await prisma.keyVault.findFirst({
+                    where: {
+                        AND: [
+                            { OR: [{ id: vaultId }, { slug: vaultId }] },
+                            {
+                                OR: [{ createdById: ctx.user.id }, { users: { some: { userId: ctx.user.id } } }],
+                            },
+                        ],
                     },
-                    addedBy: {
-                        select: {id: true, steamId: true, username: true, avatarUrl: true},
+                    include: {
+                        users: {
+                            include: {
+                                user: {
+                                    select: { id: true, steamId: true, username: true, avatarUrl: true },
+                                },
+                                addedBy: {
+                                    select: { id: true, steamId: true, username: true, avatarUrl: true },
+                                },
+                            },
+                        },
+                        createdBy: {
+                            select: { id: true, steamId: true, username: true, avatarUrl: true },
+                        },
+                        games: {
+                            select: { id: true, redeemed: true },
+                        },
                     },
-                },
-            },
-            createdBy: {
-                select: {id: true, steamId: true, username: true, avatarUrl: true},
-            },
-            games: {
-                select: {id: true, redeemed: true},
-            },
-        },
-        omit: {
-            authHash: true,
-            authSalt: true,
-            keySalt: true,
-            encryptedVaultKey: true,
-            recoveryEncryptedVaultKey: true,
-            recoveryKeyHash: true,
-            createdById: true,
-        },
-    });
+                    omit: {
+                        authHash: true,
+                        authSalt: true,
+                        keySalt: true,
+                        encryptedVaultKey: true,
+                        recoveryEncryptedVaultKey: true,
+                        recoveryKeyHash: true,
+                        createdById: true,
+                    },
+                });
 
-    if (!vault) {
-        return null;
-    }
+                if (!vault) {
+                    return null;
+                }
 
-    return {
-        ...vault,
-        users: vault.users.map((member) => ({
-            keyVaultUserId: member.id,
-            user: member.user,
-            addedBy: member.addedBy,
-            addedAt: member.addedAt,
-            canRedeem: member.canRedeem,
-            canCreate: member.canCreate,
-            canShare: member.canShare,
-        })),
-    };
-}, {
-    namespace: "server.queries.vaults:getVaultDetail",
-}));
+                return {
+                    ...vault,
+                    users: vault.users.map((member) => ({
+                        keyVaultUserId: member.id,
+                        user: member.user,
+                        addedBy: member.addedBy,
+                        addedAt: member.addedAt,
+                        canRedeem: member.canRedeem,
+                        canCreate: member.canCreate,
+                        canShare: member.canShare,
+                    })),
+                };
+            },
+            {
+                namespace: "server.queries.vaults:getVaultDetail",
+            },
+        ),
+    );
 
 type VaultAccessStatus = {
     /** Canonical vault id, resolved from a slug-or-id identifier. Empty when not found. */
@@ -165,36 +190,42 @@ type VaultAccessStatus = {
  * @param parsedInput.vaultId - The ID of the vault to check.
  * @returns A `VaultAccessStatus` object containing `hasAccess`, `authType`, and `vaultName`.
  */
-export const checkVaultAccess = queryClientWithAuth.inputSchema(z.object({
-    vaultId: z.string().min(1),
-})).query<VaultAccessStatus>(withLogging(async ({ parsedInput: { vaultId }, ctx }, { log }) => {
-    log.info("Checking vault access", { userId: ctx.user.id, vaultId });
+export const checkVaultAccess = queryClientWithAuth
+    .inputSchema(
+        z.object({
+            vaultId: z.string().min(1),
+        }),
+    )
+    .query<VaultAccessStatus>(
+        withLogging(
+            async ({ parsedInput: { vaultId }, ctx }, { log }) => {
+                log.info("Checking vault access", { userId: ctx.user.id, vaultId });
 
-    const vault = await prisma.keyVault.findFirst({
-        where: {
-            AND: [
-                { OR: [{ id: vaultId }, { slug: vaultId }] },
-                {
-                    OR: [
-                        { createdById: ctx.user.id },
-                        { users: { some: { userId: ctx.user.id } } },
-                    ],
-                },
-            ],
-        },
-        select: { id: true, authType: true, name: true },
-    });
+                const vault = await prisma.keyVault.findFirst({
+                    where: {
+                        AND: [
+                            { OR: [{ id: vaultId }, { slug: vaultId }] },
+                            {
+                                OR: [{ createdById: ctx.user.id }, { users: { some: { userId: ctx.user.id } } }],
+                            },
+                        ],
+                    },
+                    select: { id: true, authType: true, name: true },
+                });
 
-    if (!vault) {
-        return { id: "", hasAccess: false, authType: KeyVaultAuthType.NONE, vaultName: "" };
-    }
+                if (!vault) {
+                    return { id: "", hasAccess: false, authType: KeyVaultAuthType.NONE, vaultName: "" };
+                }
 
-    if (vault.authType === KeyVaultAuthType.NONE) {
-        return { id: vault.id, hasAccess: true, authType: vault.authType, vaultName: vault.name };
-    }
+                if (vault.authType === KeyVaultAuthType.NONE) {
+                    return { id: vault.id, hasAccess: true, authType: vault.authType, vaultName: vault.name };
+                }
 
-    const hasAccess = await requireVaultAccess(vault.id);
-    return { id: vault.id, hasAccess, authType: vault.authType, vaultName: vault.name };
-}, {
-    namespace: "server.queries.vaults:checkVaultAccess",
-}));
+                const hasAccess = await requireVaultAccess(vault.id);
+                return { id: vault.id, hasAccess, authType: vault.authType, vaultName: vault.name };
+            },
+            {
+                namespace: "server.queries.vaults:checkVaultAccess",
+            },
+        ),
+    );

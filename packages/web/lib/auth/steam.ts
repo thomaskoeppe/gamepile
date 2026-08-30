@@ -3,10 +3,10 @@ import { logger } from "@/lib/logger";
 const log = logger.child("server.services.auth:steam");
 
 export interface SteamProfile {
-    steamId: string
-    username: string
-    avatarUrl: string
-    profileUrl: string
+    steamId: string;
+    username: string;
+    avatarUrl: string;
+    profileUrl: string;
 }
 
 /**
@@ -68,9 +68,7 @@ export async function verifySteamLogin(searchParams: URLSearchParams): Promise<s
             return null;
         }
 
-        const steamIdMatch = claimedId.match(
-            /https:\/\/steamcommunity\.com\/openid\/id\/(\d+)/
-        );
+        const steamIdMatch = claimedId.match(/https:\/\/steamcommunity\.com\/openid\/id\/(\d+)/);
         if (!steamIdMatch) {
             log.warn("Steam verification succeeded but claimed_id format invalid", { claimedId });
             return null;
@@ -86,6 +84,23 @@ export async function verifySteamLogin(searchParams: URLSearchParams): Promise<s
 }
 
 /**
+ * Builds the fallback profile used whenever Steam is unreachable or returns a
+ * payload we cannot trust. Keeps the account usable with a derived display name
+ * instead of writing `undefined` fields.
+ *
+ * @param steamId - The 64-bit Steam ID the lookup was for.
+ * @returns A minimal, always-valid profile.
+ */
+function buildPlaceholderProfile(steamId: string) {
+    return {
+        steamId,
+        username: `Steam User ${steamId.slice(-4)}`,
+        avatarUrl: "",
+        profileUrl: `https://steamcommunity.com/profiles/${steamId}`,
+    };
+}
+
+/**
  * Fetch Steam user profile using Steam Web API
  */
 export async function getSteamProfile(steamId: string): Promise<SteamProfile | null> {
@@ -96,18 +111,17 @@ export async function getSteamProfile(steamId: string): Promise<SteamProfile | n
         const response = await fetch(url);
 
         if (!response.ok) {
-            log.error("Failed to fetch Steam profile — HTTP error", new Error(`Steam API returned ${response.status} ${response.statusText}`), {
-                steamId,
-                status: response.status,
-                statusText: response.statusText,
-            });
+            log.error(
+                "Failed to fetch Steam profile — HTTP error",
+                new Error(`Steam API returned ${response.status} ${response.statusText}`),
+                {
+                    steamId,
+                    status: response.status,
+                    statusText: response.statusText,
+                },
+            );
 
-            return {
-                steamId,
-                username: `Steam User ${steamId.slice(-4)}`,
-                avatarUrl: "",
-                profileUrl: `https://steamcommunity.com/profiles/${steamId}`,
-            };
+            return buildPlaceholderProfile(steamId);
         }
 
         const data = await response.json();
@@ -116,6 +130,17 @@ export async function getSteamProfile(steamId: string): Promise<SteamProfile | n
         if (!player) {
             log.warn("Steam API returned no player data", { steamId });
             return null;
+        }
+
+        // An empty object passes the check above, which used to produce an account
+        // record with `username: undefined`. Require the two fields the profile is
+        // actually built from before trusting the payload.
+        if (typeof player.steamid !== "string" || typeof player.personaname !== "string") {
+            log.warn("Steam API returned an incomplete player object", {
+                steamId,
+                keys: Object.keys(player),
+            });
+            return buildPlaceholderProfile(steamId);
         }
 
         log.info("Steam profile fetched", { steamId, username: player.personaname });
@@ -129,11 +154,6 @@ export async function getSteamProfile(steamId: string): Promise<SteamProfile | n
     } catch (error) {
         log.error("Error fetching Steam profile", error instanceof Error ? error : new Error(String(error)));
 
-        return {
-            steamId,
-            username: `Steam User ${steamId.slice(-4)}`,
-            avatarUrl: "",
-            profileUrl: `https://steamcommunity.com/profiles/${steamId}`,
-        };
+        return buildPlaceholderProfile(steamId);
     }
 }

@@ -61,9 +61,7 @@ export function generateVaultAccessToken(vaultId: string, userId: string): strin
  *   the token is valid and unexpired, or `null` if the token is malformed,
  *   has an invalid signature, or has expired.
  */
-export function verifyVaultAccessToken(
-    token: string,
-): { vaultId: string; userId: string } | null {
+export function verifyVaultAccessToken(token: string): { vaultId: string; userId: string } | null {
     const parts = token.split(".");
     if (parts.length !== 2) return null;
 

@@ -42,9 +42,8 @@ export default function SharedVaultPage({ params }: { params: Promise<{ shareId:
     const [rowError, setRowError] = useState<string | null>(null);
     const [busyId, setBusyId] = useState<string | null>(null);
 
-    const { data, isLoading, mutate } = useServerQuery(
-        user ? ["share-recipient", shareId, user.id] : null,
-        () => getShareForRecipient({ shareId }),
+    const { data, isLoading, mutate } = useServerQuery(user ? ["share-recipient", shareId, user.id] : null, () =>
+        getShareForRecipient({ shareId }),
     );
 
     const share = data?.success ? data.data : null;
@@ -176,10 +175,15 @@ export default function SharedVaultPage({ params }: { params: Promise<{ shareId:
                         <Card className="bg-card border-border">
                             <CardContent className="divide-y divide-border p-0">
                                 {share.games.length === 0 ? (
-                                    <p className="p-6 text-center text-sm text-muted-foreground">No keys in this share.</p>
+                                    <p className="p-6 text-center text-sm text-muted-foreground">
+                                        No keys in this share.
+                                    </p>
                                 ) : (
                                     share.games.map((game) => (
-                                        <div key={game.keyVaultGameId} className="flex items-center justify-between gap-3 px-4 py-3">
+                                        <div
+                                            key={game.keyVaultGameId}
+                                            className="flex items-center justify-between gap-3 px-4 py-3"
+                                        >
                                             <span className="truncate text-sm">{game.name}</span>
                                             <div className="shrink-0">{renderAction(game)}</div>
                                         </div>

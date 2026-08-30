@@ -1,8 +1,8 @@
 "use client";
 
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
-import {cn} from "@/lib/utils";
-import {Platform} from "@/prisma/generated/enums";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { Platform } from "@/prisma/generated/enums";
 
 const PLATFORM_LABELS: Record<Platform, string> = {
     WINDOWS: "Windows",
@@ -14,7 +14,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
  * Renders the platform-specific SVG icon for WINDOWS, MAC, or LINUX.
  * Uses custom SVGs (not Lucide) for visual consistency.
  */
-export function PlatformIcon({platform, className}: { platform: Platform; className?: string }) {
+export function PlatformIcon({ platform, className }: { platform: Platform; className?: string }) {
     const iconClass = cn("w-3.5 h-3.5 fill-current", className);
 
     switch (platform) {
@@ -71,9 +71,7 @@ export function PlatformIcons({
         return (
             <Tooltip key={p}>
                 <TooltipTrigger asChild>
-                    <span className="cursor-default">
-                        {icon}
-                    </span>
+                    <span className="cursor-default">{icon}</span>
                 </TooltipTrigger>
 
                 <TooltipContent side="top" className="text-xs">
@@ -83,18 +81,9 @@ export function PlatformIcons({
         );
     });
 
-    const content = (
-        <div className={cn("flex items-center gap-2 text-muted-foreground", className)}>
-            {icons}
-        </div>
-    );
+    const content = <div className={cn("flex items-center gap-2 text-muted-foreground", className)}>{icons}</div>;
 
     if (!withTooltips) return content;
 
-    return (
-        <TooltipProvider delayDuration={300}>
-            {content}
-        </TooltipProvider>
-    );
+    return <TooltipProvider delayDuration={300}>{content}</TooltipProvider>;
 }
-

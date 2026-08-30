@@ -22,7 +22,7 @@ import { type QueryResult } from "@/types/server-query";
 export function useServerQuery<T>(
     key: string | readonly unknown[] | null,
     fetcher: () => Promise<QueryResult<T>>,
-    config?: SWRConfiguration<QueryResult<T>>
+    config?: SWRConfiguration<QueryResult<T>>,
 ) {
     const swr = useSWR<QueryResult<T>>(key, fetcher, {
         revalidateOnFocus: true,

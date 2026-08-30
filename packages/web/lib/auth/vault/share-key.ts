@@ -1,10 +1,4 @@
-import {
-    generateSalt,
-    hashPassword,
-    unwrapVaultKey,
-    verifyPassword,
-    wrapVaultKey,
-} from "@/lib/auth/crypto";
+import { generateSalt, hashPassword, unwrapVaultKey, verifyPassword, wrapVaultKey } from "@/lib/auth/crypto";
 
 /**
  * Passphrase-gate material stored on a `VaultShare`. Mirrors a vault's own auth
@@ -26,10 +20,7 @@ export type SharePassphraseMaterial = {
  * @param passphrase - The share passphrase chosen by the owner.
  * @param vaultKeyHex - The raw vault key (from {@link unwrapVaultKeyFromVault}), or `null` for NONE vaults.
  */
-export function createSharePassphraseMaterial(
-    passphrase: string,
-    vaultKeyHex: string | null,
-): SharePassphraseMaterial {
+export function createSharePassphraseMaterial(passphrase: string, vaultKeyHex: string | null): SharePassphraseMaterial {
     const authSalt = generateSalt();
     const authHash = hashPassword(passphrase, authSalt);
 

@@ -29,17 +29,14 @@ const UPSERT_BATCH_SIZE = 50;
  * @param payload.userId - The internal user ID whose library is being imported.
  * @throws {Error} If the user is not found or has no Steam ID.
  */
-export default async function importSteamLibrary(payload: {
-    jobId: string;
-    userId: string;
-}): Promise<void> {
+export default async function importSteamLibrary(payload: { jobId: string; userId: string }): Promise<void> {
     const { jobId, userId } = payload;
     const log = logger.child("worker.jobs:importSteamLibrary", { jobId, userId });
     const startMs = Date.now();
     const batchSize = getWorkerEnv().WORKER_DETAILS_BATCH_SIZE;
 
     const user = await prisma.user.findUnique({
-        where:  { id: userId },
+        where: { id: userId },
         select: { id: true, steamId: true },
     });
 
@@ -88,7 +85,7 @@ export default async function importSteamLibrary(payload: {
 
     const appIds = ownedGames.map((o) => o.appid);
     const games = await prisma.game.findMany({
-        where:  { appId: { in: appIds } },
+        where: { appId: { in: appIds } },
         select: { id: true, appId: true, createdAt: true, detailsFetchedAt: true },
     });
 
@@ -103,15 +100,15 @@ export default async function importSteamLibrary(payload: {
                 if (!game) return Promise.resolve();
 
                 return prisma.userGame.upsert({
-                    where:  { userId_gameId: { userId, gameId: game.id } },
+                    where: { userId_gameId: { userId, gameId: game.id } },
                     create: {
                         userId,
-                        gameId:         game.id,
-                        playtime:       owned.playtime_forever ?? 0,
+                        gameId: game.id,
+                        playtime: owned.playtime_forever ?? 0,
                         playtime2Weeks: owned.playtime_2weeks ?? 0,
                     },
                     update: {
-                        playtime:       owned.playtime_forever ?? 0,
+                        playtime: owned.playtime_forever ?? 0,
                         playtime2Weeks: owned.playtime_2weeks ?? 0,
                     },
                 });
@@ -136,9 +133,7 @@ export default async function importSteamLibrary(payload: {
 
     if (prunedCount > 0) {
         log.info("Pruned user games no longer owned on Steam", { prunedCount });
-        await createLog(jobId, "info",
-            `${prunedCount} game(s) removed from library (no longer owned on Steam).`,
-        );
+        await createLog(jobId, "info", `${prunedCount} game(s) removed from library (no longer owned on Steam).`);
     }
 
     if (await isJobCancelled(jobId)) {
@@ -169,9 +164,10 @@ export default async function importSteamLibrary(payload: {
     });
 
     await createLog(
-        jobId, "info",
+        jobId,
+        "info",
         `${alreadyCurrentCount} game(s) are current (skipped). ` +
-        `${staleGames.length} game(s) queued for detail fetch.`,
+            `${staleGames.length} game(s) queued for detail fetch.`,
     );
 
     if (alreadyCurrentCount > 0) {

@@ -187,7 +187,7 @@ export type StoreBrowseItem = {
             filename: string;
             /** Display order. */
             ordinal: number;
-        }>
+        }>;
     };
     /** Trailer/video metadata for the item. */
     trailers?: {
@@ -216,13 +216,13 @@ export type StoreBrowseTrailer = {
     screenshot_full?: string;
     /** Short auto-playing preview clips. */
     microtrailer?: Array<{
-       filename: string;
-       type: string;
+        filename: string;
+        type: string;
     }>;
     /** Available video formats and their filenames. */
     adaptive_trailers?: Array<{
-       cdn_path: string;
-       encoding: "dash_av1" | "dash_h264" | "hls_h264"
+        cdn_path: string;
+        encoding: "dash_av1" | "dash_h264" | "hls_h264";
     }>;
 };
 
@@ -385,4 +385,3 @@ export type StoreCategoriesResponse = {
         categories?: SteamCategory[];
     };
 };
-

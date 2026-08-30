@@ -15,76 +15,85 @@ import { allowsInviteForResource, getInvitePrivacyErrorMessage } from "@/server/
  * @returns `true` on success.
  * @throws {Error} If the authenticated user is not the collection owner.
  */
-export const addUserToCollection = actionClientWithAuth.inputSchema(z.object({
-    collectionId: z.cuid(),
-    userId: z.cuid(),
-})).action<boolean>(withLogging(async ({ parsedInput: { collectionId, userId }, ctx }, { log }) => {
-    log.info("Adding user to collection", {
-        userId: ctx.user.id,
-        collectionId,
-        addedUserId: userId,
-    });
+export const addUserToCollection = actionClientWithAuth
+    .inputSchema(
+        z.object({
+            collectionId: z.cuid(),
+            userId: z.cuid(),
+        }),
+    )
+    .action<boolean>(
+        withLogging(
+            async ({ parsedInput: { collectionId, userId }, ctx }, { log }) => {
+                log.info("Adding user to collection", {
+                    userId: ctx.user.id,
+                    collectionId,
+                    addedUserId: userId,
+                });
 
-    const collection = await prisma.collection.findUniqueOrThrow({
-        where: { id: collectionId },
-        select: { createdById: true },
-    });
+                const collection = await prisma.collection.findUniqueOrThrow({
+                    where: { id: collectionId },
+                    select: { createdById: true },
+                });
 
-    if (collection.createdById !== ctx.user.id) {
-        throw new Error("Only the collection owner can add members.");
-    }
+                if (collection.createdById !== ctx.user.id) {
+                    throw new Error("Only the collection owner can add members.");
+                }
 
-    if (userId === ctx.user.id) {
-        throw new Error("The collection owner is already part of this collection.");
-    }
+                if (userId === ctx.user.id) {
+                    throw new Error("The collection owner is already part of this collection.");
+                }
 
-    const targetUser = await prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-            id: true,
-            settings: {
-                select: {
-                    privacyAllowVaultInvites: true,
-                    privacyAllowCollectionInvites: true,
-                },
+                const targetUser = await prisma.user.findUnique({
+                    where: { id: userId },
+                    select: {
+                        id: true,
+                        settings: {
+                            select: {
+                                privacyAllowVaultInvites: true,
+                                privacyAllowCollectionInvites: true,
+                            },
+                        },
+                    },
+                });
+
+                if (!targetUser) {
+                    throw new Error("User not found.");
+                }
+
+                if (!allowsInviteForResource(targetUser.settings, "collection")) {
+                    throw new Error(getInvitePrivacyErrorMessage("collection"));
+                }
+
+                const existingMember = await prisma.collectionUser.findUnique({
+                    where: {
+                        collectionId_userId: {
+                            collectionId,
+                            userId,
+                        },
+                    },
+                    select: { id: true },
+                });
+
+                if (existingMember) {
+                    throw new Error("This user is already a collection member.");
+                }
+
+                await prisma.collectionUser.create({
+                    data: {
+                        collectionId,
+                        userId,
+                        addedById: ctx.user.id,
+                    },
+                });
+
+                return true;
             },
-        },
-    });
-
-    if (!targetUser) {
-        throw new Error("User not found.");
-    }
-
-    if (!allowsInviteForResource(targetUser.settings, "collection")) {
-        throw new Error(getInvitePrivacyErrorMessage("collection"));
-    }
-
-    const existingMember = await prisma.collectionUser.findUnique({
-        where: {
-            collectionId_userId: {
-                collectionId,
-                userId,
+            {
+                namespace: "server.actions.collection-members:addUserToCollection",
             },
-        },
-        select: { id: true },
-    });
-
-    if (existingMember) {
-        throw new Error("This user is already a collection member.");
-    }
-
-    await prisma.collectionUser.create({
-        data: {
-            collectionId,
-            userId,
-            addedById: ctx.user.id,
-        },
-    });
-
-    return true;
-}, {
-    namespace: "server.actions.collection-members:addUserToCollection",
-}));
+        ),
+    );
 
 /**
  * Removes a user from a collection's member list.
@@ -93,28 +102,37 @@ export const addUserToCollection = actionClientWithAuth.inputSchema(z.object({
  * @returns `true` on success.
  * @throws {Error} If the authenticated user is not the collection owner.
  */
-export const removeUserFromCollection = actionClientWithAuth.inputSchema(z.object({
-    collectionUserId: z.cuid(),
-})).action<boolean>(withLogging(async ({ parsedInput: { collectionUserId }, ctx }, { log }) => {
-    log.info("Removing user from collection", {
-        userId: ctx.user.id,
-        collectionUserId,
-    });
+export const removeUserFromCollection = actionClientWithAuth
+    .inputSchema(
+        z.object({
+            collectionUserId: z.cuid(),
+        }),
+    )
+    .action<boolean>(
+        withLogging(
+            async ({ parsedInput: { collectionUserId }, ctx }, { log }) => {
+                log.info("Removing user from collection", {
+                    userId: ctx.user.id,
+                    collectionUserId,
+                });
 
-    const collectionUser = await prisma.collectionUser.findUniqueOrThrow({
-        where: { id: collectionUserId },
-        include: { collection: { select: { createdById: true } } },
-    });
+                const collectionUser = await prisma.collectionUser.findUniqueOrThrow({
+                    where: { id: collectionUserId },
+                    include: { collection: { select: { createdById: true } } },
+                });
 
-    if (collectionUser.collection.createdById !== ctx.user.id) {
-        throw new Error("Only the collection owner can remove members.");
-    }
+                if (collectionUser.collection.createdById !== ctx.user.id) {
+                    throw new Error("Only the collection owner can remove members.");
+                }
 
-    await prisma.collectionUser.delete({
-        where: { id: collectionUserId },
-    });
+                await prisma.collectionUser.delete({
+                    where: { id: collectionUserId },
+                });
 
-    return true;
-}, {
-    namespace: "server.actions.collection-members:removeUserFromCollection",
-}));
+                return true;
+            },
+            {
+                namespace: "server.actions.collection-members:removeUserFromCollection",
+            },
+        ),
+    );

@@ -1,7 +1,7 @@
-import {createLog} from "@/src/lib/job/log.js";
-import {logger} from "@/src/lib/logger.js";
+import { createLog } from "@/src/lib/job/log.js";
+import { logger } from "@/src/lib/logger.js";
 import prisma from "@/src/lib/prisma.js";
-import {getAllTags} from "@/src/lib/steam/cache/tag-cache.js";
+import { getAllTags } from "@/src/lib/steam/cache/tag-cache.js";
 
 /** Number of tags to upsert per database transaction. */
 const UPSERT_CHUNK_SIZE = 200;
@@ -16,8 +16,8 @@ const UPSERT_CHUNK_SIZE = 200;
  * @param opts.jobId - The database job ID tracking this sync run.
  */
 export default async function syncSteamTags(opts: { jobId: string }): Promise<void> {
-    const {jobId} = opts;
-    const log = logger.child("worker.jobs:syncSteamTags", {jobId});
+    const { jobId } = opts;
+    const log = logger.child("worker.jobs:syncSteamTags", { jobId });
     const startMs = Date.now();
 
     log.info("Starting Steam tag sync");
@@ -25,7 +25,7 @@ export default async function syncSteamTags(opts: { jobId: string }): Promise<vo
 
     const tags = await getAllTags();
 
-    log.info("Fetched Steam tags", {tagCount: tags.length});
+    log.info("Fetched Steam tags", { tagCount: tags.length });
     await createLog(jobId, "info", `Fetched ${tags.length} tags from Steam.`);
 
     let upsertedCount = 0;
@@ -35,9 +35,9 @@ export default async function syncSteamTags(opts: { jobId: string }): Promise<vo
         const chunk = tags.slice(i, i + UPSERT_CHUNK_SIZE);
         const upsertOp = (t: (typeof chunk)[number]) =>
             prisma.tag.upsert({
-                where: {tagId: t.tagid},
-                create: {tagId: t.tagid, name: t.name},
-                update: {name: t.name},
+                where: { tagId: t.tagid },
+                create: { tagId: t.tagid, name: t.name },
+                update: { name: t.name },
             });
 
         try {
@@ -71,10 +71,11 @@ export default async function syncSteamTags(opts: { jobId: string }): Promise<vo
         throw new Error(`Tag sync failed: all ${failedCount} tag upsert(s) failed.`);
     }
 
-    await createLog(jobId, failedCount > 0 ? "warn" : "info",
-        `Tag sync complete. ${upsertedCount} tag(s) upserted, ` +
-        `${failedCount} failed in ${Date.now() - startMs}ms.`,
+    await createLog(
+        jobId,
+        failedCount > 0 ? "warn" : "info",
+        `Tag sync complete. ${upsertedCount} tag(s) upserted, ` + `${failedCount} failed in ${Date.now() - startMs}ms.`,
     );
 
-    log.info("Steam tag sync completed", {upsertedCount, failedCount, durationMs: Date.now() - startMs});
+    log.info("Steam tag sync completed", { upsertedCount, failedCount, durationMs: Date.now() - startMs });
 }

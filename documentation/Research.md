@@ -30,7 +30,7 @@
 ## 2. Primary Source: IStoreBrowseService/GetItems/v1
 
 | Property        | Value                                                          |
-|-----------------|----------------------------------------------------------------|
+| --------------- | -------------------------------------------------------------- |
 | **Endpoint**    | `https://api.steampowered.com/IStoreBrowseService/GetItems/v1` |
 | **Method**      | GET                                                            |
 | **Auth**        | `key` param (existing `STEAM_API_KEY`)                         |
@@ -70,21 +70,21 @@
 ### 2.2 Available `data_request` Flags
 
 | Flag                           | Description                                           | Used |
-|--------------------------------|-------------------------------------------------------|------|
-| `include_basic_info`           | short_description, publishers, developers, franchises | ✅    |
-| `include_release`              | steam_release_date, is_coming_soon, is_early_access   | ✅    |
-| `include_platforms`            | windows, mac, steamos_linux, steam_deck_compat, vr    | ✅    |
-| `include_tag_count`            | Integer — how many tags to return (max ~20)           | ✅    |
-| `include_categories`           | Player, feature, and controller category IDs          | ✅    |
-| `include_reviews`              | review_count, percent_positive, review_score, label   | ✅    |
-| `include_assets`               | All image asset hashes + URL format template          | ✅    |
-| `include_full_description`     | Full description in BBCode format                     | ✅    |
-| `include_screenshots`          | Screenshot filenames + ordinal                        | ❌    |
-| `include_trailers`             | Trailer names, CDN paths, formats                     | ❌    |
-| `include_supported_languages`  | Language IDs with audio/subtitle flags                | ❌    |
-| `include_ratings`              | ESRB/PEGI rating data                                 | ❌    |
-| `include_links`                | Social media URLs                                     | ❌    |
-| `include_all_purchase_options` | Pricing data                                          | ❌    |
+| ------------------------------ | ----------------------------------------------------- | ---- |
+| `include_basic_info`           | short_description, publishers, developers, franchises | ✅   |
+| `include_release`              | steam_release_date, is_coming_soon, is_early_access   | ✅   |
+| `include_platforms`            | windows, mac, steamos_linux, steam_deck_compat, vr    | ✅   |
+| `include_tag_count`            | Integer — how many tags to return (max ~20)           | ✅   |
+| `include_categories`           | Player, feature, and controller category IDs          | ✅   |
+| `include_reviews`              | review_count, percent_positive, review_score, label   | ✅   |
+| `include_assets`               | All image asset hashes + URL format template          | ✅   |
+| `include_full_description`     | Full description in BBCode format                     | ✅   |
+| `include_screenshots`          | Screenshot filenames + ordinal                        | ❌   |
+| `include_trailers`             | Trailer names, CDN paths, formats                     | ❌   |
+| `include_supported_languages`  | Language IDs with audio/subtitle flags                | ❌   |
+| `include_ratings`              | ESRB/PEGI rating data                                 | ❌   |
+| `include_links`                | Social media URLs                                     | ❌   |
+| `include_all_purchase_options` | Pricing data                                          | ❌   |
 
 > **Note:** The IStoreBrowseService API does **not** return genre data. Tags are used
 > instead for game categorization and filtering, as they are more comprehensive,
@@ -93,7 +93,7 @@
 ### 2.3 Type Mapping
 
 | API `type` | GamePile `GameType` |
-|------------|---------------------|
+| ---------- | ------------------- |
 | 0          | GAME                |
 | 1          | DLC                 |
 | 2          | DEMO                |
@@ -109,7 +109,7 @@ Full URL: `base + asset_url_format.replace("${FILENAME}", hash)`
 ### 2.5 Steam Deck Compat Categories
 
 | Value | Meaning     |
-|-------|-------------|
+| ----- | ----------- |
 | 0     | Unknown     |
 | 1     | Unsupported |
 | 2     | Playable    |

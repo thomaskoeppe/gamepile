@@ -10,4 +10,3 @@ export type GameDetails = Prisma.GameGetPayload<{
         _count: { select: { achievements: true } };
     };
 }>;
-

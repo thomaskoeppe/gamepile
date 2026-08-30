@@ -1,4 +1,4 @@
-import {AppSettingKey, KeyVaultAuthType} from "@/prisma/generated/enums";
+import { AppSettingKey, KeyVaultAuthType } from "@/prisma/generated/enums";
 
 export type AppSettingValueType = {
     [AppSettingKey.ALLOW_USER_SIGNUP]: boolean;
@@ -27,4 +27,4 @@ export type AppSettingValueType = {
     [AppSettingKey.UI_GAME_LIBRARY_PRERENDERED_ROWS]: number;
     [AppSettingKey.LIBRARY_AUTO_RESYNC_INTERVAL_HOURS]: number;
     [AppSettingKey.LIBRARY_MANUAL_RESYNC_COOLDOWN_MINUTES]: number;
-}
+};

@@ -1,11 +1,4 @@
-import {
-    createCipheriv,
-    createDecipheriv,
-    createHash,
-    pbkdf2Sync,
-    randomBytes,
-    timingSafeEqual,
-} from "crypto";
+import { createCipheriv, createDecipheriv, createHash, pbkdf2Sync, randomBytes, timingSafeEqual } from "crypto";
 
 const PBKDF2_ITERATIONS = 600_000;
 const PBKDF2_KEY_LEN = 64;

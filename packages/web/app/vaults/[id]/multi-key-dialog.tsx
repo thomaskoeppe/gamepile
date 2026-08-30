@@ -54,7 +54,9 @@ export function MultiKeyDialog({
     const [showSecret, setShowSecret] = useState(false);
     const [isLoadingKeys, setIsLoadingKeys] = useState(false);
     const [decryptError, setDecryptError] = useState<string | null>(null);
-    const [decrypted, setDecrypted] = useState<Array<{ vaultGameId: string; gameName: string; key?: string; error?: string }>>([]);
+    const [decrypted, setDecrypted] = useState<
+        Array<{ vaultGameId: string; gameName: string; key?: string; error?: string }>
+    >([]);
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
     const redeemAction = useAction(redeemKeys, {
@@ -125,9 +127,7 @@ export function MultiKeyDialog({
 
                         {needsAuth && (
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">
-                                    Enter vault {isPin ? "PIN" : "password"}
-                                </label>
+                                <label className="text-sm font-medium">Enter vault {isPin ? "PIN" : "password"}</label>
                                 {isPin ? (
                                     <Input
                                         type="tel"
@@ -170,12 +170,18 @@ export function MultiKeyDialog({
                         )}
 
                         <DialogFooter>
-                            <Button variant="outline" onClick={handleClose}>Cancel</Button>
+                            <Button variant="outline" onClick={handleClose}>
+                                Cancel
+                            </Button>
                             <Button
                                 onClick={handleDecrypt}
                                 disabled={isLoadingKeys || (needsAuth && secret.length === 0)}
                             >
-                                {isLoadingKeys ? <LoaderCircle className="size-4 animate-spin" /> : <Lock className="size-4" />}
+                                {isLoadingKeys ? (
+                                    <LoaderCircle className="size-4 animate-spin" />
+                                ) : (
+                                    <Lock className="size-4" />
+                                )}
                                 Decrypt Selected Keys
                             </Button>
                         </DialogFooter>
@@ -187,7 +193,10 @@ export function MultiKeyDialog({
                         <ScrollArea className="max-h-[420px] rounded-md border border-border bg-muted/30 p-3">
                             <div className="space-y-3">
                                 {decrypted.map((entry) => (
-                                    <div key={entry.vaultGameId} className="rounded-md border border-border bg-background p-3">
+                                    <div
+                                        key={entry.vaultGameId}
+                                        className="rounded-md border border-border bg-background p-3"
+                                    >
                                         <div className="flex items-center justify-between gap-3">
                                             <p className="font-medium">{entry.gameName}</p>
                                             {!entry.key ? (
@@ -209,7 +218,11 @@ export function MultiKeyDialog({
                                                             setTimeout(() => setCopiedId(null), 1500);
                                                         }}
                                                     >
-                                                        {copiedId === entry.vaultGameId ? <Check className="size-4" /> : <ClipboardCopy className="size-4" />}
+                                                        {copiedId === entry.vaultGameId ? (
+                                                            <Check className="size-4" />
+                                                        ) : (
+                                                            <ClipboardCopy className="size-4" />
+                                                        )}
                                                     </Button>
                                                     <Button
                                                         type="button"
@@ -217,7 +230,10 @@ export function MultiKeyDialog({
                                                         size="sm"
                                                         onClick={() => {
                                                             if (!entry.key) return;
-                                                            window.open(`https://store.steampowered.com/account/registerkey?key=${entry.key}`, "_blank");
+                                                            window.open(
+                                                                `https://store.steampowered.com/account/registerkey?key=${entry.key}`,
+                                                                "_blank",
+                                                            );
                                                         }}
                                                     >
                                                         <ExternalLink className="size-4" /> Steam
@@ -231,12 +247,18 @@ export function MultiKeyDialog({
                         </ScrollArea>
 
                         <DialogFooter>
-                            <Button variant="outline" onClick={handleClose}>Close</Button>
+                            <Button variant="outline" onClick={handleClose}>
+                                Close
+                            </Button>
                             <Button
                                 onClick={handleMarkRedeemed}
                                 disabled={successfulKeys.length === 0 || redeemAction.isPending}
                             >
-                                {redeemAction.isPending ? <LoaderCircle className="size-4 animate-spin" /> : <TicketCheck className="size-4" />}
+                                {redeemAction.isPending ? (
+                                    <LoaderCircle className="size-4 animate-spin" />
+                                ) : (
+                                    <TicketCheck className="size-4" />
+                                )}
                                 Mark {successfulKeys.length} as Redeemed
                             </Button>
                         </DialogFooter>
@@ -246,4 +268,3 @@ export function MultiKeyDialog({
         </Dialog>
     );
 }
-

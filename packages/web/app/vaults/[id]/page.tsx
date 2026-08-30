@@ -25,10 +25,7 @@ export default function VaultPage({ params }: { params: Promise<{ id: string }> 
         data: accessResult,
         isLoading: accessLoading,
         mutate: mutateAccess,
-    } = useServerQuery(
-        user ? ["vault-access", id, user.id] : null,
-        () => checkVaultAccess({ vaultId: id })
-    );
+    } = useServerQuery(user ? ["vault-access", id, user.id] : null, () => checkVaultAccess({ vaultId: id }));
 
     const accessStatus = accessResult?.success ? accessResult.data : null;
     const needsAuth = accessStatus && !accessStatus.hasAccess && accessStatus.authType !== KeyVaultAuthType.NONE;
@@ -41,9 +38,8 @@ export default function VaultPage({ params }: { params: Promise<{ id: string }> 
         data: vaultResult,
         isRevalidating: vaultRevalidating,
         mutate: mutateVault,
-    } = useServerQuery(
-        user && accessStatus?.hasAccess ? ["vault-detail", resolvedId, user.id] : null,
-        () => getVaultDetail({ vaultId: resolvedId })
+    } = useServerQuery(user && accessStatus?.hasAccess ? ["vault-detail", resolvedId, user.id] : null, () =>
+        getVaultDetail({ vaultId: resolvedId }),
     );
 
     const vault = vaultResult?.success ? vaultResult.data : null;
@@ -156,9 +152,7 @@ export default function VaultPage({ params }: { params: Promise<{ id: string }> 
                         />
                     )}
 
-                    {vault && canShare && (
-                        <VaultShareManager vaultId={resolvedId} authType={vault.authType} />
-                    )}
+                    {vault && canShare && <VaultShareManager vaultId={resolvedId} authType={vault.authType} />}
                 </div>
             </div>
 

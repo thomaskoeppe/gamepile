@@ -1,24 +1,13 @@
 "use client";
 
-import {
-    flexRender,
-    getCoreRowModel,
-    useReactTable,
-} from "@tanstack/react-table";
-import {useMemo} from "react";
+import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { useMemo } from "react";
 
-import {createColumns} from "@/components/explorer/columns";
+import { createColumns } from "@/components/explorer/columns";
 import { TablePagination } from "@/components/table-pagination";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import type {ExplorerGameRow} from "@/types/explorer";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import type { ExplorerGameRow } from "@/types/explorer";
 
 interface DataTableProps {
     data: ExplorerGameRow[];
@@ -42,7 +31,7 @@ export function DataTable({
     onPageChange,
     onPageSizeChange,
     onSort,
-    isLoading
+    isLoading,
 }: DataTableProps) {
     const columns = useMemo(() => createColumns(onSort), [onSort]);
 
@@ -68,7 +57,7 @@ export function DataTable({
                                         key={header.id}
                                         className="text-muted-foreground text-xs font-medium h-10"
                                         // TanStack table computes exact pixel widths per header.
-                                        style={{width: header.getSize()}}
+                                        style={{ width: header.getSize() }}
                                     >
                                         {header.isPlaceholder
                                             ? null
@@ -80,11 +69,11 @@ export function DataTable({
                     </TableHeader>
                     <TableBody>
                         {isLoading ? (
-                            Array.from({length: pageSize}).map((_, i) => (
+                            Array.from({ length: pageSize }).map((_, i) => (
                                 <TableRow key={`explorer-${i}`} className="border-border">
                                     {columns.map((_, j) => (
                                         <TableCell key={j}>
-                                            <div className="h-4 w-full animate-pulse rounded bg-muted"/>
+                                            <div className="h-4 w-full animate-pulse rounded bg-muted" />
                                         </TableCell>
                                     ))}
                                 </TableRow>
@@ -97,10 +86,7 @@ export function DataTable({
                             </TableRow>
                         ) : (
                             table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    className="border-border hover:bg-muted/40 transition-colors"
-                                >
+                                <TableRow key={row.id} className="border-border hover:bg-muted/40 transition-colors">
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id} className="py-2.5">
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -130,7 +116,7 @@ export function DataTable({
                         <span className="text-xs text-muted-foreground">Rows</span>
                         <Select value={String(pageSize)} onValueChange={(v) => onPageSizeChange(Number(v))}>
                             <SelectTrigger className="h-8 w-20 bg-card/50 border-border text-xs">
-                                <SelectValue/>
+                                <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                                 {[20, 50, 100].map((s) => (

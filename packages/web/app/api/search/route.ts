@@ -56,10 +56,7 @@ export async function GET(request: NextRequest) {
             where: {
                 originalName: { contains, mode },
                 keyVault: {
-                    OR: [
-                        { createdById: userId },
-                        { users: { some: { userId } } },
-                    ],
+                    OR: [{ createdById: userId }, { users: { some: { userId } } }],
                 },
             },
             select: {
@@ -76,11 +73,7 @@ export async function GET(request: NextRequest) {
             where: {
                 game: { name: { contains, mode } },
                 collection: {
-                    OR: [
-                        { createdById: userId },
-                        { users: { some: { userId } } },
-                        { type: "PUBLIC" },
-                    ],
+                    OR: [{ createdById: userId }, { users: { some: { userId } } }, { type: "PUBLIC" }],
                 },
             },
             select: {

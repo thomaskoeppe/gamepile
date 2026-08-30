@@ -7,11 +7,11 @@ import { defineConfig, env } from "prisma/config";
  * migration directory. The database URL is read from the `DATABASE_URL` environment variable.
  */
 export default defineConfig({
-  schema: "../../prisma/schema.prisma",
-  migrations: {
-    path: "../web/prisma/migrations",
-  },
-  datasource: {
-    url: env("DATABASE_URL"),
-  },
+    schema: "../../prisma/schema.prisma",
+    migrations: {
+        path: "../web/prisma/migrations",
+    },
+    datasource: {
+        url: env("DATABASE_URL"),
+    },
 });

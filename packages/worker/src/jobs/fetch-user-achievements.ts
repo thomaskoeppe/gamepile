@@ -36,7 +36,7 @@ async function syncAchievementsForApp(
     steamId: string,
 ): Promise<"synced" | "no-achievements" | "profile-private" | "skipped"> {
     const game = await prisma.game.findUnique({
-        where:  { id: app.gameId },
+        where: { id: app.gameId },
         select: { createdAt: true, achievementsFetchedAt: true },
     });
 
@@ -52,10 +52,15 @@ async function syncAchievementsForApp(
     });
 
     let achievementRows = await prisma.achievement.findMany({
-        where:  { gameId: app.gameId },
+        where: { gameId: app.gameId },
         select: {
-            id: true, name: true, displayName: true,
-            description: true, icon: true, icongray: true, hidden: true,
+            id: true,
+            name: true,
+            displayName: true,
+            description: true,
+            icon: true,
+            icongray: true,
+            hidden: true,
         },
     });
 
@@ -80,11 +85,11 @@ async function syncAchievementsForApp(
                 hidden: def.hidden === 1,
             };
             const changed =
-                existing.displayName !== next.displayName
-                || existing.description !== next.description
-                || existing.icon !== next.icon
-                || existing.icongray !== next.icongray
-                || existing.hidden !== next.hidden;
+                existing.displayName !== next.displayName ||
+                existing.description !== next.description ||
+                existing.icon !== next.icon ||
+                existing.icongray !== next.icongray ||
+                existing.hidden !== next.hidden;
 
             return changed ? [{ id: existing.id, data: next }] : [];
         });
@@ -110,7 +115,7 @@ async function syncAchievementsForApp(
 
         await prisma.game.update({
             where: { id: app.gameId },
-            data:  { achievementsFetchedAt: new Date() },
+            data: { achievementsFetchedAt: new Date() },
         });
 
         if (defs.length === 0 && achievementRows.length === 0) {
@@ -119,10 +124,15 @@ async function syncAchievementsForApp(
 
         if (toCreate.length > 0) {
             achievementRows = await prisma.achievement.findMany({
-                where:  { gameId: app.gameId },
+                where: { gameId: app.gameId },
                 select: {
-                    id: true, name: true, displayName: true,
-                    description: true, icon: true, icongray: true, hidden: true,
+                    id: true,
+                    name: true,
+                    displayName: true,
+                    description: true,
+                    icon: true,
+                    icongray: true,
+                    hidden: true,
                 },
             });
         }
@@ -135,7 +145,7 @@ async function syncAchievementsForApp(
     // Resolve the UserGame at execution time — the library may have been
     // pruned or re-imported since the parent job enqueued this batch.
     const userGame = await prisma.userGame.findUnique({
-        where:  { userId_gameId: { userId, gameId: app.gameId } },
+        where: { userId_gameId: { userId, gameId: app.gameId } },
         select: { id: true },
     });
 
@@ -153,7 +163,7 @@ async function syncAchievementsForApp(
     const nowSecs = Math.floor(Date.now() / 1_000);
 
     const existingUnlocks = await prisma.userGameAchievement.findMany({
-        where:  { userGameId: userGame.id },
+        where: { userGameId: userGame.id },
         select: { id: true, achievementId: true, achievedAt: true },
     });
     const existingByAchievementId = new Map(existingUnlocks.map((u) => [u.achievementId, u]));
@@ -195,7 +205,7 @@ async function syncAchievementsForApp(
     for (const fix of timestampFixes) {
         await prisma.userGameAchievement.update({
             where: { id: fix.id },
-            data:  { achievedAt: fix.achievedAt },
+            data: { achievedAt: fix.achievedAt },
         });
     }
 
@@ -218,9 +228,7 @@ async function syncAchievementsForApp(
  * @param job - The BullMQ job containing the batch payload.
  * @throws {Error} On non-final attempts if an app fails (triggers BullMQ retry).
  */
-export default async function handleFetchUserAchievements(
-    job: Job<AchievementsQueuePayload>,
-): Promise<void> {
+export default async function handleFetchUserAchievements(job: Job<AchievementsQueuePayload>): Promise<void> {
     const { parentJobId, userId, steamId, apps } = job.data;
     const batchLog = logger.child("worker.jobs:fetchUserAchievements", { parentJobId, batchSize: apps.length });
     const startMs = Date.now();
@@ -270,9 +278,7 @@ export default async function handleFetchUserAchievements(
         }
 
         for (const failure of failures) {
-            await recordChildFailure(
-                parentJobId, failure.appId, failure.gameId, failure.message, job.attemptsMade + 1,
-            );
+            await recordChildFailure(parentJobId, failure.appId, failure.gameId, failure.message, job.attemptsMade + 1);
         }
 
         if (processedCount > 0) {
@@ -280,7 +286,9 @@ export default async function handleFetchUserAchievements(
         }
 
         if (privateProfile) {
-            await createLog(parentJobId, "warn",
+            await createLog(
+                parentJobId,
+                "warn",
                 "Steam profile or game details are private — achievement unlocks could not be read for some games.",
             );
         }

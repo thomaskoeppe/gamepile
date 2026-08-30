@@ -1,24 +1,21 @@
 "use client";
 
-import {TriangleAlert} from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { useParams } from "next/navigation";
 
-import {Collection} from "@/app/collections/[id]/collection";
+import { Collection } from "@/app/collections/[id]/collection";
 import { Header } from "@/components/header";
 import { Card, CardContent } from "@/components/ui/card";
 import { useServerQuery } from "@/lib/hooks/use-server-query";
 import { useSession } from "@/lib/providers/session";
-import {checkCollectionAccess} from "@/server/queries/collections";
+import { checkCollectionAccess } from "@/server/queries/collections";
 
 export default function Page() {
     const { id } = useParams<{ id: string }>();
     const { user } = useSession();
 
-    const {
-        data: accessResult
-    } = useServerQuery(
-        user ? ["collection-access", id, user.id] : null,
-        () => checkCollectionAccess({ collectionId: id })
+    const { data: accessResult } = useServerQuery(user ? ["collection-access", id, user.id] : null, () =>
+        checkCollectionAccess({ collectionId: id }),
     );
 
     const accessStatus = accessResult?.success ? accessResult.data : null;
@@ -45,5 +42,5 @@ export default function Page() {
         );
     }
 
-    return (<Collection collectionId={accessStatus.id} />);
+    return <Collection collectionId={accessStatus.id} />;
 }

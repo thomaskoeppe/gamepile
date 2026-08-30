@@ -1,10 +1,10 @@
-import {AppSettingKey, JobStatus, JobType} from "@/src/prisma/generated/enums.js";
+import { AppSettingKey, JobStatus, JobType } from "@/src/prisma/generated/enums.js";
 
-import {getNumberAppSetting} from "@/src/lib/app-settings.js";
-import {getWorkerEnv} from "@/src/lib/env.js";
-import {createLog} from "@/src/lib/job/log.js";
-import {jobsQueue} from "@/src/lib/job/queue.js";
-import {logger} from "@/src/lib/logger.js";
+import { getNumberAppSetting } from "@/src/lib/app-settings.js";
+import { getWorkerEnv } from "@/src/lib/env.js";
+import { createLog } from "@/src/lib/job/log.js";
+import { jobsQueue } from "@/src/lib/job/queue.js";
+import { logger } from "@/src/lib/logger.js";
 import prisma from "@/src/lib/prisma.js";
 
 /** Number of key-vault game records to update per batch transaction. */
@@ -24,17 +24,12 @@ const KEY_RESOLVE_BATCH_SIZE = 100;
  * @param payload - Task parameters.
  * @param payload.jobId - The database job ID tracking this task.
  */
-export async function runInternalScheduledTask(payload: {
-    jobId: string;
-}): Promise<void> {
+export async function runInternalScheduledTask(payload: { jobId: string }): Promise<void> {
     const { jobId } = payload;
     const log = logger.child("worker.jobs:internalScheduledTask", { jobId });
 
     const fallbackHours = getWorkerEnv().WORKER_IMPORT_USER_LIBRARY_INTERVAL_MS / 3_600_000;
-    const intervalHours = await getNumberAppSetting(
-        AppSettingKey.LIBRARY_AUTO_RESYNC_INTERVAL_HOURS,
-        fallbackHours,
-    );
+    const intervalHours = await getNumberAppSetting(AppSettingKey.LIBRARY_AUTO_RESYNC_INTERVAL_HOURS, fallbackHours);
     const intervalMs = intervalHours * 3_600_000;
 
     log.info("Resolved library re-sync interval", { intervalHours });
@@ -84,10 +79,7 @@ async function scheduleLibraryImports(
         }),
     ]);
 
-    const skipUserIds = new Set([
-        ...recentlyImported.map((j) => j.userId!),
-        ...alreadyPending.map((j) => j.userId!),
-    ]);
+    const skipUserIds = new Set([...recentlyImported.map((j) => j.userId!), ...alreadyPending.map((j) => j.userId!)]);
 
     const usersToImport = await prisma.user.findMany({
         where: { id: { notIn: [...skipUserIds] } },
@@ -129,10 +121,7 @@ async function scheduleLibraryImports(
  * @param jobId - The parent task's job ID (for logging).
  * @param log - A child logger instance for contextual log messages.
  */
-async function resolveUnmatchedGameKeys(
-    jobId: string,
-    log: ReturnType<typeof logger.child>,
-): Promise<void> {
+async function resolveUnmatchedGameKeys(jobId: string, log: ReturnType<typeof logger.child>): Promise<void> {
     const unmatchedKeys = await prisma.keyVaultGame.findMany({
         where: { gameId: null },
         select: { id: true, originalName: true },
@@ -167,7 +156,9 @@ async function resolveUnmatchedGameKeys(
         unresolved: unresolvedCount,
     });
 
-    await createLog(jobId, "info",
+    await createLog(
+        jobId,
+        "info",
         `Resolving game keys: ${matched.length} matched, ${unresolvedCount} still unresolved`,
     );
 
@@ -188,7 +179,9 @@ async function resolveUnmatchedGameKeys(
         stillUnresolved: unresolvedCount,
     });
 
-    await createLog(jobId, "info",
+    await createLog(
+        jobId,
+        "info",
         `Finished resolving game keys: ${matched.length} resolved, ${unresolvedCount} still unresolved`,
     );
 }

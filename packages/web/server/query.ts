@@ -1,9 +1,9 @@
-import {z} from "zod";
+import { z } from "zod";
 
-import {rateLimitAction, rateLimitPublic} from "@/lib/auth/rate-limit";
-import {getCurrentSession} from "@/lib/auth/session";
-import {logger} from "@/lib/logger";
-import {AuthContext, Handler, QueryResult} from "@/types/server-query";
+import { rateLimitAction, rateLimitPublic } from "@/lib/auth/rate-limit";
+import { getCurrentSession } from "@/lib/auth/session";
+import { logger } from "@/lib/logger";
+import { AuthContext, Handler, QueryResult } from "@/types/server-query";
 
 const log = logger.child("server.queries");
 
@@ -40,7 +40,7 @@ function createQueryClient<TInput, TOutput, TCtx extends AuthContext | void>(
                     log.warn("Input validation failed", { label, errors: validationErrors });
                     return {
                         success: false,
-                        error: parsed.error.issues.map((i) => i.message).join(", ")
+                        error: parsed.error.issues.map((i) => i.message).join(", "),
                     };
                 }
                 parsedData = parsed.data;
@@ -67,7 +67,30 @@ function createQueryClient<TInput, TOutput, TCtx extends AuthContext | void>(
 export const queryClientWithAuth = {
     inputSchema: <TInput>(schema: z.ZodType<TInput>) => ({
         query: <TOutput>(handler: Handler<TInput, TOutput, AuthContext>) =>
-            createQueryClient(schema, handler, async () => {
+            createQueryClient(
+                schema,
+                handler,
+                async () => {
+                    const session = await getCurrentSession();
+                    if (!session?.user) {
+                        return { success: false, error: "Not authorized." } as const;
+                    }
+
+                    const ratelimited = await rateLimitAction({ session });
+                    if (ratelimited) {
+                        return { success: false, error: ratelimited.message } as const;
+                    }
+
+                    return { user: session.user };
+                },
+                "queryClientWithAuth",
+            ),
+    }),
+    query: <TOutput>(handler: Handler<void, TOutput, AuthContext>) =>
+        createQueryClient(
+            null,
+            handler,
+            async () => {
                 const session = await getCurrentSession();
                 if (!session?.user) {
                     return { success: false, error: "Not authorized." } as const;
@@ -79,36 +102,28 @@ export const queryClientWithAuth = {
                 }
 
                 return { user: session.user };
-            }, "queryClientWithAuth"),
-    }),
-    query: <TOutput>(handler: Handler<void, TOutput, AuthContext>) =>
-        createQueryClient(null, handler, async () => {
-            const session = await getCurrentSession();
-            if (!session?.user) {
-                return { success: false, error: "Not authorized." } as const;
-            }
-
-            const ratelimited = await rateLimitAction({ session });
-            if (ratelimited) {
-                return { success: false, error: ratelimited.message } as const;
-            }
-
-            return { user: session.user };
-        }, "queryClientWithAuth"),
+            },
+            "queryClientWithAuth",
+        ),
 };
 
 export const queryClientWithoutAuth = {
     inputSchema: <TInput>(schema: z.ZodType<TInput>) => ({
         query: <TOutput>(handler: Handler<TInput, TOutput, void>) =>
-            createQueryClient(schema, handler, async () => {
-                const ratelimited = await rateLimitPublic();
+            createQueryClient(
+                schema,
+                handler,
+                async () => {
+                    const ratelimited = await rateLimitPublic();
 
-                if (ratelimited) {
-                    return { success: false, error: ratelimited.message } as const;
-                }
+                    if (ratelimited) {
+                        return { success: false, error: ratelimited.message } as const;
+                    }
 
-                return undefined as void;
-            }, "queryClientWithoutAuth"),
+                    return undefined as void;
+                },
+                "queryClientWithoutAuth",
+            ),
     }),
     query: <TOutput>(handler: Handler<void, TOutput, void>) =>
         createQueryClient(null, handler, async () => undefined as void, "queryClientWithoutAuth"),
@@ -117,7 +132,34 @@ export const queryClientWithoutAuth = {
 export const queryClientWithAdmin = {
     inputSchema: <TInput>(schema: z.ZodType<TInput>) => ({
         query: <TOutput>(handler: Handler<TInput, TOutput, AuthContext>) =>
-            createQueryClient(schema, handler, async () => {
+            createQueryClient(
+                schema,
+                handler,
+                async () => {
+                    const session = await getCurrentSession();
+                    if (!session?.user) {
+                        return { success: false, error: "Not authorized." } as const;
+                    }
+
+                    if (session.user.role !== "ADMIN") {
+                        return { success: false, error: "Forbidden. Admin access is required." } as const;
+                    }
+
+                    const ratelimited = await rateLimitAction({ session });
+                    if (ratelimited) {
+                        return { success: false, error: ratelimited.message } as const;
+                    }
+
+                    return { user: session.user };
+                },
+                "queryClientWithAdmin",
+            ),
+    }),
+    query: <TOutput>(handler: Handler<void, TOutput, AuthContext>) =>
+        createQueryClient(
+            null,
+            handler,
+            async () => {
                 const session = await getCurrentSession();
                 if (!session?.user) {
                     return { success: false, error: "Not authorized." } as const;
@@ -133,24 +175,7 @@ export const queryClientWithAdmin = {
                 }
 
                 return { user: session.user };
-            }, "queryClientWithAdmin"),
-    }),
-    query: <TOutput>(handler: Handler<void, TOutput, AuthContext>) =>
-        createQueryClient(null, handler, async () => {
-            const session = await getCurrentSession();
-            if (!session?.user) {
-                return { success: false, error: "Not authorized." } as const;
-            }
-
-            if (session.user.role !== "ADMIN") {
-                return { success: false, error: "Forbidden. Admin access is required." } as const;
-            }
-
-            const ratelimited = await rateLimitAction({ session });
-            if (ratelimited) {
-                return { success: false, error: ratelimited.message } as const;
-            }
-
-            return { user: session.user };
-        }, "queryClientWithAdmin"),
+            },
+            "queryClientWithAdmin",
+        ),
 };

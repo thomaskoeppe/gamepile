@@ -1,6 +1,6 @@
-import {Prisma} from "@/src/prisma/generated/client.js";
+import { Prisma } from "@/src/prisma/generated/client.js";
 import prisma from "@/src/lib/prisma.js";
-import {logger} from "@/src/lib/logger.js";
+import { logger } from "@/src/lib/logger.js";
 
 const log = logger.child("worker.lib.helper");
 
@@ -14,7 +14,7 @@ type GameStubInput = {
     /** Steam application ID. */
     appId: number;
     /** Display name of the game. */
-    name:  string;
+    name: string;
     /** Unix timestamp of the last modification on Steam, or null if unknown. */
     steamLastModified: number | null;
 };
@@ -32,8 +32,9 @@ export async function upsertGameStubs(stubs: GameStubInput[]): Promise<void> {
     for (let i = 0; i < stubs.length; i += UPSERT_CHUNK_SIZE) {
         const chunk = stubs.slice(i, i + UPSERT_CHUNK_SIZE);
 
-        const values = chunk.map((s) =>
-            Prisma.sql`(
+        const values = chunk.map(
+            (s) =>
+                Prisma.sql`(
             ${s.appId},
             ${s.name},
             ${s.steamLastModified},
@@ -41,7 +42,7 @@ export async function upsertGameStubs(stubs: GameStubInput[]): Promise<void> {
             false,
             NOW(),
             NOW()
-          )`
+          )`,
         );
 
         log.debug("Upserting game stubs chunk", {
@@ -84,11 +85,7 @@ export async function getConnectedGameIds(gameIds: string[]): Promise<Set<string
     const connected = await prisma.game.findMany({
         where: {
             id: { in: gameIds },
-            OR: [
-                { userGames:       { some: {} } },
-                { collectionGames: { some: {} } },
-                { keyVaultGames:   { some: {} } },
-            ],
+            OR: [{ userGames: { some: {} } }, { collectionGames: { some: {} } }, { keyVaultGames: { some: {} } }],
         },
         select: { id: true },
     });

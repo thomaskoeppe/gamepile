@@ -26,7 +26,11 @@ import { getShareRequests, getVaultShares, type VaultShareSummary } from "@/serv
 import { getInvitableUsers } from "@/server/queries/vault-users";
 
 function initials(username: string): string {
-    return username.split(" ").map((n) => n[0]).join("").toUpperCase();
+    return username
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase();
 }
 
 function ShareCard({ share, onMutate }: { share: VaultShareSummary; onMutate: () => void }) {
@@ -38,9 +42,16 @@ function ShareCard({ share, onMutate }: { share: VaultShareSummary; onMutate: ()
     const remove = useAction(deleteVaultShare, { onSuccess: onMutate });
     const createLink = useAction(createVaultShareLink);
     const revokeLink = useAction(revokeVaultShareLink, { onSuccess: onMutate });
-    const invite = useAction(inviteUserToVaultShare, { onSuccess: () => { setInviteUserId(null); onMutate(); } });
+    const invite = useAction(inviteUserToVaultShare, {
+        onSuccess: () => {
+            setInviteUserId(null);
+            onMutate();
+        },
+    });
 
-    const { data: usersResult } = useServerQuery(["invitable-users", "vault"], () => getInvitableUsers({ resourceType: "vault" }));
+    const { data: usersResult } = useServerQuery(["invitable-users", "vault"], () =>
+        getInvitableUsers({ resourceType: "vault" }),
+    );
     const invitableUsers = usersResult?.success
         ? usersResult.data.filter((u) => !share.recipients.some((r) => r.user?.id === u.id))
         : [];
@@ -110,16 +121,17 @@ function ShareCard({ share, onMutate }: { share: VaultShareSummary; onMutate: ()
                         </Button>
                     )}
                     {share.links.length > 0 && (
-                        <span className="text-xs text-muted-foreground">
-                            {share.links.length} active link(s)
-                        </span>
+                        <span className="text-xs text-muted-foreground">{share.links.length} active link(s)</span>
                     )}
                 </div>
 
                 {share.links.length > 0 && (
                     <ul className="space-y-1">
                         {share.links.map((link) => (
-                            <li key={link.id} className="flex items-center justify-between text-xs text-muted-foreground">
+                            <li
+                                key={link.id}
+                                className="flex items-center justify-between text-xs text-muted-foreground"
+                            >
                                 <span className="font-mono truncate">…{link.token.slice(-8)}</span>
                                 <span>
                                     {link.usedCount}/{link.maxUses ?? "∞"} used
@@ -140,7 +152,9 @@ function ShareCard({ share, onMutate }: { share: VaultShareSummary; onMutate: ()
                 <div className="flex items-center gap-2">
                     <Select value={inviteUserId ?? undefined} onValueChange={setInviteUserId}>
                         <SelectTrigger className="w-full" disabled={invitableUsers.length === 0}>
-                            <SelectValue placeholder={invitableUsers.length > 0 ? "Invite a user…" : "No users available"} />
+                            <SelectValue
+                                placeholder={invitableUsers.length > 0 ? "Invite a user…" : "No users available"}
+                            />
                         </SelectTrigger>
                         <SelectContent>
                             {invitableUsers.map((u) => (
@@ -178,23 +192,27 @@ function ShareCard({ share, onMutate }: { share: VaultShareSummary; onMutate: ()
 }
 
 export function VaultShareManager({ vaultId, authType }: { vaultId: string; authType: KeyVaultAuthType }) {
-    const { data: sharesResult, mutate: mutateShares } = useServerQuery(
-        ["vault-shares", vaultId],
-        () => getVaultShares({ vaultId }),
+    const { data: sharesResult, mutate: mutateShares } = useServerQuery(["vault-shares", vaultId], () =>
+        getVaultShares({ vaultId }),
     );
-    const { data: requestsResult, mutate: mutateRequests } = useServerQuery(
-        ["vault-share-requests", vaultId],
-        () => getShareRequests({ vaultId }),
+    const { data: requestsResult, mutate: mutateRequests } = useServerQuery(["vault-share-requests", vaultId], () =>
+        getShareRequests({ vaultId }),
     );
 
     const shares = sharesResult?.success ? sharesResult.data : [];
     const requests = requestsResult?.success ? requestsResult.data : [];
 
     const resolve = useAction(resolveShareRequest, {
-        onSuccess: () => { void mutateRequests(); void mutateShares(); },
+        onSuccess: () => {
+            void mutateRequests();
+            void mutateShares();
+        },
     });
 
-    const reloadAll = () => { void mutateShares(); void mutateRequests(); };
+    const reloadAll = () => {
+        void mutateShares();
+        void mutateRequests();
+    };
 
     return (
         <Card className="bg-card border-border shadow-md">
@@ -205,7 +223,9 @@ export function VaultShareManager({ vaultId, authType }: { vaultId: string; auth
                         <CardDescription>Share keys with others via direct invites or one-time links.</CardDescription>
                     </div>
                     <CreateShareDialog vaultId={vaultId} authType={authType} onCreated={reloadAll}>
-                        <Button size="sm"><Plus className="size-4" /> Create share</Button>
+                        <Button size="sm">
+                            <Plus className="size-4" /> Create share
+                        </Button>
                     </CreateShareDialog>
                 </div>
             </CardHeader>
@@ -221,10 +241,17 @@ export function VaultShareManager({ vaultId, authType }: { vaultId: string; auth
                                     <span className="text-muted-foreground">{req.gameName}</span>
                                 </span>
                                 <span className="flex gap-2">
-                                    <Button size="sm" onClick={() => resolve.execute({ requestId: req.requestId, approve: true })}>
+                                    <Button
+                                        size="sm"
+                                        onClick={() => resolve.execute({ requestId: req.requestId, approve: true })}
+                                    >
                                         Approve
                                     </Button>
-                                    <Button size="sm" variant="outline" onClick={() => resolve.execute({ requestId: req.requestId, approve: false })}>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => resolve.execute({ requestId: req.requestId, approve: false })}
+                                    >
                                         Deny
                                     </Button>
                                 </span>

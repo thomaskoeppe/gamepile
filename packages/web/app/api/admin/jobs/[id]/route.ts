@@ -7,10 +7,7 @@ import { parseClampedInt } from "@/lib/utils";
 const DEFAULT_LOG_LIMIT = 25;
 const DEFAULT_FAILED_LIMIT = 10;
 
-export async function GET(
-    req: Request,
-    { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         await requireAdmin();
     } catch {
@@ -21,11 +18,15 @@ export async function GET(
     const { searchParams } = new URL(req.url);
     const logPage = parseClampedInt(searchParams.get("logPage"), { fallback: 1, min: 1 });
     const logLimit = parseClampedInt(searchParams.get("logLimit"), {
-        fallback: DEFAULT_LOG_LIMIT, min: 1, max: 100,
+        fallback: DEFAULT_LOG_LIMIT,
+        min: 1,
+        max: 100,
     });
     const failedPage = parseClampedInt(searchParams.get("failedPage"), { fallback: 1, min: 1 });
     const failedLimit = parseClampedInt(searchParams.get("failedLimit"), {
-        fallback: DEFAULT_FAILED_LIMIT, min: 1, max: 50,
+        fallback: DEFAULT_FAILED_LIMIT,
+        min: 1,
+        max: 50,
     });
 
     const job = await prisma.job.findUnique({

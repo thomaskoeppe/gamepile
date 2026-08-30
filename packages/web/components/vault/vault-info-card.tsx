@@ -28,8 +28,8 @@ export function VaultInfoCard({ vault, isOwner, onReload }: VaultInfoCardProps) 
                     <div className="min-w-0">
                         <CardTitle>{vault.name}</CardTitle>
                         <CardDescription>
-                            Use this keyvault to store and manage your steam license keys securely.
-                            All keys are encrypted and can be accessed by authorized members only.
+                            Use this keyvault to store and manage your steam license keys securely. All keys are
+                            encrypted and can be accessed by authorized members only.
                         </CardDescription>
                     </div>
 
@@ -48,11 +48,7 @@ export function VaultInfoCard({ vault, isOwner, onReload }: VaultInfoCardProps) 
                                 </ChangeVaultCredentialsDialog>
                             )}
 
-                            <RenameVaultDialog
-                                vaultId={vault.id}
-                                currentName={vault.name}
-                                onReload={onReload}
-                            >
+                            <RenameVaultDialog vaultId={vault.id} currentName={vault.name} onReload={onReload}>
                                 <Button variant="ghost" size="icon" className="size-8">
                                     <Pencil className="size-4" />
                                     <span className="sr-only">Rename vault</span>
@@ -76,7 +72,11 @@ export function VaultInfoCard({ vault, isOwner, onReload }: VaultInfoCardProps) 
                                 vaultName={vault.name}
                                 onDeleted={() => router.push("/vaults")}
                             >
-                                <Button variant="ghost" size="icon" className="size-8 text-destructive hover:text-destructive">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="size-8 text-destructive hover:text-destructive"
+                                >
                                     <Trash2 className="size-4" />
                                     <span className="sr-only">Delete vault</span>
                                 </Button>
@@ -113,7 +113,7 @@ export function VaultInfoCard({ vault, isOwner, onReload }: VaultInfoCardProps) 
                     <div className="flex items-center gap-2">
                         <dt className="text-foreground">Total Games</dt>
                         <dd className="text-muted-foreground">
-                            {vault.games.length} ({vault.games.filter(g => g.redeemed).length} Redeemed)
+                            {vault.games.length} ({vault.games.filter((g) => g.redeemed).length} Redeemed)
                         </dd>
                     </div>
                 </dl>
@@ -121,4 +121,3 @@ export function VaultInfoCard({ vault, isOwner, onReload }: VaultInfoCardProps) 
         </Card>
     );
 }
-

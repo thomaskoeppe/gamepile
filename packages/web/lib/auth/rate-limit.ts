@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { RateLimiterRedis, RateLimiterRes } from "rate-limiter-flexible";
 
-import {SessionData} from "@/lib/auth/session";
+import { SessionData } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import { redis } from "@/lib/redis";
 
@@ -75,11 +75,7 @@ export interface RateLimitResult {
     retryAfterMs: number;
 }
 
-function toResult(
-    limiter: RateLimiterRedis,
-    res: RateLimiterRes,
-    blocked: boolean,
-): RateLimitResult {
+function toResult(limiter: RateLimiterRedis, res: RateLimiterRes, blocked: boolean): RateLimitResult {
     return {
         success: !blocked,
         limit: limiter.points,
@@ -159,9 +155,7 @@ export async function consumeRateLimit(
  */
 export function getClientIp(request: Request): string {
     return (
-        request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-        request.headers.get("x-real-ip") ||
-        "unknown"
+        request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown"
     );
 }
 
@@ -171,11 +165,7 @@ export function getClientIp(request: Request): string {
  */
 export async function getClientIpFromHeaders(): Promise<string> {
     const h = await headers();
-    return (
-        h.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-        h.get("x-real-ip") ||
-        "unknown"
-    );
+    return h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
 }
 
 export interface ActionRateLimitOptions {
@@ -230,4 +220,3 @@ export async function rateLimitPublic(
 
     return null;
 }
-

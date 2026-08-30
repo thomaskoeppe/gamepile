@@ -37,6 +37,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/packages/web/prisma ./packages/web/prisma
 COPY --from=builder --chown=nextjs:nodejs /app/packages/web/prisma.config.ts ./packages/web/prisma.config.ts
 
+# Pre-create the log directory owned by the runtime user. A named volume mounted
+# here inherits this ownership on first creation; without it the volume would be
+# root-owned and the file log sink would silently disable itself.
+RUN mkdir -p /var/log/gamepile && chown -R nextjs:nodejs /var/log/gamepile
+
 USER nextjs
 
 EXPOSE 3000

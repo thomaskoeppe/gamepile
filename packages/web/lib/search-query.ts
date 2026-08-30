@@ -49,10 +49,7 @@ function escapeLike(s: string): string {
  * Within a tier, results are ordered by ts_rank_cd score descending,
  * then by review score as a tiebreaker.
  */
-export async function searchGamesRanked(
-    query: string,
-    limit: number = 8,
-): Promise<RankedGameResult[]> {
+export async function searchGamesRanked(query: string, limit: number = 8): Promise<RankedGameResult[]> {
     const q = query.trim();
     if (!q) return [];
 
@@ -98,7 +95,7 @@ export async function searchGamesRanked(
         FROM "Game"
         WHERE
             "search_vector" @@ to_tsquery('english', ${tsq})
-            OR lower("name") LIKE lower(${'%' + escapeLike(q) + '%'})
+            OR lower("name") LIKE lower(${"%" + escapeLike(q) + "%"})
             OR "appId" = ${appId}
         ORDER BY "rank" DESC, "reviewScore" DESC NULLS LAST, "name" ASC
         LIMIT ${limit}
@@ -186,4 +183,3 @@ export async function searchGameIds(
         total: Number(countResult[0].count),
     };
 }
-

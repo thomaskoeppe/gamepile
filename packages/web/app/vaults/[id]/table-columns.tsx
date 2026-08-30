@@ -1,17 +1,18 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/table-core";
-import {
-    AlertCircle, Eye, MoreVertical, TicketCheck, Undo2,
-} from "lucide-react";
+import { AlertCircle, Eye, MoreVertical, TicketCheck, Undo2 } from "lucide-react";
 
 import { GameDetailCard } from "@/components/game/game-detail-card";
 import { SafeImage } from "@/components/shared/safe-image";
 import { Button } from "@/components/ui/button";
-import {Checkbox} from "@/components/ui/checkbox";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
-    DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-    DropdownMenuSeparator, DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { KeyVaultGameGetPayload } from "@/prisma/generated/models/KeyVaultGame";
@@ -36,21 +37,27 @@ interface CreateColumnsOptions {
 }
 
 export function createVaultKeyColumns({
-  canRedeem,
-  openKeyDialog,
-  onUnredeem,
-  selectedVaultGameIds,
-  onToggleSelect,
-  onToggleSelectPage,
-  allPageRowsSelected,
-  somePageRowsSelected,
+    canRedeem,
+    openKeyDialog,
+    onUnredeem,
+    selectedVaultGameIds,
+    onToggleSelect,
+    onToggleSelectPage,
+    allPageRowsSelected,
+    somePageRowsSelected,
 }: CreateColumnsOptions): ColumnDef<VaultGameRow>[] {
     const selectionColumn: ColumnDef<VaultGameRow> = {
         id: "select",
         enableSorting: false,
         header: () => (
             <Checkbox
-                checked={allPageRowsSelected ? allPageRowsSelected : !allPageRowsSelected && somePageRowsSelected ? "indeterminate" : false}
+                checked={
+                    allPageRowsSelected
+                        ? allPageRowsSelected
+                        : !allPageRowsSelected && somePageRowsSelected
+                          ? "indeterminate"
+                          : false
+                }
                 onCheckedChange={(checked) => onToggleSelectPage(checked as boolean)}
                 disabled={!canRedeem}
             />
@@ -107,21 +114,28 @@ export function createVaultKeyColumns({
                     <span className="inline-flex items-center">
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <span><span className={row.original.isOwned ? "text-muted-foreground" : "text-green-500"}>●</span> {name}</span>
+                                <span>
+                                    <span className={row.original.isOwned ? "text-muted-foreground" : "text-green-500"}>
+                                        ●
+                                    </span>{" "}
+                                    {name}
+                                </span>
                             </TooltipTrigger>
                             <TooltipContent>
-                                {row.original.isOwned ? "You already own this game" : "This game is not in your library"}
+                                {row.original.isOwned
+                                    ? "You already own this game"
+                                    : "This game is not in your library"}
                             </TooltipContent>
                         </Tooltip>
 
                         {row.original.isInMultipleVaults && (
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <span className="ml-2 text-yellow-500"><AlertCircle className="w-4 h-4" /></span>
+                                    <span className="ml-2 text-yellow-500">
+                                        <AlertCircle className="w-4 h-4" />
+                                    </span>
                                 </TooltipTrigger>
-                                <TooltipContent>
-                                    This game key exists in multiple vaults
-                                </TooltipContent>
+                                <TooltipContent>This game key exists in multiple vaults</TooltipContent>
                             </Tooltip>
                         )}
                     </span>
@@ -168,26 +182,40 @@ export function createVaultKeyColumns({
                                 className="hover:text-primary hover:bg-muted/50"
                                 onClick={() => openKeyDialog(row.original)}
                             >
-                                {row.original.redeemed
-                                    ? <><Eye className="w-4 h-4" /> Show Key</>
-                                    : <><TicketCheck className="w-4 h-4" /> Redeem</>
-                                }
+                                {row.original.redeemed ? (
+                                    <>
+                                        <Eye className="w-4 h-4" /> Show Key
+                                    </>
+                                ) : (
+                                    <>
+                                        <TicketCheck className="w-4 h-4" /> Redeem
+                                    </>
+                                )}
                             </Button>
                         )}
 
                         {canRedeem && (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="hover:text-primary hover:bg-muted/50">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="hover:text-primary hover:bg-muted/50"
+                                    >
                                         <MoreVertical className="h-4 w-4" />
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                     <DropdownMenuItem onClick={() => openKeyDialog(row.original)}>
-                                        {row.original.redeemed
-                                            ? <><Eye className="w-4 h-4 mr-2" /> Show Key</>
-                                            : <><TicketCheck className="w-4 h-4 mr-2" /> Redeem Key</>
-                                        }
+                                        {row.original.redeemed ? (
+                                            <>
+                                                <Eye className="w-4 h-4 mr-2" /> Show Key
+                                            </>
+                                        ) : (
+                                            <>
+                                                <TicketCheck className="w-4 h-4 mr-2" /> Redeem Key
+                                            </>
+                                        )}
                                     </DropdownMenuItem>
                                     {row.original.redeemed && (
                                         <>

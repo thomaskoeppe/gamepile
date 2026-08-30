@@ -1,10 +1,6 @@
-import {GameType, Platform} from "@/prisma/generated/enums";
+import { GameType, Platform } from "@/prisma/generated/enums";
 
-export type ExplorerSortField =
-    | "name"
-    | "releaseDate"
-    | "reviewScore"
-    | "type";
+export type ExplorerSortField = "name" | "releaseDate" | "reviewScore" | "type";
 
 export type ExplorerSortDirection = "asc" | "desc";
 

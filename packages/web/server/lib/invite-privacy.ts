@@ -4,10 +4,13 @@ export const INVITE_RESOURCE_TYPES = ["vault", "collection"] as const;
 
 export type InviteResourceType = (typeof INVITE_RESOURCE_TYPES)[number];
 
-type InvitePrivacySettings = {
-    privacyAllowVaultInvites: boolean;
-    privacyAllowCollectionInvites: boolean;
-} | null | undefined;
+type InvitePrivacySettings =
+    | {
+          privacyAllowVaultInvites: boolean;
+          privacyAllowCollectionInvites: boolean;
+      }
+    | null
+    | undefined;
 
 /**
  * Checks whether a user's privacy settings allow invites for the given resource type.
@@ -17,17 +20,12 @@ type InvitePrivacySettings = {
  * @param resourceType - The type of resource being shared: `"vault"` or `"collection"`.
  * @returns `true` if the user accepts invites for this resource type.
  */
-export function allowsInviteForResource(
-    settings: InvitePrivacySettings,
-    resourceType: InviteResourceType,
-): boolean {
+export function allowsInviteForResource(settings: InvitePrivacySettings, resourceType: InviteResourceType): boolean {
     if (!settings) {
         return true;
     }
 
-    return resourceType === "vault"
-        ? settings.privacyAllowVaultInvites
-        : settings.privacyAllowCollectionInvites;
+    return resourceType === "vault" ? settings.privacyAllowVaultInvites : settings.privacyAllowCollectionInvites;
 }
 
 /**
@@ -41,17 +39,11 @@ export function allowsInviteForResource(
 export function getInvitePrivacyFilter(resourceType: InviteResourceType): Prisma.UserWhereInput {
     return resourceType === "vault"
         ? {
-            OR: [
-                { settings: { is: null } },
-                { settings: { is: { privacyAllowVaultInvites: true } } },
-            ],
-        }
+              OR: [{ settings: { is: null } }, { settings: { is: { privacyAllowVaultInvites: true } } }],
+          }
         : {
-            OR: [
-                { settings: { is: null } },
-                { settings: { is: { privacyAllowCollectionInvites: true } } },
-            ],
-        };
+              OR: [{ settings: { is: null } }, { settings: { is: { privacyAllowCollectionInvites: true } } }],
+          };
 }
 
 /**

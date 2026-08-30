@@ -16,5 +16,3 @@ export const WORKER_METRICS = {
 export function getWorkerInstanceId(hostname: string, pid: number): string {
     return `${hostname}:${pid}`;
 }
-
-

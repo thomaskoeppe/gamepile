@@ -1,3 +1,5 @@
+import { createFileLogger, fileLoggerOptionsFromEnv } from "@gamepile/shared/file-logger";
+import { composeLogSinks } from "@gamepile/shared/log-sinks";
 import { createLogger, type ILogger, type LogContext, type LogEntry } from "@gamepile/shared/logger";
 
 import { getWorkerEnv } from "@/src/lib/env.js";
@@ -22,22 +24,37 @@ const env = getWorkerEnv();
  *
  * Use `logger.child("namespace")` to create scoped child loggers.
  */
-export const logger = createLogger({
-    exportLogEntry,
-    mirrorToStdout: env.WORKER_LOG_TO_STDOUT !== "false",
-}, {
-    hostname: HOSTNAME,
-    ips: IPS,
-    node_env: env.NODE_ENV,
-});
+const SERVICE_NAME = process.env.LOG_SERVICE || "gamepile-worker";
+
+const fileLogger = createFileLogger(fileLoggerOptionsFromEnv(SERVICE_NAME));
 
 /**
- * Flushes any buffered log entries to the OTLP exporter and shuts down the exporter.
+ * Every configured log destination behind a single callback. Sinks are isolated
+ * from one another, so a full disk or an unreachable collector cannot throw into
+ * a job handler.
+ */
+export const logSinks = composeLogSinks([{ name: "otlp", exportLogEntry }, fileLogger.toLogSink()]);
+
+export const logger = createLogger(
+    {
+        exportLogEntry: logSinks.exportLogEntry,
+        mirrorToStdout: env.WORKER_LOG_TO_STDOUT !== "false",
+    },
+    {
+        hostname: HOSTNAME,
+        ips: IPS,
+        node_env: env.NODE_ENV,
+    },
+);
+
+/**
+ * Flushes buffered log entries to every configured sink and shuts them down.
  *
  * Should be called during graceful shutdown to ensure no log entries are lost.
  *
- * @returns A promise that resolves when all logs have been flushed.
+ * @returns A promise that resolves when all sinks have been flushed.
  */
-export function flushLogs(): Promise<void> {
-    return shutdownLogsExporter();
+export async function flushLogs(): Promise<void> {
+    await logSinks.shutdown?.();
+    await shutdownLogsExporter();
 }

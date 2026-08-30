@@ -27,11 +27,13 @@ export function ReviewScoreCircle({ score, size = "md", className }: ReviewScore
     const color = getScoreColor(score);
 
     return (
-        <div className={cn(
-            "relative flex items-center justify-center bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-border",
-            config.wh,
-            className,
-        )}>
+        <div
+            className={cn(
+                "relative flex items-center justify-center bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-border",
+                config.wh,
+                className,
+            )}
+        >
             <svg className="w-full h-full -rotate-90 transform">
                 <circle
                     className="text-zinc-700"
@@ -55,10 +57,7 @@ export function ReviewScoreCircle({ score, size = "md", className }: ReviewScore
                     cy={config.cy}
                 />
             </svg>
-            <span className={cn("absolute font-bold", config.text, color)}>
-                {score}
-            </span>
+            <span className={cn("absolute font-bold", config.text, color)}>{score}</span>
         </div>
     );
 }
-

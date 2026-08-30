@@ -4,8 +4,13 @@ import { ReactNode, useCallback, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
-    Dialog, DialogContent, DialogDescription,
-    DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog";
 import { browserLog } from "@/lib/browser-logger";
 import { deleteVault } from "@/server/actions/vaults/manage";
@@ -32,15 +37,15 @@ export function DeleteVaultDialog({
     }, []);
 
     const handleDelete = useCallback(async () => {
-        browserLog.warn('Delete vault confirmed', { vaultId, vaultName });
+        browserLog.warn("Delete vault confirmed", { vaultId, vaultName });
         const result = await executeAsync({ vaultId });
 
         if (result?.data?.success) {
-            browserLog.info('Vault deleted', { vaultId, vaultName });
+            browserLog.info("Vault deleted", { vaultId, vaultName });
             setOpen(false);
             onDeleted?.();
         } else {
-            browserLog.error('Delete vault failed', new Error(result?.serverError ?? 'Unknown error'), { vaultId });
+            browserLog.error("Delete vault failed", new Error(result?.serverError ?? "Unknown error"), { vaultId });
             setServerError(result?.serverError ?? "An unexpected error occurred.");
         }
     }, [executeAsync, vaultId, vaultName, onDeleted]);
@@ -53,20 +58,24 @@ export function DeleteVaultDialog({
                 <DialogHeader>
                     <DialogTitle>Delete Vault</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete <strong>{vaultName}</strong>? This action cannot be undone.
-                        All keys stored in this vault will be permanently deleted.
+                        Are you sure you want to delete <strong>{vaultName}</strong>? This action cannot be undone. All
+                        keys stored in this vault will be permanently deleted.
                     </DialogDescription>
                 </DialogHeader>
 
-                {serverError && (
-                    <p className="text-sm text-destructive">{serverError}</p>
-                )}
+                {serverError && <p className="text-sm text-destructive">{serverError}</p>}
 
                 <DialogFooter>
                     <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                         Cancel
                     </Button>
-                    <Button type="button" variant="outline" className="border-primary/40 text-primary hover:bg-primary/10" onClick={handleDelete} disabled={isPending}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="border-primary/40 text-primary hover:bg-primary/10"
+                        onClick={handleDelete}
+                        disabled={isPending}
+                    >
                         {isPending ? <LoaderCircle className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
                         Delete Vault
                     </Button>

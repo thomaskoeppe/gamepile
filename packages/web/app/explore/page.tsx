@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useServerQuery } from "@/lib/hooks/use-server-query";
 import { cn } from "@/lib/utils";
-import { getExplorerFilterOptions,getExplorerGames } from "@/server/queries/explorer";
+import { getExplorerFilterOptions, getExplorerGames } from "@/server/queries/explorer";
 import type {
     ExplorerFilters,
     ExplorerSort,
@@ -58,21 +58,20 @@ export default function ExplorePage() {
     const [viewMode, setViewMode] = useState<ExplorerViewMode>("grid");
     const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const { data: filterOptionsResult } = useServerQuery(
-        ["explorer-filter-options"],
-        () => getExplorerFilterOptions()
-    );
+    const { data: filterOptionsResult } = useServerQuery(["explorer-filter-options"], () => getExplorerFilterOptions());
 
-    const filterOptions = filterOptionsResult?.success
-        ? filterOptionsResult.data
-        : { categories: [], tags: [] };
+    const filterOptions = filterOptionsResult?.success ? filterOptionsResult.data : { categories: [], tags: [] };
 
     const activeFilters = { ...filters, search: debouncedSearch };
 
-    const { data: gamesResult, isLoading, isValidating } = useServerQuery(
+    const {
+        data: gamesResult,
+        isLoading,
+        isValidating,
+    } = useServerQuery(
         ["explorer-games", activeFilters, sort, page, pageSize],
         () => getExplorerGames({ filters: activeFilters, sort, pagination: { page, pageSize } }),
-        { keepPreviousData: true }
+        { keepPreviousData: true },
     );
 
     const response = gamesResult?.success
@@ -82,19 +81,22 @@ export default function ExplorePage() {
     const isInitialLoading = isLoading && !gamesResult;
     const isRefreshing = isValidating && !!gamesResult;
 
-    const handleFiltersChange = useCallback((newFilters: ExplorerFilters) => {
-        setFilters(newFilters);
-        setPage(1);
+    const handleFiltersChange = useCallback(
+        (newFilters: ExplorerFilters) => {
+            setFilters(newFilters);
+            setPage(1);
 
-        if (newFilters.search !== filters.search) {
-            if (searchDebounce.current) clearTimeout(searchDebounce.current);
-            searchDebounce.current = setTimeout(() => {
+            if (newFilters.search !== filters.search) {
+                if (searchDebounce.current) clearTimeout(searchDebounce.current);
+                searchDebounce.current = setTimeout(() => {
+                    setDebouncedSearch(newFilters.search);
+                }, 400);
+            } else {
                 setDebouncedSearch(newFilters.search);
-            }, 400);
-        } else {
-            setDebouncedSearch(newFilters.search);
-        }
-    }, [filters.search]);
+            }
+        },
+        [filters.search],
+    );
 
     const handleSort = useCallback((field: string) => {
         setSort((prev) => ({
@@ -134,10 +136,7 @@ export default function ExplorePage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <Select
-                            value={`${sort.field}_${sort.direction}`}
-                            onValueChange={handleSortSelect}
-                        >
+                        <Select value={`${sort.field}_${sort.direction}`} onValueChange={handleSortSelect}>
                             <SelectTrigger className="w-45 bg-card/50 border-border">
                                 <SelectValue placeholder="Sort by..." />
                             </SelectTrigger>
@@ -166,10 +165,7 @@ export default function ExplorePage() {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className={cn(
-                                    "h-9 w-9 rounded-none",
-                                    viewMode === "table" && "bg-muted text-primary",
-                                )}
+                                className={cn("h-9 w-9 rounded-none", viewMode === "table" && "bg-muted text-primary")}
                                 onClick={() => setViewMode("table")}
                             >
                                 <List className="h-4 w-4" />
@@ -178,11 +174,7 @@ export default function ExplorePage() {
                     </div>
                 </div>
 
-                <FilterToolbar
-                    filters={filters}
-                    onChange={handleFiltersChange}
-                    options={filterOptions}
-                />
+                <FilterToolbar filters={filters} onChange={handleFiltersChange} options={filterOptions} />
 
                 {viewMode === "table" ? (
                     <DataTable

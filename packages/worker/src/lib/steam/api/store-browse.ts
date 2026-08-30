@@ -1,5 +1,5 @@
-import type {StoreBrowseDetails, StoreBrowseItem, StoreBrowseResponse} from "@/src/lib/steam/api/types.js";
-import {resolveTagNames} from "@/src/lib/steam/cache/tag-cache.js";
+import type { StoreBrowseDetails, StoreBrowseItem } from "@/src/lib/steam/api/types.js";
+import { resolveTagNames } from "@/src/lib/steam/cache/tag-cache.js";
 import {
     extractAssetUrls,
     extractReviews,
@@ -9,10 +9,11 @@ import {
     mapBrowseTypeToGameType,
     parseReleaseTimestamp,
 } from "@/src/lib/steam/mappers.js";
-import {steamRateLimiter, SteamRateLimitError} from "@/src/lib/steam/ratelimiter.js";
-import {getWorkerEnv} from "@/src/lib/env.js";
-import {logger} from "@/src/lib/logger.js";
-import {publishSteamApiCall, publishSteamAppsFetched} from "@/src/lib/worker-metrics.js";
+import { fetchSteamJson } from "@/src/lib/steam/api/fetch-json.js";
+import { extractEnvelopeArray, parseItems, storeBrowseItemSchema } from "@/src/lib/steam/api/schemas.js";
+import { getWorkerEnv } from "@/src/lib/env.js";
+import { logger } from "@/src/lib/logger.js";
+import { publishSteamApiCall, publishSteamAppsFetched } from "@/src/lib/worker-metrics.js";
 
 const log = logger.child("worker.lib.steam:storeBrowse");
 
@@ -36,15 +37,15 @@ async function mapItemToDetails(item: StoreBrowseItem): Promise<StoreBrowseDetai
     const tagIds = item.tags?.map((t) => t.tagid) ?? item.tagids ?? [];
     const tagNames = await resolveTagNames(tagIds);
 
-    const categoryIds = [...new Set([
-        ...(item.categories?.supported_player_categoryids ?? []),
-        ...(item.categories?.feature_categoryids ?? []),
-        ...(item.categories?.controller_categoryids ?? []),
-    ])];
+    const categoryIds = [
+        ...new Set([
+            ...(item.categories?.supported_player_categoryids ?? []),
+            ...(item.categories?.feature_categoryids ?? []),
+            ...(item.categories?.controller_categoryids ?? []),
+        ]),
+    ];
 
-    const isEarlyAccess = item.is_early_access
-        ?? item.release?.is_early_access
-        ?? false;
+    const isEarlyAccess = item.is_early_access ?? item.release?.is_early_access ?? false;
 
     return {
         appId: item.appid,
@@ -98,24 +99,20 @@ export async function fetchStoreBrowseDetails(appId: number): Promise<StoreBrows
  * @throws {SteamRateLimitError} If Steam responds with HTTP 429 or 403.
  * @throws {Error} If the batch size exceeds the maximum or the HTTP request fails.
  */
-export async function fetchStoreBrowseDetailsBatch(
-    appIds: number[],
-): Promise<Map<number, StoreBrowseDetails>> {
+export async function fetchStoreBrowseDetailsBatch(appIds: number[]): Promise<Map<number, StoreBrowseDetails>> {
     if (appIds.length === 0) return new Map();
 
     if (appIds.length > STORE_BROWSE_BATCH_SIZE) {
         throw new Error(
             `fetchStoreBrowseDetailsBatch: received ${appIds.length} appIds, ` +
-            `but max batch size is ${STORE_BROWSE_BATCH_SIZE}`,
+                `but max batch size is ${STORE_BROWSE_BATCH_SIZE}`,
         );
     }
-
-    await steamRateLimiter.acquire();
 
     const apiKey = getWorkerEnv().STEAM_API_KEY;
 
     const inputJson = JSON.stringify({
-        ids: appIds.map((appid) => ({appid})),
+        ids: appIds.map((appid) => ({ appid })),
         data_request: {
             include_basic_info: true,
             include_release: true,
@@ -137,37 +134,42 @@ export async function fetchStoreBrowseDetailsBatch(
 
     const url = `${STORE_BROWSE_URL}?key=${apiKey}&input_json=${encodeURIComponent(inputJson)}`;
 
-    const response = await fetch(url, {headers: {Accept: "application/json"}}).finally(() => {
+    const payload = await fetchSteamJson(url, {
+        endpoint: "IStoreBrowseService/GetItems",
+        appId: appIds[0],
+    }).finally(() => {
         void publishSteamApiCall();
         void publishSteamAppsFetched(appIds.length);
     });
 
-    if (response.status === 429 || response.status === 403) {
-        steamRateLimiter.reportRateLimit();
-        throw new SteamRateLimitError(appIds[0], response.status);
-    }
+    // Tolerates `{}`, `{"response": null}` and a non-array `store_items`, all of
+    // which Steam returns under load and all of which used to throw a TypeError
+    // here and kill the entire batch.
+    const rawItems = extractEnvelopeArray(payload, "response", "store_items");
+    const { valid, invalid } = parseItems(rawItems, storeBrowseItemSchema);
 
-    if (!response.ok) {
-        throw new Error(
-            `IStoreBrowseService batch request failed (${appIds.length} apps): HTTP ${response.status}`,
-        );
+    if (invalid.length > 0) {
+        log.warn("Discarded malformed store items", {
+            requested: appIds.length,
+            returned: rawItems.length,
+            discarded: invalid.length,
+            reasons: invalid.slice(0, 5).map((entry) => entry.reason),
+        });
     }
-
-    const data = (await response.json()) as StoreBrowseResponse;
-    const items = data.response.store_items ?? [];
 
     const results = new Map<number, StoreBrowseDetails>();
 
-    for (const item of items) {
+    for (const item of valid) {
         if (item.success !== 1) continue;
-        const details = await mapItemToDetails(item);
+        const details = await mapItemToDetails(item as unknown as StoreBrowseItem);
         results.set(item.appid, details);
     }
 
     log.debug("Batch fetch completed", {
         requested: appIds.length,
-        returned: items.length,
+        returned: rawItems.length,
         successful: results.size,
+        discarded: invalid.length,
     });
 
     return results;

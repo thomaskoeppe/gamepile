@@ -25,13 +25,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useServerQuery } from "@/lib/hooks/use-server-query";
 import { cn } from "@/lib/utils";
 import { JobType } from "@/prisma/generated/enums";
@@ -129,10 +123,13 @@ export function InvokeJobDialog() {
         setResult(null);
     }, []);
 
-    const handleOpenChange = useCallback((next: boolean) => {
-        setOpen(next);
-        if (!next) setTimeout(reset, 300);
-    }, [reset]);
+    const handleOpenChange = useCallback(
+        (next: boolean) => {
+            setOpen(next);
+            if (!next) setTimeout(reset, 300);
+        },
+        [reset],
+    );
 
     const handleStep1Continue = useCallback(() => {
         if (!selectedType) return;
@@ -161,9 +158,10 @@ export function InvokeJobDialog() {
                     <DialogTitle>Run Background Job</DialogTitle>
                     <DialogDescription>
                         {step === 1 && "Select the job type you want to queue."}
-                        {step === 2 && (config?.requiresUser
-                            ? "Choose a target user for this job."
-                            : "Review and confirm the job you want to run.")}
+                        {step === 2 &&
+                            (config?.requiresUser
+                                ? "Choose a target user for this job."
+                                : "Review and confirm the job you want to run.")}
                         {step === 3 && (isSuccess ? "Job queued successfully." : "Failed to queue job.")}
                     </DialogDescription>
                 </DialogHeader>
@@ -176,12 +174,14 @@ export function InvokeJobDialog() {
                             const done = step > s;
                             return (
                                 <div key={label} className="flex items-center gap-1.5">
-                                    <div className={cn(
-                                        "flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold",
-                                        done && "bg-primary text-primary-foreground",
-                                        active && "border border-primary bg-primary/15 text-primary",
-                                        !done && !active && "bg-muted text-muted-foreground",
-                                    )}>
+                                    <div
+                                        className={cn(
+                                            "flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold",
+                                            done && "bg-primary text-primary-foreground",
+                                            active && "border border-primary bg-primary/15 text-primary",
+                                            !done && !active && "bg-muted text-muted-foreground",
+                                        )}
+                                    >
                                         {done ? <CheckCircle2 className="h-3 w-3" /> : s}
                                     </div>
                                     <span className={active ? "text-foreground font-medium" : ""}>{label}</span>
@@ -210,19 +210,19 @@ export function InvokeJobDialog() {
                                                 : "border-border/60 bg-background/40 hover:border-border hover:bg-muted/30",
                                         )}
                                     >
-                                        <div className={cn(
-                                            "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border",
-                                            cfg.color,
-                                        )}>
+                                        <div
+                                            className={cn(
+                                                "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border",
+                                                cfg.color,
+                                            )}
+                                        >
                                             {cfg.icon}
                                         </div>
                                         <div className="min-w-0">
                                             <p className="text-sm font-medium text-foreground">{cfg.label}</p>
                                             <p className="mt-0.5 text-xs text-muted-foreground">{cfg.description}</p>
                                         </div>
-                                        {selected && (
-                                            <CheckCircle2 className="ml-auto h-4 w-4 shrink-0 text-primary" />
-                                        )}
+                                        {selected && <CheckCircle2 className="ml-auto h-4 w-4 shrink-0 text-primary" />}
                                     </button>
                                 );
                             })}
@@ -241,10 +241,7 @@ export function InvokeJobDialog() {
 
                 {step === 2 && config && (
                     <div className="space-y-4">
-                        <div className={cn(
-                            "flex items-start gap-3 rounded-xl border p-3.5",
-                            config.color,
-                        )}>
+                        <div className={cn("flex items-start gap-3 rounded-xl border p-3.5", config.color)}>
                             <div className="mt-0.5 shrink-0">{config.icon}</div>
                             <div>
                                 <p className="text-sm font-semibold">{config.label}</p>
@@ -303,17 +300,18 @@ export function InvokeJobDialog() {
 
                 {step === 3 && (
                     <div className="space-y-4">
-                        <div className={cn(
-                            "flex flex-col items-center gap-3 py-6 text-center",
-                        )}>
-                            <div className={cn(
-                                "flex h-14 w-14 items-center justify-center rounded-full",
-                                isSuccess ? "bg-primary/10" : "bg-destructive/10",
-                            )}>
-                                {isSuccess
-                                    ? <CheckCircle2 className="h-7 w-7 text-primary" />
-                                    : <ShieldAlert className="h-7 w-7 text-destructive" />
-                                }
+                        <div className={cn("flex flex-col items-center gap-3 py-6 text-center")}>
+                            <div
+                                className={cn(
+                                    "flex h-14 w-14 items-center justify-center rounded-full",
+                                    isSuccess ? "bg-primary/10" : "bg-destructive/10",
+                                )}
+                            >
+                                {isSuccess ? (
+                                    <CheckCircle2 className="h-7 w-7 text-primary" />
+                                ) : (
+                                    <ShieldAlert className="h-7 w-7 text-destructive" />
+                                )}
                             </div>
                             <div>
                                 <p className="font-semibold text-foreground">

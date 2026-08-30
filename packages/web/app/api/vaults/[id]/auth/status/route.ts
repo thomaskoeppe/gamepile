@@ -4,10 +4,7 @@ import { getCurrentSession } from "@/lib/auth/session";
 import { getVaultAccessCookie, verifyVaultAccessToken } from "@/lib/auth/vault/token";
 import prisma from "@/lib/prisma";
 
-export async function GET(
-    _request: Request,
-    { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
     const sessionData = await getCurrentSession();
     if (!sessionData) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -18,10 +15,7 @@ export async function GET(
     const vault = await prisma.keyVault.findFirst({
         where: {
             id: vaultId,
-            OR: [
-                { createdById: sessionData.user.id },
-                { users: { some: { userId: sessionData.user.id } } },
-            ],
+            OR: [{ createdById: sessionData.user.id }, { users: { some: { userId: sessionData.user.id } } }],
         },
         select: { authType: true },
     });

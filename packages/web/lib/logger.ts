@@ -17,6 +17,8 @@
 
 import os from "node:os";
 
+import { createFileLogger, fileLoggerOptionsFromEnv } from "@gamepile/shared/file-logger";
+import { composeLogSinks } from "@gamepile/shared/log-sinks";
 import { createLogger, type ILogger, type LogContext, type LogEntry } from "@gamepile/shared/logger";
 
 import { exportLogEntry } from "@/lib/logs-exporter";
@@ -29,14 +31,31 @@ const IPS = Object.values(os.networkInterfaces())
     .filter((iface): iface is os.NetworkInterfaceInfo => !!iface && iface.family === "IPv4" && !iface.internal)
     .map((iface) => iface.address);
 
-export const logger = createLogger({
-    exportLogEntry,
+const SERVICE_NAME = process.env.LOG_SERVICE || "gamepile-web";
+
+const fileLogger = createFileLogger({
+    ...fileLoggerOptionsFromEnv(SERVICE_NAME),
     skipInBrowser: true,
-    mirrorToStdout: true,
-}, {
-    hostname: HOSTNAME,
-    ips: IPS,
-    env: process.env.NODE_ENV,
-    domain: process.env.DOMAIN,
-    web_app_url: process.env.WEB_APP_URL,
 });
+
+/**
+ * Every configured destination, fanned out behind one callback. Each sink is
+ * isolated, so a failing destination (a full disk, an unreachable collector)
+ * cannot throw into a request path.
+ */
+export const logSinks = composeLogSinks([{ name: "otlp", exportLogEntry }, fileLogger.toLogSink()]);
+
+export const logger = createLogger(
+    {
+        exportLogEntry: logSinks.exportLogEntry,
+        skipInBrowser: true,
+        mirrorToStdout: true,
+    },
+    {
+        hostname: HOSTNAME,
+        ips: IPS,
+        env: process.env.NODE_ENV,
+        domain: process.env.DOMAIN,
+        web_app_url: process.env.WEB_APP_URL,
+    },
+);

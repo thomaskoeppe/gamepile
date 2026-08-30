@@ -5,7 +5,7 @@ import { Flame } from "lucide-react";
 import { GameTile } from "@/components/game/game-tile";
 import { Prisma } from "@/prisma/generated/client";
 
-type LibraryGame = Prisma.GameGetPayload<{ include: { categories: true, tags: true } }> & {
+type LibraryGame = Prisma.GameGetPayload<{ include: { categories: true; tags: true } }> & {
     playtime?: number;
     playtime2Weeks?: number;
     owned: boolean;
@@ -18,13 +18,7 @@ const SHELF_LIMIT = 12;
  * Horizontal shelf of the user's most-played games from the last two weeks,
  * sorted by recent playtime. Renders nothing when nothing was played.
  */
-export function RecentlyPlayedShelf({
-    games,
-    onRevalidate,
-}: {
-    games: LibraryGame[];
-    onRevalidate?: () => void;
-}) {
+export function RecentlyPlayedShelf({ games, onRevalidate }: { games: LibraryGame[]; onRevalidate?: () => void }) {
     const recentlyPlayed = games
         .filter((g) => (g.playtime2Weeks ?? 0) > 0)
         .sort((a, b) => (b.playtime2Weeks ?? 0) - (a.playtime2Weeks ?? 0))

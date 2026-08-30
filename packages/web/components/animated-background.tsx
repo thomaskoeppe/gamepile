@@ -36,7 +36,10 @@ class Particle {
 
     glowCache: GlowCache | null = null;
 
-    constructor(private canvasWidth: number, private canvasHeight: number) {
+    constructor(
+        private canvasWidth: number,
+        private canvasHeight: number,
+    ) {
         const tier = Math.random();
         if (tier < 0.6) {
             this.baseSize = Math.random() * 1.5 + 0.4;

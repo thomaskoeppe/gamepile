@@ -40,7 +40,7 @@ spec:
               mountPath: /var/lib/postgresql/data
           readinessProbe:
             exec:
-              command: ["/bin/sh", "-c", "pg_isready -U \"$POSTGRES_USER\""]
+              command: ["/bin/sh", "-c", 'pg_isready -U "$POSTGRES_USER"']
             initialDelaySeconds: 5
             periodSeconds: 10
   volumeClaimTemplates:

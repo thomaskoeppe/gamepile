@@ -1,42 +1,38 @@
 import { getCurrentSession } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
-import { sseEvent, ssePing } from "@/lib/sse";
-import { isTerminal,JobSnapshot } from "@/types/job";
+import { createPollingSseStream, SSE_HEADERS, sseEvent } from "@/lib/sse";
+import { isTerminal, JobSnapshot } from "@/types/job";
 
-const POLL_INTERVAL_MS     = 2_000;
+const POLL_INTERVAL_MS = 2_000;
 const KEEPALIVE_INTERVAL_MS = 15_000;
-const LOG_TAIL              = 20;
+const LOG_TAIL = 20;
 
-
-async function fetchSnapshot(
-    jobId: string,
-    userId: string,
-): Promise<JobSnapshot | null> {
+async function fetchSnapshot(jobId: string, userId: string): Promise<JobSnapshot | null> {
     const job = await prisma.job.findUnique({
         where: {
-            id:     jobId,
+            id: jobId,
             userId,
         },
         select: {
-            id:             true,
-            type:           true,
-            status:         true,
+            id: true,
+            type: true,
+            status: true,
             processedItems: true,
-            totalItems:     true,
-            failedItems:    true,
+            totalItems: true,
+            failedItems: true,
             allItemsQueued: true,
-            startedAt:      true,
-            finishedAt:     true,
-            errorMessage:   true,
-            createdAt:      true,
+            startedAt: true,
+            finishedAt: true,
+            errorMessage: true,
+            createdAt: true,
             logs: {
                 orderBy: { timestamp: "desc" },
-                take:    LOG_TAIL,
+                take: LOG_TAIL,
                 select: {
-                    id:        true,
-                    message:   true,
-                    level:     true,
+                    id: true,
+                    message: true,
+                    level: true,
                     timestamp: true,
                 },
             },
@@ -47,19 +43,14 @@ async function fetchSnapshot(
 
     return {
         ...job,
-        startedAt:  job.startedAt?.toISOString()  ?? null,
+        startedAt: job.startedAt?.toISOString() ?? null,
         finishedAt: job.finishedAt?.toISOString() ?? null,
-        createdAt:  job.createdAt.toISOString(),
-        logs: job.logs
-            .reverse()
-            .map((l) => ({ ...l, timestamp: l.timestamp.toISOString() })),
+        createdAt: job.createdAt.toISOString(),
+        logs: job.logs.reverse().map((l) => ({ ...l, timestamp: l.timestamp.toISOString() })),
     };
 }
 
-export async function GET(
-    req: Request,
-    { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
     const log = logger.child("api.routes.jobs:statusStream", {
         requestId: req.headers.get("x-request-id") ?? undefined,
     });
@@ -70,80 +61,42 @@ export async function GET(
         return new Response("Unauthorized", { status: 401 });
     }
 
-    const userId  = session.user.id;
-    const encoder = new TextEncoder();
+    const userId = session.user.id;
 
-    let pollId:      ReturnType<typeof setInterval> | null = null;
-    let keepAliveId: ReturnType<typeof setInterval> | null = null;
-    let closed = false;
+    const stream = createPollingSseStream({
+        signal: req.signal,
+        pollIntervalMs: POLL_INTERVAL_MS,
+        keepAliveIntervalMs: KEEPALIVE_INTERVAL_MS,
+        async poll({ send, close }) {
+            let snapshot: JobSnapshot | null;
 
-    function cleanup() {
-        closed = true;
-        if (pollId)      { clearInterval(pollId);      pollId      = null; }
-        if (keepAliveId) { clearInterval(keepAliveId); keepAliveId = null; }
-    }
-
-    const stream = new ReadableStream({
-        async start(controller) {
-            function send(raw: string): void {
-                if (closed) return;
-                try {
-                    controller.enqueue(encoder.encode(raw));
-                } catch {
-                    cleanup();
-                }
+            try {
+                snapshot = await fetchSnapshot(jobId, userId);
+            } catch {
+                log.error("SSE snapshot poll failed", undefined, {
+                    jobId,
+                    userId,
+                });
+                return;
             }
 
-            async function poll(): Promise<void> {
-                if (closed) return;
-
-                let snapshot: JobSnapshot | null;
-                try {
-                    snapshot = await fetchSnapshot(jobId, userId);
-                } catch {
-                    log.error("SSE snapshot poll failed", undefined, {
-                        jobId,
-                        userId,
-                    });
-                    return;
-                }
-
-                if (!snapshot) {
-                    send(sseEvent("error", { message: "Job not found or access denied" }));
-                    cleanup();
-                    controller.close();
-                    return;
-                }
-
-                send(sseEvent("snapshot", snapshot));
-
-                if (isTerminal(snapshot.status)) {
-                    send(sseEvent("done", { status: snapshot.status }));
-                    cleanup();
-                    controller.close();
-                }
+            if (!snapshot) {
+                send(sseEvent("error", { message: "Job not found or access denied" }));
+                close();
+                return;
             }
 
-            await poll();
+            send(sseEvent("snapshot", snapshot));
 
-            if (!closed) {
-                pollId = setInterval(() => void poll(), POLL_INTERVAL_MS);
-
-                keepAliveId = setInterval(() => send(ssePing()), KEEPALIVE_INTERVAL_MS);
+            if (isTerminal(snapshot.status)) {
+                send(sseEvent("done", { status: snapshot.status }));
+                close();
             }
         },
-
-        cancel() {
-            cleanup();
+        onClose(reason) {
+            log.debug("Job status stream closed", { jobId, userId, reason });
         },
     });
 
-    return new Response(stream, {
-        headers: {
-            "Content-Type":    "text/event-stream",
-            "Cache-Control":   "no-cache, no-transform",
-            "Connection":      "keep-alive",
-            "X-Accel-Buffering": "no",
-        },
-    });
+    return new Response(stream, { headers: SSE_HEADERS });
 }

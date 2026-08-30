@@ -20,9 +20,7 @@ const TERMINAL_JOB_WINDOW_MS = 24 * 60 * 60 * 1_000;
  * @param jobType - The job type to look up.
  * @returns The latest matching job snapshot, or `null` if none found.
  */
-export async function getLatestJobByType(
-    jobType: JobType,
-): Promise<JobSnapshot | null> {
+export async function getLatestJobByType(jobType: JobType): Promise<JobSnapshot | null> {
     const session = await getCurrentSession();
     if (!session) {
         log.debug("getLatestJobByType called without session", { jobType });
@@ -35,7 +33,7 @@ export async function getLatestJobByType(
 
     const job = await prisma.job.findFirst({
         where: {
-            type:   jobType,
+            type: jobType,
             userId: session.user.id,
             OR: [
                 {
@@ -49,24 +47,24 @@ export async function getLatestJobByType(
         },
         orderBy: { createdAt: "desc" },
         select: {
-            id:             true,
-            type:           true,
-            status:         true,
+            id: true,
+            type: true,
+            status: true,
             processedItems: true,
-            totalItems:     true,
-            failedItems:    true,
+            totalItems: true,
+            failedItems: true,
             allItemsQueued: true,
-            startedAt:      true,
-            finishedAt:     true,
-            errorMessage:   true,
-            createdAt:      true,
+            startedAt: true,
+            finishedAt: true,
+            errorMessage: true,
+            createdAt: true,
             logs: {
                 orderBy: { timestamp: "desc" },
-                take:    LOG_TAIL,
+                take: LOG_TAIL,
                 select: {
-                    id:        true,
-                    message:   true,
-                    level:     true,
+                    id: true,
+                    message: true,
+                    level: true,
                     timestamp: true,
                 },
             },
@@ -82,11 +80,9 @@ export async function getLatestJobByType(
 
     return {
         ...job,
-        startedAt:  job.startedAt?.toISOString()  ?? null,
+        startedAt: job.startedAt?.toISOString() ?? null,
         finishedAt: job.finishedAt?.toISOString() ?? null,
-        createdAt:  job.createdAt.toISOString(),
-        logs: job.logs
-            .reverse()
-            .map((l) => ({ ...l, timestamp: l.timestamp.toISOString() })),
+        createdAt: job.createdAt.toISOString(),
+        logs: job.logs.reverse().map((l) => ({ ...l, timestamp: l.timestamp.toISOString() })),
     };
 }

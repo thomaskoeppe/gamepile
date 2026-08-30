@@ -28,11 +28,7 @@ export function LibraryStats({ games }: { games: LibraryStatsGame[] }) {
 
     return (
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 mb-4">
-            <StatCard
-                icon={<Gamepad2 className="size-4" />}
-                label="Games"
-                value={games.length.toLocaleString()}
-            />
+            <StatCard icon={<Gamepad2 className="size-4" />} label="Games" value={games.length.toLocaleString()} />
             <StatCard
                 icon={<Clock className="size-4" />}
                 label="Total playtime"

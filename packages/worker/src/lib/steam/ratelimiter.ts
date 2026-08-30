@@ -1,6 +1,6 @@
-import {logger} from "@/src/lib/logger.js";
-import {redis} from "@/src/lib/redis.js";
-import {getWorkerEnv} from "@/src/lib/env.js";
+import { logger } from "@/src/lib/logger.js";
+import { redis } from "@/src/lib/redis.js";
+import { getWorkerEnv } from "@/src/lib/env.js";
 
 const log = logger.child("worker.lib.steam:ratelimiter");
 
@@ -19,7 +19,7 @@ export class SteamRateLimitError extends Error {
      */
     constructor(appId: number, status: number) {
         super(`Steam rate-limited appId ${appId}: HTTP ${status}`);
-        this.name   = "SteamRateLimitError";
+        this.name = "SteamRateLimitError";
         this.status = status;
     }
 }
@@ -52,9 +52,9 @@ class SteamRateLimiter {
     /** Redis key used to coordinate cooldown across distributed workers. */
     private static readonly COOLDOWN_REDIS_KEY = "ratelimit:steam:cooldown";
     /** Maximum number of requests allowed per window. */
-    private readonly max:           number;
+    private readonly max: number;
     /** Duration of the rate-limit window in milliseconds. */
-    private readonly windowMs:      number;
+    private readonly windowMs: number;
     /** Minimum interval between consecutive requests in milliseconds. */
     private readonly minIntervalMs: number;
     /** Whether rate limiting is local (in-process) or distributed (Redis-backed). */
@@ -62,7 +62,7 @@ class SteamRateLimiter {
     /** Start timestamp of the current local window. */
     private windowStart: number;
     /** Number of requests made in the current local window. */
-    private count:       number;
+    private count: number;
     /** Queue of pending resolve callbacks waiting for a slot. */
     private readonly pending: Array<() => void> = [];
     /** Whether the local drain loop is currently running. */
@@ -81,12 +81,7 @@ class SteamRateLimiter {
      * @param opts.minIntervalMs - Minimum interval between consecutive requests.
      * @param opts.scope - `"local"` for single-process or `"distributed"` for Redis-backed.
      */
-    constructor(opts: {
-        max: number;
-        windowMs: number;
-        minIntervalMs: number;
-        scope: "local" | "distributed";
-    }) {
+    constructor(opts: { max: number; windowMs: number; minIntervalMs: number; scope: "local" | "distributed" }) {
         this.max = opts.max;
         this.windowMs = opts.windowMs;
         this.minIntervalMs = opts.minIntervalMs;
@@ -129,14 +124,13 @@ class SteamRateLimiter {
         });
 
         if (this.scope === "distributed") {
-            redis.set(
-                SteamRateLimiter.COOLDOWN_REDIS_KEY, until.toString(),
-                "PX", SteamRateLimiter.COOLDOWN_MS,
-            ).catch((err) => {
-                log.warn("Failed to set distributed cooldown key", {
-                    message: err instanceof Error ? err.message : "Unknown error",
+            redis
+                .set(SteamRateLimiter.COOLDOWN_REDIS_KEY, until.toString(), "PX", SteamRateLimiter.COOLDOWN_MS)
+                .catch((err) => {
+                    log.warn("Failed to set distributed cooldown key", {
+                        message: err instanceof Error ? err.message : "Unknown error",
+                    });
                 });
-            });
         }
     }
 
@@ -180,7 +174,7 @@ class SteamRateLimiter {
         }
 
         if (remaining > 0) {
-            log.debug("Waiting for rate limit cooldown", {remainingMs: remaining});
+            log.debug("Waiting for rate limit cooldown", { remainingMs: remaining });
             await sleep(remaining);
         }
     }

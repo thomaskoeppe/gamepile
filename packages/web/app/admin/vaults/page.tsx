@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { RefreshCw, TriangleAlert } from "lucide-react";
 
@@ -42,9 +42,7 @@ export default function AdminVaultsPage() {
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div className="space-y-1">
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-                            Vaults
-                        </h1>
+                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Vaults</h1>
                         <p className="text-sm text-muted-foreground">
                             View all vaults and manage ownership assignments
                         </p>
@@ -87,11 +85,7 @@ export default function AdminVaultsPage() {
                     </Card>
                 ) : vaults ? (
                     <div className={cn("relative transition-opacity duration-200", isRevalidating && "opacity-80")}>
-                        <AdminVaultsTable
-                            vaults={vaults}
-                            users={users}
-                            onMutate={() => mutate()}
-                        />
+                        <AdminVaultsTable vaults={vaults} users={users} onMutate={() => mutate()} />
                     </div>
                 ) : null}
             </div>

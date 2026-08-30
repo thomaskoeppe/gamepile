@@ -1,14 +1,14 @@
-import {isJobCancelled} from "@/src/lib/job/cancel.js";
-import {clearCheckpoint, readCheckpoint, writeCheckpoint} from "@/src/lib/job/checkpoint.js";
-import {tryCompleteParentJob} from "@/src/lib/job/completion.js";
-import {createLog} from "@/src/lib/job/log.js";
-import {PRIORITY} from "@/src/lib/job/priority.js";
-import {gameDetailsQueue} from "@/src/lib/job/queue.js";
-import {getWorkerEnv} from "@/src/lib/env.js";
-import {getConnectedGameIds, upsertGameStubs} from "@/src/lib/helper.js";
-import {logger} from "@/src/lib/logger.js";
+import { isJobCancelled } from "@/src/lib/job/cancel.js";
+import { clearCheckpoint, readCheckpoint, writeCheckpoint } from "@/src/lib/job/checkpoint.js";
+import { tryCompleteParentJob } from "@/src/lib/job/completion.js";
+import { createLog } from "@/src/lib/job/log.js";
+import { PRIORITY } from "@/src/lib/job/priority.js";
+import { gameDetailsQueue } from "@/src/lib/job/queue.js";
+import { getWorkerEnv } from "@/src/lib/env.js";
+import { getConnectedGameIds, upsertGameStubs } from "@/src/lib/helper.js";
+import { logger } from "@/src/lib/logger.js";
 import prisma from "@/src/lib/prisma.js";
-import {getAppList} from "@/src/lib/steam/api/get-app-list.js";
+import { getAppList } from "@/src/lib/steam/api/get-app-list.js";
 
 /** Maximum number of apps to request per Steam GetAppList page. */
 const MAX_RESULTS_PER_PAGE = 50_000;
@@ -47,22 +47,18 @@ export default async function syncSteamGames(opts: {
     let lastAppId = checkpoint ? Number(checkpoint.cursor) : 0;
     let totalQueued = checkpoint?.queuedItems ?? 0;
 
-    log.info("Starting Steam games sync", {ifModifiedSince, ignoreLastModified, checkpoint});
+    log.info("Starting Steam games sync", { ifModifiedSince, ignoreLastModified, checkpoint });
 
     if (checkpoint) {
-        await createLog(jobId, "info",
-            `Resuming from checkpoint: cursor=${lastAppId}, alreadyQueued=${totalQueued}.`,
-        );
+        await createLog(jobId, "info", `Resuming from checkpoint: cursor=${lastAppId}, alreadyQueued=${totalQueued}.`);
     }
 
     let hasMorePages = true;
 
     while (hasMorePages) {
         if (await isJobCancelled(jobId)) {
-            log.info("Sync canceled — stopping pagination", {lastAppId, totalQueued});
-            await createLog(jobId, "warn",
-                `Sync canceled by admin. Stopped after queuing ${totalQueued} app(s).`,
-            );
+            log.info("Sync canceled — stopping pagination", { lastAppId, totalQueued });
+            await createLog(jobId, "warn", `Sync canceled by admin. Stopped after queuing ${totalQueued} app(s).`);
             await clearCheckpoint(jobId);
             return;
         }
@@ -94,7 +90,7 @@ export default async function syncSteamGames(opts: {
 
         const existingGames = await prisma.game.findMany({
             where: { appId: { in: appIds } },
-            select: {id: true, appId: true, steamLastModified: true, detailsFetchedAt: true},
+            select: { id: true, appId: true, steamLastModified: true, detailsFetchedAt: true },
         });
 
         const existingByAppId = new Map(existingGames.map((g) => [g.appId!, g]));
@@ -107,7 +103,7 @@ export default async function syncSteamGames(opts: {
         });
 
         if (appsNeedingUpdate.length === 0) {
-            log.debug("All apps in this page are current — skipping", {lastAppId});
+            log.debug("All apps in this page are current — skipping", { lastAppId });
             await writeCheckpoint(jobId, { cursor: lastAppId.toString(), queuedItems: totalQueued });
             continue;
         }
@@ -122,7 +118,7 @@ export default async function syncSteamGames(opts: {
             .map((app) => {
                 const gameId = gameIdByAppId.get(app.appid);
                 if (!gameId) {
-                    log.warn("No Game row after upsert — skipping", {appId: app.appid});
+                    log.warn("No Game row after upsert — skipping", { appId: app.appid });
                     return null;
                 }
                 return { appId: app.appid, gameId };
@@ -156,13 +152,13 @@ export default async function syncSteamGames(opts: {
 
             childJobs.push({
                 name: "FETCH_GAME_DETAILS_BATCH",
-                data: {parentJobId: jobId, appIds: chunkAppIds, gameIdMap, priority},
+                data: { parentJobId: jobId, appIds: chunkAppIds, gameIdMap, priority },
                 opts: {
                     priority,
-                    attempts:         6,
-                    backoff:          { type: "exponential" as const, delay: 2_000 },
+                    attempts: 6,
+                    backoff: { type: "exponential" as const, delay: 2_000 },
                     removeOnComplete: 2_000,
-                    removeOnFail:     5_000,
+                    removeOnFail: 5_000,
                 },
             });
 
@@ -174,10 +170,10 @@ export default async function syncSteamGames(opts: {
 
         await prisma.job.update({
             where: { id: jobId },
-            data: {totalItems: {increment: totalAppsInBatch}},
+            data: { totalItems: { increment: totalAppsInBatch } },
         });
 
-        await writeCheckpoint(jobId, {cursor: lastAppId.toString(), queuedItems: totalQueued});
+        await writeCheckpoint(jobId, { cursor: lastAppId.toString(), queuedItems: totalQueued });
 
         log.info("Page committed", {
             batchJobsQueued: childJobs.length,
@@ -188,15 +184,13 @@ export default async function syncSteamGames(opts: {
 
     await prisma.job.update({
         where: { id: jobId },
-        data: {allItemsQueued: true},
+        data: { allItemsQueued: true },
     });
 
-    await createLog(jobId, "info",
-        `Pagination complete. ${totalQueued} app(s) queued across all pages.`,
-    );
+    await createLog(jobId, "info", `Pagination complete. ${totalQueued} app(s) queued across all pages.`);
 
     await tryCompleteParentJob(jobId);
     await clearCheckpoint(jobId);
 
-    log.info("Steam games sync completed", {totalQueued, durationMs: Date.now() - startMs});
+    log.info("Steam games sync completed", { totalQueued, durationMs: Date.now() - startMs });
 }

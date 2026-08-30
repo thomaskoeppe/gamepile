@@ -1,6 +1,6 @@
 "use client";
 
-import {Eraser, RefreshCw, Search, TicketCheck} from "lucide-react";
+import { Eraser, RefreshCw, Search, TicketCheck } from "lucide-react";
 
 import { KeyImport } from "@/app/vaults/[id]/key-import";
 import { MultiSelectCombobox } from "@/components/shared/multi-select-combobox";
@@ -131,9 +131,7 @@ export function VaultFilterToolbar({
                 </Button>
 
                 {showMultiKeyRedeemDialogTrigger && (
-                    <Button
-                        onClick={() => openMultiKeyRedeemDialog()}
-                    >
+                    <Button onClick={() => openMultiKeyRedeemDialog()}>
                         <TicketCheck className="h-4 w-4" />
                         Redeem Selected
                     </Button>

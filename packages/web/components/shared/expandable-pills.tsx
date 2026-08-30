@@ -1,13 +1,13 @@
-import {useState} from "react";
+import { useState } from "react";
 
-import {Badge} from "@/components/ui/badge";
-import {cn} from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export function ExpandablePills({
-     items,
-     max = 3,
-     variant = "outline",
-     className
+    items,
+    max = 3,
+    variant = "outline",
+    className,
 }: {
     items: { id: string; name: string }[] | string[];
     max?: number;

@@ -2,16 +2,16 @@ export const dynamic = "force-dynamic";
 
 import "@/app/globals.css";
 
-import {Analytics} from '@vercel/analytics/next';
-import type {Metadata} from "next";
-import {Outfit, Space_Grotesk, Space_Mono} from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import type { Metadata } from "next";
+import { Outfit, Space_Grotesk, Space_Mono } from "next/font/google";
 import * as React from "react";
-import {ReactNode} from "react";
+import { ReactNode } from "react";
 
 import { AnimatedBackground } from "@/components/animated-background";
-import { getPublicSettings } from "@/lib/app-settings";
+import { ensureSettingsLoaded, getPublicSettings } from "@/lib/app-settings";
 import { AppSettingsProvider } from "@/lib/providers/app-settings";
-import {SessionProvider} from "@/lib/providers/session";
+import { SessionProvider } from "@/lib/providers/session";
 
 const outfit = Outfit({
     variable: "--font-heading",
@@ -39,18 +39,9 @@ export const metadata: Metadata = {
     },
     description:
         "Self-hosted Steam library manager. Import your games, build curated collections, and store activation keys in encrypted vaults.",
-    authors: [
-        { name: "thomaskoeppe", url: "https://github.com/thomaskoeppe" },
-    ],
+    authors: [{ name: "thomaskoeppe", url: "https://github.com/thomaskoeppe" }],
     creator: "thomaskoeppe",
-    keywords: [
-        "steam",
-        "game library",
-        "game collection",
-        "key vault",
-        "self-hosted",
-        "game management",
-    ],
+    keywords: ["steam", "game library", "game collection", "key vault", "self-hosted", "game management"],
     icons: {
         icon: [
             { url: "/favicon.ico", sizes: "any" },
@@ -72,15 +63,18 @@ export const metadata: Metadata = {
         description:
             "Self-hosted Steam library manager. Import your games, build curated collections, and store activation keys in encrypted vaults.",
         images: ["/logo_4x.png"],
-    }
+    },
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+    // Repairs a cold settings store (failed boot load, transient database outage)
+    // without needing a container restart. Never rejects — a still-cold store
+    // renders with defaults rather than failing the whole tree.
+    await ensureSettingsLoaded();
+
     return (
         <html lang="en" className="dark" suppressHydrationWarning>
-            <body
-                className={`${outfit.variable} ${spaceGrotesk.variable} ${spaceMono.variable} antialiased`}
-            >
+            <body className={`${outfit.variable} ${spaceGrotesk.variable} ${spaceMono.variable} antialiased`}>
                 <AppSettingsProvider initialSettings={getPublicSettings()}>
                     <SessionProvider>
                         <div className="min-h-screen bg-linear-to-b from-card via-background to-background text-foreground">

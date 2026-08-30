@@ -2,24 +2,19 @@
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import {
-    ArrowLeft,
-    Clock,
-    User,
-    WifiOff,
-} from "lucide-react";
+import { ArrowLeft, Clock, User, WifiOff } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { CancelJobButton } from "@/components/admin/jobs/cancel-button";
-import {StatusBadge} from "@/components/job-status";
+import { StatusBadge } from "@/components/job-status";
 import { Shimmer } from "@/components/shared/shimmer";
 import { TablePagination } from "@/components/table-pagination";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { browserLog } from "@/lib/browser-logger";
-import {cn, formatDurationMs} from "@/lib/utils";
+import { cn, formatDurationMs } from "@/lib/utils";
 import { JobStatus } from "@/prisma/generated/browser";
 import type { AdminJobDetail, JobLogEntry } from "@/types/job";
 import { JOB_TYPE_LABEL } from "@/types/job";
@@ -28,9 +23,12 @@ dayjs.extend(relativeTime);
 
 function logLevelClass(level: string): string {
     switch (level.toLowerCase()) {
-        case "error": return "text-red-400";
-        case "warn": return "text-amber-400";
-        default: return "text-muted-foreground";
+        case "error":
+            return "text-red-400";
+        case "warn":
+            return "text-amber-400";
+        default:
+            return "text-muted-foreground";
     }
 }
 
@@ -60,9 +58,7 @@ export default function AdminJobDetailPage() {
 
         let cancelled = false;
 
-        void fetch(
-            `/api/admin/jobs/${jobId}?logPage=${logPage}&logLimit=25&failedPage=${failedPage}&failedLimit=10`,
-        )
+        void fetch(`/api/admin/jobs/${jobId}?logPage=${logPage}&logLimit=25&failedPage=${failedPage}&failedLimit=10`)
             .then((response) => {
                 if (!response.ok) {
                     throw new Error("Failed to load job.");
@@ -116,10 +112,7 @@ export default function AdminJobDetailPage() {
                     return {
                         ...prev,
                         ...payload,
-                        logs:
-                            logPageRef.current === 1
-                                ? mergeLogs(prev.logs, payload.logs ?? [])
-                                : prev.logs,
+                        logs: logPageRef.current === 1 ? mergeLogs(prev.logs, payload.logs ?? []) : prev.logs,
                     };
                 });
 
@@ -150,15 +143,16 @@ export default function AdminJobDetailPage() {
 
     const runtime = job?.startedAt
         ? formatDurationMs(
-            (job.finishedAt ? new Date(job.finishedAt).getTime() : now) -
-            new Date(job.startedAt).getTime()
+              (job.finishedAt ? new Date(job.finishedAt).getTime() : now) - new Date(job.startedAt).getTime(),
           )
         : null;
 
     const pct = job
         ? job.totalItems > 0
             ? Math.min(100, Math.round(((job.processedItems + job.failedItems) / job.totalItems) * 100))
-            : job.status === JobStatus.COMPLETED ? 100 : 0
+            : job.status === JobStatus.COMPLETED
+              ? 100
+              : 0
         : 0;
 
     if (loading) {
@@ -184,7 +178,11 @@ export default function AdminJobDetailPage() {
     return (
         <div className="space-y-6">
             <Link href="/admin/jobs">
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-card -ml-2">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-foreground hover:bg-card -ml-2"
+                >
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back to Jobs
                 </Button>
@@ -208,9 +206,7 @@ export default function AdminJobDetailPage() {
                             <CancelJobButton
                                 jobId={job.id}
                                 onCanceledAction={() =>
-                                    setJob((prev) =>
-                                        prev ? { ...prev, status: JobStatus.CANCELED } : prev,
-                                    )
+                                    setJob((prev) => (prev ? { ...prev, status: JobStatus.CANCELED } : prev))
                                 }
                             />
                         )}
@@ -233,7 +229,9 @@ export default function AdminJobDetailPage() {
                             <User className="h-4 w-4" />
                             <Avatar className="h-5 w-5">
                                 <AvatarImage src={job.user.avatarUrl ?? undefined} />
-                                <AvatarFallback className="text-[9px]">{job.user.username[0].toUpperCase()}</AvatarFallback>
+                                <AvatarFallback className="text-[9px]">
+                                    {job.user.username[0].toUpperCase()}
+                                </AvatarFallback>
                             </Avatar>
                             <span>{job.user.username}</span>
                         </div>
@@ -254,17 +252,26 @@ export default function AdminJobDetailPage() {
                             <div
                                 className={cn(
                                     "h-full rounded-full transition-all duration-500",
-                                    job.status === JobStatus.ACTIVE ? "bg-blue-500" :
-                                    job.status === JobStatus.COMPLETED ? "bg-primary" :
-                                    job.status === JobStatus.FAILED ? "bg-red-500" : "bg-muted-foreground/30"
+                                    job.status === JobStatus.ACTIVE
+                                        ? "bg-blue-500"
+                                        : job.status === JobStatus.COMPLETED
+                                          ? "bg-primary"
+                                          : job.status === JobStatus.FAILED
+                                            ? "bg-red-500"
+                                            : "bg-muted-foreground/30",
                                 )}
                                 style={{ width: `${pct}%` }}
                             />
                         </div>
                         <div className="flex justify-between text-xs text-muted-foreground/70">
                             <span>
-                                {(job.processedItems + job.failedItems).toLocaleString()} / {job.totalItems.toLocaleString()} items
-                                {job.failedItems > 0 && <span className="ml-2 text-amber-400">({job.failedItems.toLocaleString()} failed)</span>}
+                                {(job.processedItems + job.failedItems).toLocaleString()} /{" "}
+                                {job.totalItems.toLocaleString()} items
+                                {job.failedItems > 0 && (
+                                    <span className="ml-2 text-amber-400">
+                                        ({job.failedItems.toLocaleString()} failed)
+                                    </span>
+                                )}
                             </span>
                             <span>{pct}%</span>
                         </div>
@@ -277,9 +284,7 @@ export default function AdminJobDetailPage() {
                     <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Logs</h2>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground/70">
                         <span>{job.logsPagination.total.toLocaleString()} total</span>
-                        {logPage > 1 ? (
-                            <span className="text-amber-400">Viewing historical page</span>
-                        ) : null}
+                        {logPage > 1 ? <span className="text-amber-400">Viewing historical page</span> : null}
                     </div>
                 </div>
                 {job.logs.length === 0 ? (
@@ -298,12 +303,26 @@ export default function AdminJobDetailPage() {
                                 {job.logs.map((entry) => (
                                     <tr key={entry.id} className="border-b border-border/60 align-top">
                                         <td className="px-3 py-2 font-mono text-muted-foreground/70">
-                                            {new Date(entry.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                                            {new Date(entry.timestamp).toLocaleTimeString([], {
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                                second: "2-digit",
+                                            })}
                                         </td>
-                                        <td className={cn("px-3 py-2 font-medium uppercase", logLevelClass(entry.level))}>
+                                        <td
+                                            className={cn(
+                                                "px-3 py-2 font-medium uppercase",
+                                                logLevelClass(entry.level),
+                                            )}
+                                        >
                                             {entry.level}
                                         </td>
-                                        <td className={cn("px-3 py-2 whitespace-normal wrap-break-word", logLevelClass(entry.level))}>
+                                        <td
+                                            className={cn(
+                                                "px-3 py-2 whitespace-normal wrap-break-word",
+                                                logLevelClass(entry.level),
+                                            )}
+                                        >
                                             {entry.message}
                                         </td>
                                     </tr>
@@ -343,7 +362,10 @@ export default function AdminJobDetailPage() {
                             <tbody>
                                 {job.failedChildJobs.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="px-3 py-6 text-center text-xs text-muted-foreground/70">
+                                        <td
+                                            colSpan={4}
+                                            className="px-3 py-6 text-center text-xs text-muted-foreground/70"
+                                        >
                                             No failed items on this page.
                                         </td>
                                     </tr>
@@ -351,8 +373,12 @@ export default function AdminJobDetailPage() {
                                     job.failedChildJobs.map((f) => (
                                         <tr key={f.id} className="border-b border-border/60 hover:bg-card/20">
                                             <td className="px-3 py-2 font-mono text-xs text-foreground">{f.appId}</td>
-                                            <td className="px-3 py-2 font-mono text-xs text-muted-foreground/70">{f.gameId ? `${f.gameId.slice(0, 8)}…` : "—"}</td>
-                                            <td className="px-3 py-2 text-xs text-red-400 max-w-xs truncate">{f.errorMessage ?? "—"}</td>
+                                            <td className="px-3 py-2 font-mono text-xs text-muted-foreground/70">
+                                                {f.gameId ? `${f.gameId.slice(0, 8)}…` : "—"}
+                                            </td>
+                                            <td className="px-3 py-2 text-xs text-red-400 max-w-xs truncate">
+                                                {f.errorMessage ?? "—"}
+                                            </td>
                                             <td className="px-3 py-2 text-xs text-muted-foreground">{f.attempts}</td>
                                         </tr>
                                     ))

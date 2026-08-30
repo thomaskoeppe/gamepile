@@ -1,6 +1,6 @@
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
-import {AppSettingKey, KeyVaultAuthType} from "@/prisma/generated/enums";
+import { AppSettingKey, KeyVaultAuthType } from "@/prisma/generated/enums";
 import type { AppSettingValueType } from "@/types/app-setting";
 
 /**
@@ -27,7 +27,7 @@ export const PUBLIC_SETTING_KEYS = [
     AppSettingKey.VAULT_DEFAULT_AUTH_TYPE,
     AppSettingKey.VAULT_ALLOW_PASSWORD_CHANGE,
     AppSettingKey.ALLOW_INVITE_CODE_GENERATION,
-    AppSettingKey.ALLOW_USER_ACCOUNT_DELETION
+    AppSettingKey.ALLOW_USER_ACCOUNT_DELETION,
 ] as const satisfies readonly AppSettingKey[];
 
 /** The type of settings that are safe to expose client-side. */
@@ -69,18 +69,31 @@ type SettingsStore = Partial<AppSettingValueType>;
 const g = globalThis as typeof globalThis & {
     __appSettings?: SettingsStore;
     __appSettingsLoaded?: boolean;
+    __appSettingsLoading?: Promise<void>;
+    __appSettingsWarned?: boolean;
 };
 
-function assertSettingsLoaded(operation: string): void {
-    if (g.__appSettingsLoaded) {
+/**
+ * Reads must never throw. A cold store means the process serves {@link DEFAULTS}
+ * until a load succeeds — degraded, but online. Throwing here previously took
+ * down every render, because the root layout reads settings on every request and
+ * a throw in the root layout cannot be caught by a route-segment error boundary.
+ *
+ * The warning is emitted once per cold period to avoid flooding the log on a
+ * hot path.
+ */
+function warnIfNotLoaded(operation: string): void {
+    if (g.__appSettingsLoaded || g.__appSettingsWarned) {
         return;
     }
 
-    const error = new Error(
-        `App settings are not loaded. Refusing to continue during ${operation}. Ensure loadSettings() completed during startup.`,
-    );
-    log.error("App settings accessed before load completed", error, { operation });
-    throw error;
+    g.__appSettingsWarned = true;
+    log.warn("App settings read before load completed — serving defaults", { operation });
+
+    // Kick off a background repair so the store recovers without a restart.
+    void ensureSettingsLoaded().catch(() => {
+        // ensureSettingsLoaded already logged; nothing to add on a read path.
+    });
 }
 
 function store(): SettingsStore {
@@ -97,50 +110,89 @@ function store(): SettingsStore {
  *
  * @returns A promise that resolves when all settings have been loaded into memory.
  */
-export async function loadSettings(): Promise<void> {
-    if (g.__appSettingsLoaded) {
+export async function loadSettings(options?: { force?: boolean }): Promise<void> {
+    if (g.__appSettingsLoaded && !options?.force) {
         log.debug("Settings already loaded — skipping");
         return;
     }
 
-    log.info("Loading app settings from database");
+    log.info("Loading app settings from database", { force: options?.force ?? false });
 
     try {
         const rows = await prisma.appSetting.findMany();
+
+        // Build into a local first, then swap. A failure above this point leaves
+        // any previously loaded settings untouched and still serving.
         const hydrated: SettingsStore = { ...DEFAULTS };
 
         for (const row of rows) {
             const key = row.key as AppSettingKey;
-            (hydrated as Record<string, unknown>)[key] =
-                row.value as unknown as AppSettingValueType[typeof key];
+            (hydrated as Record<string, unknown>)[key] = row.value as unknown as AppSettingValueType[typeof key];
         }
 
         g.__appSettings = hydrated;
         g.__appSettingsLoaded = true;
+        g.__appSettingsWarned = false;
 
         log.info("App settings loaded into memory", {
             count: rows.length,
-            keys: rows.map(r => r.key),
+            keys: rows.map((r) => r.key),
         });
     } catch (error) {
-        g.__appSettings = undefined;
-        g.__appSettingsLoaded = false;
+        // Deliberately does NOT clear the store. Wiping it here is what used to
+        // leave the process permanently returning 500s after one transient
+        // database blip.
         log.error("Failed to load app settings", error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
 }
 
 /**
+ * Loads settings if they are not already in memory, de-duplicating concurrent
+ * callers onto a single database read. Never rejects — callers on a request path
+ * can await it without risking a 500.
+ *
+ * @returns A promise that resolves once a load attempt has finished, whether or
+ *   not it succeeded. Check {@link areSettingsLoaded} for the outcome.
+ */
+export async function ensureSettingsLoaded(): Promise<void> {
+    if (g.__appSettingsLoaded) {
+        return;
+    }
+
+    if (!g.__appSettingsLoading) {
+        g.__appSettingsLoading = loadSettings()
+            .catch((error) => {
+                log.error(
+                    "App settings load attempt failed — continuing with defaults",
+                    error instanceof Error ? error : new Error(String(error)),
+                );
+            })
+            .finally(() => {
+                g.__appSettingsLoading = undefined;
+            });
+    }
+
+    await g.__appSettingsLoading;
+}
+
+/** Whether the in-memory store has been hydrated from the database. */
+export function areSettingsLoaded(): boolean {
+    return g.__appSettingsLoaded === true;
+}
+
+/**
  * Returns the typed value for the given setting key.
- * Always resolves: if the in-memory store does not contain the key (e.g. before
- * {@link loadSettings} is called, or after {@link deleteSetting}), the corresponding
- * value from {@link DEFAULTS} is returned instead.
+ * Always resolves and never throws: if the in-memory store does not contain the
+ * key (e.g. before {@link loadSettings} is called, or after {@link deleteSetting}),
+ * the corresponding value from {@link DEFAULTS} is returned instead and a
+ * background reload is scheduled.
  *
  * @param key - The {@link AppSettingKey} whose value should be retrieved.
  * @returns The current typed value for the key, falling back to its default.
  */
 export function getSetting<K extends AppSettingKey>(key: K): AppSettingValueType[K] {
-    assertSettingsLoaded(`getSetting(${key})`);
+    warnIfNotLoaded(`getSetting(${key})`);
     const value = store()[key];
     return (value !== undefined ? value : DEFAULTS[key]) as AppSettingValueType[K];
 }
@@ -153,7 +205,7 @@ export function getSetting<K extends AppSettingKey>(key: K): AppSettingValueType
  * @returns A complete {@link AppSettingValueType} record containing every setting key.
  */
 export function getAllSettings(): AppSettingValueType {
-    assertSettingsLoaded("getAllSettings()");
+    warnIfNotLoaded("getAllSettings()");
     return { ...DEFAULTS, ...store() } as AppSettingValueType;
 }
 
@@ -165,9 +217,7 @@ export function getAllSettings(): AppSettingValueType {
  */
 export function getPublicSettings(): PublicAppSettings {
     const all = getAllSettings();
-    return Object.fromEntries(
-        PUBLIC_SETTING_KEYS.map((key) => [key, all[key]]),
-    ) as PublicAppSettings;
+    return Object.fromEntries(PUBLIC_SETTING_KEYS.map((key) => [key, all[key]])) as PublicAppSettings;
 }
 
 /**
@@ -180,10 +230,7 @@ export function getPublicSettings(): PublicAppSettings {
  * @returns A promise that resolves when the upsert and memory update are complete.
  * @throws {Error} If the Prisma upsert fails (e.g. database unreachable).
  */
-export async function upsertSetting<K extends AppSettingKey>(
-    key: K,
-    value: AppSettingValueType[K],
-): Promise<void> {
+export async function upsertSetting<K extends AppSettingKey>(key: K, value: AppSettingValueType[K]): Promise<void> {
     log.info("Upserting app setting", { key, value });
 
     await prisma.appSetting.upsert({
@@ -206,13 +253,8 @@ export async function upsertSetting<K extends AppSettingKey>(
  * @returns A promise that resolves when all upserts and memory updates are complete.
  * @throws {Error} If the Prisma transaction fails (e.g. database unreachable).
  */
-export async function upsertSettings(
-    entries: Partial<AppSettingValueType>,
-): Promise<void> {
-    const pairs = Object.entries(entries) as [
-        AppSettingKey,
-        AppSettingValueType[AppSettingKey],
-    ][];
+export async function upsertSettings(entries: Partial<AppSettingValueType>): Promise<void> {
+    const pairs = Object.entries(entries) as [AppSettingKey, AppSettingValueType[AppSettingKey]][];
 
     log.info("Upserting multiple app settings in a transaction", {
         keys: pairs.map(([key]) => key),
@@ -253,10 +295,15 @@ export async function deleteSetting(key: AppSettingKey): Promise<void> {
  * call to {@link loadSettings} performs a fresh database read.
  * Useful after bulk external changes to the `AppSetting` table.
  *
+ * Prefer `loadSettings({ force: true })` when you intend to refresh: it swaps the
+ * store atomically, so a failed read leaves the current values serving rather
+ * than dropping the process to defaults.
+ *
  * @returns void
  */
 export function invalidateSettingsCache(): void {
     log.info("Invalidate settings cache");
     g.__appSettings = undefined;
     g.__appSettingsLoaded = false;
+    g.__appSettingsWarned = false;
 }

@@ -8,7 +8,7 @@ import type { Priority } from "@/src/lib/job/priority.js";
  */
 export const QUEUE_NAMES = {
     /** Main jobs queue — handles all top-level job types (sync, import, refresh, etc.). */
-    JOBS:         "gamepile.jobs",
+    JOBS: "gamepile.jobs",
     /** Game details queue — handles batched detail-fetch child jobs. */
     GAME_DETAILS: "gamepile.game-details",
     /** Achievements queue — handles batched per-user achievement fetch child jobs. */
@@ -36,11 +36,11 @@ export type GameDetailsQueuePayload = {
     /** UUID of the parent job that spawned this batch. */
     parentJobId: string;
     /** Array of Steam appIds to fetch details for in this batch. */
-    appIds:      number[];
+    appIds: number[];
     /** Mapping from Steam appId → internal Game UUID for efficient updates. */
-    gameIdMap:   Record<number, string>;
+    gameIdMap: Record<number, string>;
     /** Priority level assigned to this batch. */
-    priority:    Priority;
+    priority: Priority;
 };
 
 /**

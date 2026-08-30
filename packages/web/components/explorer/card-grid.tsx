@@ -1,11 +1,22 @@
 "use client";
 
 import {
-    Building2, CalendarDays, CheckCircle2,
-    CodeXml, Cpu, ExternalLink, FolderDown, FolderKanban,
-    Gamepad2, Hash, Library,
-    Megaphone, Package, Package2,
-    Tag, User,
+    Building2,
+    CalendarDays,
+    CheckCircle2,
+    CodeXml,
+    Cpu,
+    ExternalLink,
+    FolderDown,
+    FolderKanban,
+    Gamepad2,
+    Hash,
+    Library,
+    Megaphone,
+    Package,
+    Package2,
+    Tag,
+    User,
 } from "lucide-react";
 import Link from "next/link";
 import { ElementType } from "react";
@@ -36,12 +47,12 @@ interface CardGridProps {
 }
 
 const TYPE_CONFIG: Record<GameType, { icon: ElementType; label: string; color: string }> = {
-    GAME:        { icon: Gamepad2,     label: "Game",     color: "text-primary"         },
-    DLC:         { icon: FolderDown,   label: "DLC",      color: "text-primary/80"      },
-    DEMO:        { icon: FolderKanban, label: "Demo",     color: "text-foreground"      },
-    MOD:         { icon: Cpu,          label: "Mod",      color: "text-muted-foreground" },
-    ADVERTISING: { icon: Megaphone,    label: "Software", color: "text-muted-foreground" },
-    UNKNOWN:     { icon: Package,      label: "Unknown",  color: "text-muted-foreground"},
+    GAME: { icon: Gamepad2, label: "Game", color: "text-primary" },
+    DLC: { icon: FolderDown, label: "DLC", color: "text-primary/80" },
+    DEMO: { icon: FolderKanban, label: "Demo", color: "text-foreground" },
+    MOD: { icon: Cpu, label: "Mod", color: "text-muted-foreground" },
+    ADVERTISING: { icon: Megaphone, label: "Software", color: "text-muted-foreground" },
+    UNKNOWN: { icon: Package, label: "Unknown", color: "text-muted-foreground" },
 };
 
 function ReviewScoreBadge({ score }: { score: number | null }) {
@@ -55,13 +66,10 @@ function ReviewScoreBadge({ score }: { score: number | null }) {
 }
 
 function GameCard({ game }: { game: ExplorerGameRow }) {
-
     const typeConfig = TYPE_CONFIG[game.type] ?? TYPE_CONFIG.UNKNOWN;
     const TypeIcon = typeConfig.icon;
 
-    const steamUrl = game.appId
-        ? `https://store.steampowered.com/app/${game.appId}`
-        : null;
+    const steamUrl = game.appId ? `https://store.steampowered.com/app/${game.appId}` : null;
 
     return (
         <div className="group relative flex flex-col rounded-xl border border-border/40 bg-card/40 overflow-hidden hover:border-border/80 hover:bg-card/70 transition-all duration-300 hover:shadow-2xl hover:shadow-black/20 hover:-translate-y-0.5">
@@ -85,12 +93,14 @@ function GameCard({ game }: { game: ExplorerGameRow }) {
 
                 <ReviewScoreBadge score={game.reviewPercentage} />
 
-                <div className={cn(
-                    "absolute top-2 left-2 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5",
-                    "text-[10px] font-semibold shadow-xl",
-                    "bg-black/80 backdrop-blur-md ring-1 ring-white/10",
-                    typeConfig.color
-                )}>
+                <div
+                    className={cn(
+                        "absolute top-2 left-2 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5",
+                        "text-[10px] font-semibold shadow-xl",
+                        "bg-black/80 backdrop-blur-md ring-1 ring-white/10",
+                        typeConfig.color,
+                    )}
+                >
                     <TypeIcon className="size-2.5" />
                     {typeConfig.label}
                 </div>
@@ -128,7 +138,9 @@ function GameCard({ game }: { game: ExplorerGameRow }) {
             <div className="flex flex-col flex-1 p-3.5 gap-2">
                 <div className="flex items-start justify-between gap-2">
                     <h3 className="font-semibold text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">
-                        {game.name !== "" ? game.name : (
+                        {game.name !== "" ? (
+                            game.name
+                        ) : (
                             <span className="text-muted-foreground font-medium italic">No name</span>
                         )}
                     </h3>
@@ -142,7 +154,10 @@ function GameCard({ game }: { game: ExplorerGameRow }) {
                         )}
 
                         {game.isFree && (
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-primary/10 text-primary border-0">
+                            <Badge
+                                variant="secondary"
+                                className="text-[10px] px-1.5 py-0 h-4 bg-primary/10 text-primary border-0"
+                            >
                                 Free
                             </Badge>
                         )}
@@ -159,7 +174,10 @@ function GameCard({ game }: { game: ExplorerGameRow }) {
                     <span className="flex items-center gap-1">
                         <CalendarDays className="size-3 shrink-0" />
                         {game.releaseDate
-                            ? new Date(game.releaseDate).toLocaleDateString(undefined, { year: "numeric", month: "short" })
+                            ? new Date(game.releaseDate).toLocaleDateString(undefined, {
+                                  year: "numeric",
+                                  month: "short",
+                              })
                             : "TBA"}
                     </span>
 
@@ -266,16 +284,16 @@ function SkeletonCard() {
 }
 
 export function CardGrid({
-     data,
-     total,
-     page,
-     pageSize,
-     totalPages,
-     onPageChange,
-     onPageSizeChange,
-     isLoading,
-     isRefreshing
- }: CardGridProps) {
+    data,
+    total,
+    page,
+    pageSize,
+    totalPages,
+    onPageChange,
+    onPageSizeChange,
+    isLoading,
+    isRefreshing,
+}: CardGridProps) {
     const showSkeletons = isLoading && data.length === 0;
 
     return (
@@ -295,10 +313,12 @@ export function CardGrid({
                     </p>
                 </div>
             ) : (
-                <div className={cn(
-                    "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 transition-all",
-                    isRefreshing && "opacity-70 pointer-events-none"
-                )}>
+                <div
+                    className={cn(
+                        "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 transition-all",
+                        isRefreshing && "opacity-70 pointer-events-none",
+                    )}
+                >
                     {data.map((game) => (
                         <GameCard key={game.id} game={game} />
                     ))}
@@ -316,7 +336,9 @@ export function CardGrid({
                             <span className="font-medium text-foreground">{total.toLocaleString()}</span>
                             <span className="ml-1">games</span>
                         </>
-                    ) : "No results"}
+                    ) : (
+                        "No results"
+                    )}
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -328,7 +350,9 @@ export function CardGrid({
                             </SelectTrigger>
                             <SelectContent>
                                 {[20, 40, 60].map((s) => (
-                                    <SelectItem key={s} value={String(s)}>{s}</SelectItem>
+                                    <SelectItem key={s} value={String(s)}>
+                                        {s}
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>

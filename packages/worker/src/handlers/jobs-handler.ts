@@ -59,9 +59,7 @@ export async function handleJobByType(payload: {
     switch (type) {
         case JobType.IMPORT_USER_LIBRARY: {
             if (!userId) {
-                throw new Error(
-                    `IMPORT_USER_LIBRARY requires a userId but none was provided (jobId=${resolvedJobId})`,
-                );
+                throw new Error(`IMPORT_USER_LIBRARY requires a userId but none was provided (jobId=${resolvedJobId})`);
             }
             await importSteamLibrary({ jobId: resolvedJobId, userId });
             break;
@@ -178,9 +176,7 @@ async function findLastSyncTimestamp(
     if (ifModifiedSince) {
         const lastSyncIso = new Date(ifModifiedSince * 1000).toISOString();
         log.info("Running incremental Steam sync", { ifModifiedSince, lastSync: lastSyncIso });
-        await createLog(resolvedJobId, "info",
-            `Incremental sync - fetching apps modified since ${lastSyncIso}.`,
-        );
+        await createLog(resolvedJobId, "info", `Incremental sync - fetching apps modified since ${lastSyncIso}.`);
     } else {
         log.info("Running full Steam sync (no previous successful sync found)");
         await createLog(resolvedJobId, "info", "Full catalog sync - no previous run detected.");

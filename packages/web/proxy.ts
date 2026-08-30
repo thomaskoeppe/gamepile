@@ -14,20 +14,21 @@ import { CollectionVisibility } from "@/prisma/generated/enums";
 
 const log = logger.child("server.middleware:proxy");
 
-const PUBLIC_ROUTES = [
-    "/api/auth/callback",
-    "/api/auth/signin",
-    "/api/session",
-];
+const PUBLIC_ROUTES = ["/api/auth/callback", "/api/auth/signin", "/api/session"];
+
+/**
+ * Health and readiness endpoints. These bypass authentication and rate limiting
+ * entirely: a probe that gets redirected to the login page or throttled to 429
+ * would mark a perfectly healthy container as failing.
+ */
+const HEALTH_ROUTES = ["/api/health/ready", "/api/v1/heartbeat"];
 
 /**
  * Route prefixes that allow unauthenticated access.
  * Access control is handled at the page / action level
  * (e.g. only PUBLIC collections are readable by anonymous users).
  */
-const PUBLIC_ROUTE_PREFIXES = [
-    "/collections/p/",
-];
+const PUBLIC_ROUTE_PREFIXES = ["/collections/p/"];
 
 /**
  * Matches `/collections/<id>` but NOT `/collections`, `/collections/p/…`,
@@ -47,10 +48,18 @@ export async function proxy(request: NextRequest) {
     const clientIp = getClientIp(request);
     const userAgent = request.headers.get("user-agent") ?? "unknown";
 
-    const reqLog = log.child("proxy", { pathname, method: request.method, requestId, clientIp, userAgent, proxy: [
-            request.headers.get("x-forwarded-for"),
-            request.headers.get("x-real-ip"),
-    ]});
+    const reqLog = log.child("proxy", {
+        pathname,
+        method: request.method,
+        requestId,
+        clientIp,
+        userAgent,
+        proxy: [request.headers.get("x-forwarded-for"), request.headers.get("x-real-ip")],
+    });
+
+    if (HEALTH_ROUTES.some((route) => pathname === route)) {
+        return NextResponse.next();
+    }
 
     const sessionCookieName = process.env.WEB_SESSION_COOKIE_NAME || "__session";
     const sessionToken = request.cookies.get(sessionCookieName)?.value;
@@ -62,9 +71,7 @@ export async function proxy(request: NextRequest) {
 
     const start = Date.now();
 
-    const isAuthEndpoint =
-        pathname.startsWith("/api/auth/callback") ||
-        pathname.startsWith("/api/auth/signin");
+    const isAuthEndpoint = pathname.startsWith("/api/auth/callback") || pathname.startsWith("/api/auth/signin");
 
     if (isAuthEndpoint) {
         const rl = await consumeRateLimit(authEndpointLimiter, `ip:${clientIp}`, { failClosed: true });
@@ -114,7 +121,7 @@ export async function proxy(request: NextRequest) {
         `base-uri 'self'`,
         `form-action 'self'`,
         `frame-ancestors 'none'`,
-        process.env.NODE_ENV === "production" ? `upgrade-insecure-requests` : ``
+        process.env.NODE_ENV === "production" ? `upgrade-insecure-requests` : ``,
     ].join(";");
 
     const requestHeaders = new Headers(request.headers);
@@ -124,12 +131,8 @@ export async function proxy(request: NextRequest) {
     response.headers.set("Content-Security-Policy", csp);
     response.headers.set("x-request-id", requestId);
 
-    const isPublicRoute = PUBLIC_ROUTES.some(
-        (route) => pathname === route || pathname.startsWith(route + "/"),
-    );
-    const isPublicPrefixRoute = PUBLIC_ROUTE_PREFIXES.some(
-        (prefix) => pathname.startsWith(prefix),
-    );
+    const isPublicRoute = PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"));
+    const isPublicPrefixRoute = PUBLIC_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
     const isAuthRoute = AUTH_ROUTES.some((route) => pathname === route);
     const isProtectedRoute = !isPublicRoute && !isPublicPrefixRoute && !isAuthRoute;
 
@@ -154,9 +157,11 @@ export async function proxy(request: NextRequest) {
                         select: { type: true },
                     });
                     if (collection?.type === CollectionVisibility.PUBLIC) {
-                        reqLog.info("Redirecting to public collection view", { collectionId, durationMs: Date.now() - start });
+                        reqLog.info("Redirecting to public collection view", {
+                            collectionId,
+                            durationMs: Date.now() - start,
+                        });
                         return NextResponse.redirect(new URL(`/collections/p/${collectionId}`, request.url));
-
                     }
                 } catch (err) {
                     reqLog.error("Failed to check public collection status", err instanceof Error ? err : undefined, {
@@ -165,12 +170,13 @@ export async function proxy(request: NextRequest) {
                 }
             }
 
-            reqLog.info("No session — redirecting to login", { redirectTarget: pathname, durationMs: Date.now() - start });
+            reqLog.info("No session — redirecting to login", {
+                redirectTarget: pathname,
+                durationMs: Date.now() - start,
+            });
 
             const loginUrl = new URL("/", request.url);
-            const redirectTarget = request.nextUrl.search
-                ? `${pathname}${request.nextUrl.search}`
-                : pathname;
+            const redirectTarget = request.nextUrl.search ? `${pathname}${request.nextUrl.search}` : pathname;
             loginUrl.searchParams.set("redirect", redirectTarget);
 
             reqLog.info("Redirecting to login page", { loginUrl: loginUrl.toString() });

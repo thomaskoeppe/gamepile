@@ -10,10 +10,10 @@ export const PRIORITY = {
     /** Default priority — used for connected games during catalog sync. */
     NORMAL: 5,
     /** Lowest priority — used for unconnected games during catalog sync. */
-    LOW:  10,
+    LOW: 10,
 } as const;
 
 /**
  * Union type of valid BullMQ priority values.
  */
-export type Priority = typeof PRIORITY[keyof typeof PRIORITY];
+export type Priority = (typeof PRIORITY)[keyof typeof PRIORITY];

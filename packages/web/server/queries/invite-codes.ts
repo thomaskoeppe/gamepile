@@ -1,10 +1,10 @@
 "use server";
 
-import {getSetting} from "@/lib/app-settings";
+import { getSetting } from "@/lib/app-settings";
 import prisma from "@/lib/prisma";
 import { withLogging } from "@/lib/with-logging";
-import {AppSettingKey} from "@/prisma/generated/client";
-import {queryClientWithAdmin} from "@/server/query";
+import { AppSettingKey } from "@/prisma/generated/client";
+import { queryClientWithAdmin } from "@/server/query";
 
 export type AdminInviteCodesData = {
     generationEnabled: boolean;
@@ -41,83 +41,86 @@ export type AdminInviteCodesData = {
     }>;
 };
 
-export const getInviteCodes = queryClientWithAdmin.query<AdminInviteCodesData>(withLogging(async ({ ctx }, { log }) => {
-    const generationEnabled = getSetting(AppSettingKey.ALLOW_INVITE_CODE_GENERATION);
+export const getInviteCodes = queryClientWithAdmin.query<AdminInviteCodesData>(
+    withLogging(
+        async ({ ctx }, { log }) => {
+            const generationEnabled = getSetting(AppSettingKey.ALLOW_INVITE_CODE_GENERATION);
 
-    log.info("Fetching invite codes", {
-        userId: ctx.user.id
-    });
+            log.info("Fetching invite codes", {
+                userId: ctx.user.id,
+            });
 
-    const inviteCodes = await prisma.inviteCode.findMany({
-        orderBy: {
-            createdAt: "desc",
-        },
-        include: {
-            usage: {
+            const inviteCodes = await prisma.inviteCode.findMany({
                 orderBy: {
-                    usedAt: "desc",
+                    createdAt: "desc",
                 },
                 include: {
-                    usedBy: {
+                    usage: {
+                        orderBy: {
+                            usedAt: "desc",
+                        },
+                        include: {
+                            usedBy: {
+                                select: {
+                                    id: true,
+                                    username: true,
+                                    steamId: true,
+                                    avatarUrl: true,
+                                },
+                            },
+                        },
+                    },
+                    createdBy: {
                         select: {
                             id: true,
                             username: true,
                             steamId: true,
-                            avatarUrl: true,
                         },
-                    }
-                }
-            },
-            createdBy: {
-                select: {
-                    id: true,
-                    username: true,
-                    steamId: true,
+                    },
                 },
-            }
-        }
-    });
+            });
 
-    type InviteCodeUsageRecord = (typeof inviteCodes)[number];
-    type InviteCodeRedemptionRecord = InviteCodeUsageRecord["usage"][number];
+            type InviteCodeUsageRecord = (typeof inviteCodes)[number];
+            type InviteCodeRedemptionRecord = InviteCodeUsageRecord["usage"][number];
 
-    const now = Date.now();
-    const codes = inviteCodes.map((inviteCode: InviteCodeUsageRecord) => {
-        const usageCount = inviteCode.usage.length;
-        const remainingUses = inviteCode.maxUses == null
-            ? null
-            : Math.max(inviteCode.maxUses - usageCount, 0);
-        const isExpired = inviteCode.expiresAt != null && inviteCode.expiresAt.getTime() <= now;
-        const isAvailable = !isExpired && (remainingUses == null || remainingUses > 0);
+            const now = Date.now();
+            const codes = inviteCodes.map((inviteCode: InviteCodeUsageRecord) => {
+                const usageCount = inviteCode.usage.length;
+                const remainingUses = inviteCode.maxUses == null ? null : Math.max(inviteCode.maxUses - usageCount, 0);
+                const isExpired = inviteCode.expiresAt != null && inviteCode.expiresAt.getTime() <= now;
+                const isAvailable = !isExpired && (remainingUses == null || remainingUses > 0);
 
-        return {
-            id: inviteCode.id,
-            code: inviteCode.code,
-            createdAt: inviteCode.createdAt.toISOString(),
-            expiresAt: inviteCode.expiresAt?.toISOString() ?? null,
-            maxUses: inviteCode.maxUses,
-            usageCount,
-            remainingUses,
-            isExpired,
-            isAvailable,
-            createdBy: inviteCode.createdBy,
-            usage: inviteCode.usage.map((usage: InviteCodeRedemptionRecord) => ({
-                id: usage.id,
-                usedAt: usage.usedAt.toISOString(),
-                usedBy: usage.usedBy,
-            })),
-        };
-    });
+                return {
+                    id: inviteCode.id,
+                    code: inviteCode.code,
+                    createdAt: inviteCode.createdAt.toISOString(),
+                    expiresAt: inviteCode.expiresAt?.toISOString() ?? null,
+                    maxUses: inviteCode.maxUses,
+                    usageCount,
+                    remainingUses,
+                    isExpired,
+                    isAvailable,
+                    createdBy: inviteCode.createdBy,
+                    usage: inviteCode.usage.map((usage: InviteCodeRedemptionRecord) => ({
+                        id: usage.id,
+                        usedAt: usage.usedAt.toISOString(),
+                        usedBy: usage.usedBy,
+                    })),
+                };
+            });
 
-    return {
-        generationEnabled,
-        summary: {
-            totalCodes: codes.length,
-            activeCodes: codes.filter((code) => code.isAvailable).length,
-            totalUsages: codes.reduce((total, code) => total + code.usageCount, 0),
+            return {
+                generationEnabled,
+                summary: {
+                    totalCodes: codes.length,
+                    activeCodes: codes.filter((code) => code.isAvailable).length,
+                    totalUsages: codes.reduce((total, code) => total + code.usageCount, 0),
+                },
+                codes,
+            };
         },
-        codes,
-    };
-}, {
-    namespace: "server.queries.invite-codes:getInviteCodes"
-}));
+        {
+            namespace: "server.queries.invite-codes:getInviteCodes",
+        },
+    ),
+);

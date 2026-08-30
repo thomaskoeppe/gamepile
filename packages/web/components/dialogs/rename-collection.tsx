@@ -7,8 +7,13 @@ import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
-    Dialog, DialogContent, DialogDescription,
-    DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -51,17 +56,20 @@ export function RenameCollectionDialog({
         form.reset({ name: currentName, description: currentDescription ?? "" });
     }, [form, currentName, currentDescription]);
 
-    const handleOpenChange = useCallback((next: boolean) => {
-        setOpen(next);
-        if (!next) resetDialog();
-    }, [resetDialog]);
+    const handleOpenChange = useCallback(
+        (next: boolean) => {
+            setOpen(next);
+            if (!next) resetDialog();
+        },
+        [resetDialog],
+    );
 
     const handleSubmit = useCallback(async () => {
         const valid = await form.trigger();
         if (!valid) return;
 
         const values = form.getValues();
-        browserLog.info('Rename collection submitted', { collectionId, name: values.name });
+        browserLog.info("Rename collection submitted", { collectionId, name: values.name });
         const result = await executeAsync({
             collectionId,
             name: values.name,
@@ -69,12 +77,14 @@ export function RenameCollectionDialog({
         });
 
         if (result?.data?.success) {
-            browserLog.info('Collection renamed', { collectionId, name: values.name });
+            browserLog.info("Collection renamed", { collectionId, name: values.name });
             onReload?.();
             setOpen(false);
             setTimeout(resetDialog, 300);
         } else {
-            browserLog.error('Rename collection failed', new Error(result?.serverError ?? 'Unknown error'), { collectionId });
+            browserLog.error("Rename collection failed", new Error(result?.serverError ?? "Unknown error"), {
+                collectionId,
+            });
             setServerError(result?.serverError ?? "An unexpected error occurred.");
         }
     }, [form, executeAsync, collectionId, onReload, resetDialog]);
@@ -91,54 +101,64 @@ export function RenameCollectionDialog({
 
                 <div className="space-y-4">
                     <FieldGroup>
-                        <Controller name="name" control={form.control} render={({ field, fieldState }) => (
-                            <Field data-invalid={fieldState.invalid}>
-                                <FieldLabel htmlFor="rename-collection-name">Name</FieldLabel>
-                                <Input
-                                    {...field}
-                                    id="rename-collection-name"
-                                    placeholder="My Collection"
-                                    autoComplete="off"
-                                    autoFocus
-                                />
-                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                            </Field>
-                        )} />
-
-                        <Controller name="description" control={form.control} render={({ field, fieldState }) => (
-                            <Field data-invalid={fieldState.invalid}>
-                                <FieldLabel htmlFor="rename-collection-description">Description</FieldLabel>
-                                <InputGroup>
-                                    <InputGroupTextarea
+                        <Controller
+                            name="name"
+                            control={form.control}
+                            render={({ field, fieldState }) => (
+                                <Field data-invalid={fieldState.invalid}>
+                                    <FieldLabel htmlFor="rename-collection-name">Name</FieldLabel>
+                                    <Input
                                         {...field}
-                                        id="rename-collection-description"
-                                        placeholder="Describe this collection..."
+                                        id="rename-collection-name"
+                                        placeholder="My Collection"
                                         autoComplete="off"
-                                        rows={4}
-                                        className="min-h-20 resize-none"
-                                        aria-invalid={fieldState.invalid}
+                                        autoFocus
                                     />
-                                    <InputGroupAddon align="block-end">
-                                        <InputGroupText className="tabular-nums">
-                                            {field.value?.length ?? 0} / 100
-                                        </InputGroupText>
-                                    </InputGroupAddon>
-                                </InputGroup>
-                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                            </Field>
-                        )} />
+                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                            )}
+                        />
+
+                        <Controller
+                            name="description"
+                            control={form.control}
+                            render={({ field, fieldState }) => (
+                                <Field data-invalid={fieldState.invalid}>
+                                    <FieldLabel htmlFor="rename-collection-description">Description</FieldLabel>
+                                    <InputGroup>
+                                        <InputGroupTextarea
+                                            {...field}
+                                            id="rename-collection-description"
+                                            placeholder="Describe this collection..."
+                                            autoComplete="off"
+                                            rows={4}
+                                            className="min-h-20 resize-none"
+                                            aria-invalid={fieldState.invalid}
+                                        />
+                                        <InputGroupAddon align="block-end">
+                                            <InputGroupText className="tabular-nums">
+                                                {field.value?.length ?? 0} / 100
+                                            </InputGroupText>
+                                        </InputGroupAddon>
+                                    </InputGroup>
+                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                            )}
+                        />
                     </FieldGroup>
 
-                    {serverError && (
-                        <p className="text-sm text-destructive">{serverError}</p>
-                    )}
+                    {serverError && <p className="text-sm text-destructive">{serverError}</p>}
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                             Cancel
                         </Button>
                         <Button type="button" onClick={handleSubmit} disabled={isPending}>
-                            {isPending ? <LoaderCircle className="size-4 animate-spin" /> : <Pencil className="size-4" />}
+                            {isPending ? (
+                                <LoaderCircle className="size-4 animate-spin" />
+                            ) : (
+                                <Pencil className="size-4" />
+                            )}
                             Save Changes
                         </Button>
                     </DialogFooter>

@@ -68,10 +68,10 @@ Set `OTEL_EXPORTER_OTLP_ENDPOINT` to your collector's HTTP OTLP receiver. Remove
 
 ## What is exported
 
-| Signal | Web | Worker |
-|---|---|---|
-| Traces | ✓ (Next.js + manual spans) | ✓ (auto-instrumented + manual spans) |
-| Structured logs | ✓ (Pino → OTLP exporter) | ✓ (Pino → OTLP exporter) |
+| Signal          | Web                        | Worker                               |
+| --------------- | -------------------------- | ------------------------------------ |
+| Traces          | ✓ (Next.js + manual spans) | ✓ (auto-instrumented + manual spans) |
+| Structured logs | ✓ (Pino → OTLP exporter)   | ✓ (Pino → OTLP exporter)             |
 
 Logs are also written to **stdout** on both services regardless of whether OTLP export is configured. The worker has a `WORKER_LOG_TO_STDOUT` variable (default `true`) to disable this if you only want OTLP output.
 

@@ -10,64 +10,64 @@ import {
     LoaderCircle,
     WifiOff,
 } from "lucide-react";
-import {ReactNode, useEffect, useMemo, useRef, useState} from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
-import {ScrollArea} from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { StreamPhase, useJobStream } from "@/lib/hooks/use-job-stream";
-import {cn, formatDurationMs} from "@/lib/utils";
+import { cn, formatDurationMs } from "@/lib/utils";
 import { JobStatus, JobType } from "@/prisma/generated/enums";
 import { JOB_TYPE_LABEL, JobSnapshot } from "@/types/job";
 
 function formatTimestamp(iso: string): string {
     return new Date(iso).toLocaleTimeString([], {
-        hour:   "2-digit",
+        hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
     });
 }
 
 type StatusConfig = {
-    label:    string;
-    icon:     ReactNode;
-    classes:  string;
+    label: string;
+    icon: ReactNode;
+    classes: string;
 };
 
 export function getStatusConfig(status: JobStatus): StatusConfig {
     switch (status) {
         case JobStatus.QUEUED:
             return {
-                label:   "Queued",
-                icon:    <Circle className="size-3.5" />,
+                label: "Queued",
+                icon: <Circle className="size-3.5" />,
                 classes: "border-border bg-muted/60 text-muted-foreground",
             };
         case JobStatus.ACTIVE:
             return {
-                label:   "Active",
-                icon:    <LoaderCircle className="size-3.5 animate-spin" />,
+                label: "Active",
+                icon: <LoaderCircle className="size-3.5 animate-spin" />,
                 classes: "border-primary/35 bg-primary/15 text-primary",
             };
         case JobStatus.COMPLETED:
             return {
-                label:   "Completed",
-                icon:    <CircleCheckBig className="size-3.5" />,
+                label: "Completed",
+                icon: <CircleCheckBig className="size-3.5" />,
                 classes: "border-primary/40 bg-primary/20 text-primary",
             };
         case JobStatus.PARTIALLY_COMPLETED:
             return {
-                label:   "Partial",
-                icon:    <CircleAlert className="size-3.5" />,
+                label: "Partial",
+                icon: <CircleAlert className="size-3.5" />,
                 classes: "border-primary/25 bg-primary/10 text-primary/80",
             };
         case JobStatus.FAILED:
             return {
-                label:   "Failed",
-                icon:    <CircleSlash className="size-3.5" />,
+                label: "Failed",
+                icon: <CircleSlash className="size-3.5" />,
                 classes: "border-border bg-muted/80 text-foreground",
             };
         case JobStatus.CANCELED:
             return {
-                label:   "Canceled",
-                icon:    <CircleMinus className="size-3.5" />,
+                label: "Canceled",
+                icon: <CircleMinus className="size-3.5" />,
                 classes: "bg-muted text-muted-foreground border-border",
             };
     }
@@ -83,17 +83,20 @@ export function StatusBadge({ status }: { status: JobStatus }) {
                 cfg.classes,
             )}
         >
-      {cfg.icon}
+            {cfg.icon}
             {cfg.label}
-    </span>
+        </span>
     );
 }
 
 function logLevelClass(level: string): string {
     switch (level.toLowerCase()) {
-        case "error": return "text-foreground";
-        case "warn":  return "text-primary/80";
-        default:      return "text-muted-foreground";
+        case "error":
+            return "text-foreground";
+        case "warn":
+            return "text-primary/80";
+        default:
+            return "text-muted-foreground";
     }
 }
 
@@ -114,9 +117,7 @@ function ProgressSection({ snapshot }: { snapshot: JobSnapshot }) {
         );
     }
 
-    const pct = totalItems > 0
-        ? Math.min(100, Math.round((completedItems / totalItems) * 100))
-        : 100;
+    const pct = totalItems > 0 ? Math.min(100, Math.round((completedItems / totalItems) * 100)) : 100;
 
     return (
         <div className="space-y-1.5">
@@ -128,14 +129,12 @@ function ProgressSection({ snapshot }: { snapshot: JobSnapshot }) {
             </div>
 
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>
-          {completedItems.toLocaleString()} / {totalItems.toLocaleString()} items
-            {failedItems > 0 && (
-                <span className="ml-2 text-primary/80">
-              ({failedItems.toLocaleString()} failed)
-            </span>
-            )}
-        </span>
+                <span>
+                    {completedItems.toLocaleString()} / {totalItems.toLocaleString()} items
+                    {failedItems > 0 && (
+                        <span className="ml-2 text-primary/80">({failedItems.toLocaleString()} failed)</span>
+                    )}
+                </span>
                 <span>{pct}%</span>
             </div>
         </div>
@@ -151,9 +150,7 @@ function LogTail({ snapshot }: { snapshot: JobSnapshot }) {
     }, [snapshot.logs]);
 
     if (snapshot.logs.length === 0) {
-        return (
-            <p className="text-xs text-muted-foreground italic">No log entries yet.</p>
-        );
+        return <p className="text-xs text-muted-foreground italic">No log entries yet.</p>;
     }
 
     return (
@@ -163,13 +160,9 @@ function LogTail({ snapshot }: { snapshot: JobSnapshot }) {
         >
             {snapshot.logs.map((entry) => (
                 <div key={entry.id} className="flex gap-2 min-w-0">
-                    <span className="shrink-0 text-muted-foreground/60">
-                        {formatTimestamp(entry.timestamp)}
-                    </span>
+                    <span className="shrink-0 text-muted-foreground/60">{formatTimestamp(entry.timestamp)}</span>
 
-                    <span className={cn("wrap-break-word min-w-0", logLevelClass(entry.level))}>
-                        {entry.message}
-                    </span>
+                    <span className={cn("wrap-break-word min-w-0", logLevelClass(entry.level))}>{entry.message}</span>
                 </div>
             ))}
         </ScrollArea>
@@ -177,9 +170,7 @@ function LogTail({ snapshot }: { snapshot: JobSnapshot }) {
 }
 
 function Skeleton({ className }: { className?: string }) {
-    return (
-        <div className={cn("animate-pulse rounded-md bg-muted", className)} />
-    );
+    return <div className={cn("animate-pulse rounded-md bg-muted", className)} />;
 }
 
 function JobStatusSkeleton() {
@@ -202,9 +193,7 @@ function JobStatusSkeleton() {
 function NoJobCard({ jobType }: { jobType: JobType }) {
     return (
         <div className="rounded-xl border bg-card p-4">
-            <p className="text-sm text-muted-foreground">
-                No recent {JOB_TYPE_LABEL[jobType].toLowerCase()} found.
-            </p>
+            <p className="text-sm text-muted-foreground">No recent {JOB_TYPE_LABEL[jobType].toLowerCase()} found.</p>
         </div>
     );
 }
@@ -218,10 +207,10 @@ function ErrorCard() {
 }
 
 function JobCard({
-                     snapshot,
-                     phase,
-                     isReconnecting,
-                 }: {
+    snapshot,
+    phase,
+    isReconnecting,
+}: {
     snapshot: JobSnapshot;
     phase: StreamPhase;
     isReconnecting: boolean;
@@ -237,22 +226,17 @@ function JobCard({
     const runtime = useMemo(() => {
         if (!snapshot.startedAt) return null;
         const start = new Date(snapshot.startedAt).getTime();
-        const end   = snapshot.finishedAt
-            ? new Date(snapshot.finishedAt).getTime()
-            : now;
+        const end = snapshot.finishedAt ? new Date(snapshot.finishedAt).getTime() : now;
         return formatDurationMs(end - start);
     }, [snapshot.startedAt, snapshot.finishedAt, now]);
 
-    const isActive = snapshot.status === JobStatus.ACTIVE ||
-        snapshot.status === JobStatus.QUEUED;
+    const isActive = snapshot.status === JobStatus.ACTIVE || snapshot.status === JobStatus.QUEUED;
 
     return (
         <div className="rounded-xl border bg-card p-4 space-y-4">
             <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                    <p className="font-medium text-sm">
-                        {JOB_TYPE_LABEL[snapshot.type]}
-                    </p>
+                    <p className="font-medium text-sm">{JOB_TYPE_LABEL[snapshot.type]}</p>
                     {runtime && (
                         <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                             <Clock className="h-3 w-3 shrink-0" />
@@ -267,9 +251,9 @@ function JobCard({
                             className="flex items-center gap-1 text-xs text-primary/80"
                             title="Stream disconnected — reconnecting"
                         >
-              <WifiOff className="size-3" />
-              Reconnecting
-            </span>
+                            <WifiOff className="size-3" />
+                            Reconnecting
+                        </span>
                     )}
                     <StatusBadge status={snapshot.status} />
                 </div>
@@ -277,20 +261,14 @@ function JobCard({
 
             {snapshot.errorMessage && (
                 <div className="rounded-md border border-border bg-muted/60 px-3 py-2">
-                    <p className="text-xs text-foreground font-mono wrap-break-word">
-                        {snapshot.errorMessage}
-                    </p>
+                    <p className="text-xs text-foreground font-mono wrap-break-word">{snapshot.errorMessage}</p>
                 </div>
             )}
 
-            {(isActive || snapshot.totalItems > 0) && (
-                <ProgressSection snapshot={snapshot} />
-            )}
+            {(isActive || snapshot.totalItems > 0) && <ProgressSection snapshot={snapshot} />}
 
             <div className="space-y-1.5">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Logs
-                </p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Logs</p>
                 <LogTail snapshot={snapshot} />
             </div>
         </div>
@@ -307,16 +285,10 @@ export function JobStatusCard({
 }) {
     const { snapshot, phase, isReconnecting } = useJobStream(jobType);
 
-    if (phase === "loading")              return hideWhenEmpty ? null : <JobStatusSkeleton />;
-    if (phase === "no-job")              return hideWhenEmpty ? null : <NoJobCard jobType={jobType} />;
-    if (phase === "error" && !snapshot)  return <ErrorCard />;
-    if (!snapshot)                       return null;
+    if (phase === "loading") return hideWhenEmpty ? null : <JobStatusSkeleton />;
+    if (phase === "no-job") return hideWhenEmpty ? null : <NoJobCard jobType={jobType} />;
+    if (phase === "error" && !snapshot) return <ErrorCard />;
+    if (!snapshot) return null;
 
-    return (
-        <JobCard
-            snapshot={snapshot}
-            phase={phase}
-            isReconnecting={isReconnecting}
-        />
-    );
+    return <JobCard snapshot={snapshot} phase={phase} isReconnecting={isReconnecting} />;
 }
