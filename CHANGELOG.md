@@ -1,3 +1,9 @@
+## [2.4.1](https://github.com/thomaskoeppe/gamepile/compare/v2.4.0...v2.4.1) (2026-08-30)
+
+### Refactors
+
+* **queue:** replace jobsQueue with getJobsQueue for lazy initialization ([da60570](https://github.com/thomaskoeppe/gamepile/commit/da6057036db8876c2167d5943981decc538e3e6e))
+
 ## [2.4.0](https://github.com/thomaskoeppe/gamepile/compare/v2.3.1...v2.4.0) (2026-08-30)
 
 ### Features
