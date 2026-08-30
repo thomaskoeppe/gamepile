@@ -47,6 +47,12 @@ jobs:
 
   codeql:
     name: CodeQL
+    # Requires CodeQL *default setup* to stay disabled for this repository
+    # (Settings -> Code security -> Code scanning -> CodeQL analysis). GitHub
+    # rejects SARIF from an advanced configuration while default setup is on:
+    # "CodeQL analyses from advanced configurations cannot be processed when
+    # the default setup is enabled". This workflow is the advanced config, so
+    # it owns the query suite (security-and-quality) and the schedule.
     runs-on: ubuntu-latest
     permissions:
       contents: read
