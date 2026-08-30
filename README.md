@@ -5,11 +5,10 @@
 [![Release](https://img.shields.io/github/v/release/thomaskoeppe/gamepile?logo=github&label=release)](https://github.com/thomaskoeppe/gamepile/releases/latest)
 [![License](https://img.shields.io/github/license/thomaskoeppe/gamepile)](LICENSE)
 
-Coverage —
-[![Statements](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fthomaskoeppe%2Fgamepile%2Fbadges%2Fcoverage-statements.json)](https://github.com/thomaskoeppe/gamepile/actions/workflows/ci.yml)
-[![Branches](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fthomaskoeppe%2Fgamepile%2Fbadges%2Fcoverage-branches.json)](https://github.com/thomaskoeppe/gamepile/actions/workflows/ci.yml)
-[![Functions](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fthomaskoeppe%2Fgamepile%2Fbadges%2Fcoverage-functions.json)](https://github.com/thomaskoeppe/gamepile/actions/workflows/ci.yml)
-[![Lines](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fthomaskoeppe%2Fgamepile%2Fbadges%2Fcoverage-lines.json)](https://github.com/thomaskoeppe/gamepile/actions/workflows/ci.yml)
+[![Branches](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fthomaskoeppe%2Fgamepile%2Frefs%2Fheads%2Fbadges%2Fcoverage-branches.json&logo=vitest&logoColor=white)](https://github.com/thomaskoeppe/gamepile/actions/workflows/ci.yml)
+[![Functions](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fthomaskoeppe%2Fgamepile%2Frefs%2Fheads%2Fbadges%2Fcoverage-functions.json&logo=vitest&logoColor=white)](https://github.com/thomaskoeppe/gamepile/actions/workflows/ci.yml)
+[![Statements](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fthomaskoeppe%2Fgamepile%2Frefs%2Fheads%2Fbadges%2Fcoverage-statements.json&logo=vitest&logoColor=white)](https://github.com/thomaskoeppe/gamepile/actions/workflows/ci.yml)
+[![Lines](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fthomaskoeppe%2Fgamepile%2Frefs%2Fheads%2Fbadges%2Fcoverage-lines.json&logo=vitest&logoColor=white)](https://github.com/thomaskoeppe/gamepile/actions/workflows/ci.yml)
 
 [![Docker images](https://img.shields.io/badge/ghcr.io-gamepile-2496ED?logo=docker&logoColor=white)](https://github.com/thomaskoeppe?tab=packages&repo_name=gamepile)
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org)
@@ -18,8 +17,6 @@ Coverage —
 [![Last commit](https://img.shields.io/github/last-commit/thomaskoeppe/gamepile)](https://github.com/thomaskoeppe/gamepile/commits/main)
 
 **Self-hosted Steam game library manager.** Import your library, build collections, and share game key vaults.
-
-> ⚠️ **Beta** — Gamepile is under active development. Expect breaking changes between versions. Use at your own risk.
 
 <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/documentation/images/library_1.png" width="30%" alt="Library view 1" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/documentation/images/library_2.png" width="30%" alt="Library view 2" /> <img src="https://raw.githubusercontent.com/thomaskoeppe/gamepile/refs/heads/main/documentation/images/explore_1.png" width="30%" alt="Explore view 1" />
 
