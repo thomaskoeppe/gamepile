@@ -1,3 +1,16 @@
+## [2.4.0](https://github.com/thomaskoeppe/gamepile/compare/v2.3.1...v2.4.0) (2026-08-30)
+
+### Features
+
+* **logging:** add rotating file logs and honour LOG_LEVEL ([649ac91](https://github.com/thomaskoeppe/gamepile/commit/649ac915eac0b755f046447221516f4d47a4c83e))
+
+### Bug Fixes
+
+* **web:** release SSE pollers when a client disconnects ([2af65ae](https://github.com/thomaskoeppe/gamepile/commit/2af65aecdf430e6bc504604c90b7e45d4e0605a2))
+* **web:** stop a cold settings cache from bricking every request ([bcb997f](https://github.com/thomaskoeppe/gamepile/commit/bcb997fb4f5a125cf6cd5fac6259f4854dad387d))
+* **worker:** harden the Steam tag and category caches ([b275683](https://github.com/thomaskoeppe/gamepile/commit/b2756836439d59cb99b92c00ef2c5eda03f3308b))
+* **worker:** survive malformed and non-JSON Steam responses ([9e07220](https://github.com/thomaskoeppe/gamepile/commit/9e072209fe0ec01b7414d1fa3094eca36f4de15f))
+
 ## [2.3.1](https://github.com/thomaskoeppe/gamepile/compare/v2.3.0...v2.3.1) (2026-07-04)
 
 ### Bug Fixes
