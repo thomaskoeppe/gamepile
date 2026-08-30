@@ -41,7 +41,7 @@
     }
   },
   "dependencies": {
-    "concurrently": "^10.0.3",
+    "concurrently": "^10.0.5",
     "dotenv": "^17.4.2"
   },
   "devDependencies": {
