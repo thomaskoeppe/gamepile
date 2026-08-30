@@ -68,9 +68,8 @@ const prismaMock = {
 vi.mock("@/lib/prisma", () => ({ default: prismaMock }));
 vi.mock("@/lib/redis", () => ({ redis: { ping: vi.fn() }, redisOptions: {} }));
 vi.mock("@/lib/search-query", () => ({ searchGamesRanked: vi.fn().mockResolvedValue([]) }));
-// lib/jobs builds a BullMQ queue at import time, which opens a real Redis socket.
 vi.mock("@/lib/jobs", () => ({ enqueueJob: (...args: unknown[]) => enqueueJob(...args) }));
-vi.mock("@/lib/queue", () => ({ jobsQueue: { add: vi.fn().mockResolvedValue({ id: "bull-1" }) } }));
+vi.mock("@/lib/queue", () => ({ getJobsQueue: () => ({ add: vi.fn().mockResolvedValue({ id: "bull-1" }) }) }));
 
 vi.mock("@/lib/logger", () => {
     const child = () => ({

@@ -2,7 +2,7 @@ import "server-only";
 
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
-import { jobsQueue } from "@/lib/queue";
+import { getJobsQueue } from "@/lib/queue";
 import { JobType } from "@/prisma/generated/enums";
 
 const log = logger.child("server.services.jobs");
@@ -26,7 +26,7 @@ export async function enqueueJob(type: JobType, userId?: string): Promise<string
         },
     });
 
-    await jobsQueue.add(type, { jobId: job.id, userId, type });
+    await getJobsQueue().add(type, { jobId: job.id, userId, type });
 
     log.info("Job created and queued", {
         jobId: job.id,

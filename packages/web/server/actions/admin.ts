@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { getSetting, loadSettings, upsertSetting, upsertSettings } from "@/lib/app-settings";
 import prisma from "@/lib/prisma";
-import { jobsQueue } from "@/lib/queue";
+import { getJobsQueue } from "@/lib/queue";
 import { redis } from "@/lib/redis";
 import { withLogging } from "@/lib/with-logging";
 import { AppSettingKey, JobStatus, JobType, KeyVaultAuthType, UserRole } from "@/prisma/generated/enums";
@@ -352,7 +352,7 @@ export const invokeAdminJob = actionClientWithAdmin
                     data: { type, userId: userId ?? null },
                 });
 
-                await jobsQueue.add(type, { jobId: job.id, userId, type });
+                await getJobsQueue().add(type, { jobId: job.id, userId, type });
 
                 log.info("Admin job queued successfully", { jobId: job.id, type, invokedBy: ctx.user.id });
 
