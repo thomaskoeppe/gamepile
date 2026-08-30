@@ -104,6 +104,57 @@ jobs:
             '
           } >> "$GITHUB_STEP_SUMMARY"
 
+  # Feeds the README coverage badges. The numbers are published as shields.io
+  # endpoints on an orphan `badges` branch rather than to a third-party service,
+  # so no account or extra secret is involved. The branch holds nothing but the
+  # badge payloads and is force-pushed each time, so its history is disposable.
+  coverage-badge:
+    name: Coverage badges
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage
+          path: coverage
+
+      - name: Publish badge endpoints
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          mkdir badge && cd badge
+          node -e '
+            const { total } = require("../coverage/coverage-summary.json");
+            const fs = require("node:fs");
+            for (const metric of ["statements", "branches", "functions", "lines"]) {
+              const pct = total[metric].pct;
+              const color =
+                pct >= 90 ? "brightgreen" :
+                pct >= 80 ? "green" :
+                pct >= 70 ? "yellowgreen" :
+                pct >= 60 ? "yellow" :
+                pct >= 40 ? "orange" : "red";
+              fs.writeFileSync(
+                `coverage-${metric}.json`,
+                JSON.stringify({ schemaVersion: 1, label: metric, message: `${pct}%`, color }),
+              );
+            }
+          '
+
+          git init -q -b badges
+          git add coverage-*.json
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "chore(badges): coverage for ${GITHUB_SHA} [skip ci]"
+          git push -q --force \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" badges
+
   build:
     name: Build
     runs-on: ubuntu-latest

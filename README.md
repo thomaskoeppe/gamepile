@@ -1,5 +1,22 @@
 # <img src="/packages/web/public/logo_simple.png" width="32px" align="center" /> GAMEPILE
 
+[![CI](https://github.com/thomaskoeppe/gamepile/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/thomaskoeppe/gamepile/actions/workflows/ci.yml)
+[![Security](https://github.com/thomaskoeppe/gamepile/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/thomaskoeppe/gamepile/actions/workflows/security.yml)
+[![Release](https://img.shields.io/github/v/release/thomaskoeppe/gamepile?logo=github&label=release)](https://github.com/thomaskoeppe/gamepile/releases/latest)
+[![License](https://img.shields.io/github/license/thomaskoeppe/gamepile)](LICENSE)
+
+Coverage —
+[![Statements](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fthomaskoeppe%2Fgamepile%2Fbadges%2Fcoverage-statements.json)](https://github.com/thomaskoeppe/gamepile/actions/workflows/ci.yml)
+[![Branches](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fthomaskoeppe%2Fgamepile%2Fbadges%2Fcoverage-branches.json)](https://github.com/thomaskoeppe/gamepile/actions/workflows/ci.yml)
+[![Functions](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fthomaskoeppe%2Fgamepile%2Fbadges%2Fcoverage-functions.json)](https://github.com/thomaskoeppe/gamepile/actions/workflows/ci.yml)
+[![Lines](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fthomaskoeppe%2Fgamepile%2Fbadges%2Fcoverage-lines.json)](https://github.com/thomaskoeppe/gamepile/actions/workflows/ci.yml)
+
+[![Docker images](https://img.shields.io/badge/ghcr.io-gamepile-2496ED?logo=docker&logoColor=white)](https://github.com/thomaskoeppe?tab=packages&repo_name=gamepile)
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org)
+[![Last commit](https://img.shields.io/github/last-commit/thomaskoeppe/gamepile)](https://github.com/thomaskoeppe/gamepile/commits/main)
+
 **Self-hosted Steam game library manager.** Import your library, build collections, and share game key vaults.
 
 > ⚠️ **Beta** — Gamepile is under active development. Expect breaking changes between versions. Use at your own risk.
